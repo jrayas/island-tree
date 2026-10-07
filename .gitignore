@@ -1,0 +1,11 @@
+# Dependencies and build output
+node_modules/
+main.js
+*.js.map
+
+# Local test vault and editor files
+.hotreload
+data.json
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,46 @@
+# Island tree
+
+An Obsidian plugin that shows your vault's folders and files as an animated, canvas-style dashboard: rounded "island" cards joined by curved, flowing branches, in a vertical or radial layout on a dotted grid.
+
+> **Status: early development (milestone 1 of 7).** The plugin currently opens an empty view. The dashboard itself arrives in milestone 2. See [`PROGRESS.md`](PROGRESS.md).
+
+## Planned features
+
+- Vertical and radial layouts with pan and zoom.
+- Updates by itself when files change.
+- Cards showing file type, link counts, tags, status, modified date and size, each switchable.
+- Optional editing (rename, create, delete, drag to move) behind a lock. The dashboard always starts locked.
+- Tabbed settings with presets, import and export.
+
+## Install
+
+Not yet available in the community plugin list. To try a development build, see [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).
+
+Once released, install it from **Settings → Community plugins → Browse** and search for "Island tree", or copy `main.js`, `manifest.json` and `styles.css` from a GitHub release into `<your vault>/.obsidian/plugins/island-tree/`.
+
+## Use
+
+- Click the network icon in the ribbon, or run **Open dashboard** from the command palette.
+- Run **Open dashboard in sidebar** to open it in the right sidebar.
+
+No hotkeys are set by default. Assign your own in **Settings → Hotkeys**.
+
+## Settings
+
+Settings arrive in milestone 5.
+
+## Known limits
+
+- Desktop only for version 1.
+- No network calls and no telemetry.
+
+## Documentation
+
+- [`SPEC.md`](SPEC.md): agreed design and milestones.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): how it is built.
+- [`docs/DECISIONS.md`](docs/DECISIONS.md): why it is built that way.
+- [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md): setup, commands and testing.
+
+## Licence
+
+[MIT](LICENSE)

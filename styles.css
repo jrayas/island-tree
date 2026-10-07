@@ -1,0 +1,14 @@
+/* Island tree styles. Colours come from Obsidian theme variables so light and
+   dark themes both work. */
+
+.island-tree-view {
+  padding: 0;
+}
+
+.island-tree-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+}
