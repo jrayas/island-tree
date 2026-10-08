@@ -66,6 +66,21 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] With "Reduce motion" turned on in Windows, cards jump instead of gliding and the lines do not animate.
 - [ ] Closing the tab leaves no errors in the developer console (Ctrl+Shift+I), and reopening it starts with only the top level open.
 
+**Milestone 3** (use a test vault with nested folders, a folder with more than six items and a few notes)
+
+- [ ] **Radial** moves the cards onto rings around the vault card, gliding there, with smaller cards and branches that curve around the centre. **Vertical** goes back. The view re-frames each time.
+- [ ] In the radial layout a folder with many descendants gets a wider slice of the circle than an empty one, and no cards overlap.
+- [ ] **Expand folders** opens every folder. Turning it off closes everything back to the top level.
+- [ ] **Expand files** lists the files of every open folder. Turning it off hides them again, including any folder you had switched on with its badge.
+- [ ] Typing in **Search names** opens the path to each match, rings the matches in yellow and fades the other cards. Clearing the box returns to exactly what was open before.
+- [ ] Double click a folder: the view focuses on it, the breadcrumb shows `Vault / Folder`, and **Reset focus** is enabled. Clicking `Vault` in the breadcrumb (or **Reset focus**) goes back.
+- [ ] **Focus selected** is greyed out until a folder is selected.
+- [ ] The info panel shows the selected card's name, path and counts (folder) or type (file).
+- [ ] Double click a note: it opens in a new tab. Ctrl (Cmd) with double click opens a split. Double clicking a file that was deleted after the dashboard opened shows a short notice, not an error.
+- [ ] **Reset** returns to the starting view and keeps the layout you chose.
+- [ ] Changing the plugin's default layout is not possible yet (settings arrive in milestone 5); the dashboard starts vertical.
+- [ ] No errors in the developer console (Ctrl+Shift+I) during any of the above.
+
 ## Project conventions
 
 - British English and sentence case in all UI text.

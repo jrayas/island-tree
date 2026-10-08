@@ -5,6 +5,8 @@
  * vault code and can be unit tested on their own (SPEC.md section 5).
  */
 
+export type LayoutMode = "vertical" | "radial";
+
 export interface LayoutNode {
   id: string;
   children: readonly LayoutNode[];
@@ -22,4 +24,6 @@ export interface LayoutResult {
   /** Total size of the laid-out tree. */
   width: number;
   height: number;
+  /** The middle of a radial layout, which its branches curve around. Null for vertical. */
+  centre: Point | null;
 }

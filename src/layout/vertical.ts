@@ -65,5 +65,6 @@ export function layoutVertical(root: LayoutNode, options: VerticalOptions): Layo
     positions,
     width: subtreeWidth(root),
     height: deepest * (cardHeight + levelGap) + cardHeight,
+    centre: null,
   };
 }

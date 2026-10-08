@@ -6,7 +6,9 @@
  * so defaults, ranges and import validation all live in a single place.
  */
 
-export type LayoutMode = "vertical" | "radial";
+import type { LayoutMode } from "../layout/types";
+
+export type { LayoutMode };
 
 export interface IslandTreeSettings {
   /** Schema version, so saved data can be migrated when fields change. */

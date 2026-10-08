@@ -11,6 +11,10 @@
 
   const display = $derived(data.display);
 
+  function open(event: MouseEvent): void {
+    actions.onopen(id, event);
+  }
+
   function badgeClick(event: MouseEvent): void {
     // Keep the click from reaching the card, which would also open or close the folder.
     event.stopPropagation();
@@ -23,7 +27,12 @@
   class:island-card-folder={display.kind === "folder"}
   class:island-card-more={display.kind === "more"}
   class:island-card-selected={data.selected}
+  class:island-card-hit={data.hit}
+  class:island-card-dim={data.dim}
+  class:island-card-compact={data.compact}
   title={display.tooltip}
+  ondblclick={open}
+  role="presentation"
 >
   <!-- Handles sit at the card centre and are invisible: branches are drawn between centres. -->
   <Handle type="target" position={Position.Top} class="island-handle" isConnectable={false} />
@@ -44,6 +53,7 @@
       aria-label={display.tooltip}
       onclick={badgeClick}
       onpointerdown={(event) => event.stopPropagation()}
+      ondblclick={(event) => event.stopPropagation()}
     >{display.subfolders}·{display.files}</button>
   {/if}
   <Handle type="source" position={Position.Bottom} class="island-handle" isConnectable={false} />

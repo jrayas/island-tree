@@ -7,6 +7,9 @@
  */
 import { ItemView, type WorkspaceLeaf } from "obsidian";
 import { mount, unmount } from "svelte";
+import { openFile } from "./actions/open";
+import type { OpenTarget } from "./actions/target";
+import type IslandTreePlugin from "./main";
 import { readVault } from "./model/vault";
 import App from "./ui/App.svelte";
 
@@ -15,7 +18,10 @@ export const VIEW_TYPE_ISLAND_TREE = "island-tree-view";
 export class IslandTreeView extends ItemView {
   private component: ReturnType<typeof mount> | null = null;
 
-  constructor(leaf: WorkspaceLeaf) {
+  constructor(
+    leaf: WorkspaceLeaf,
+    private readonly plugin: IslandTreePlugin,
+  ) {
     super(leaf);
   }
 
@@ -36,7 +42,11 @@ export class IslandTreeView extends ItemView {
     this.contentEl.addClass("island-tree-view");
     this.component = mount(App, {
       target: this.contentEl,
-      props: { loadTree: () => readVault(this.app.vault) },
+      props: {
+        loadTree: () => readVault(this.app.vault),
+        openFile: (path: string, target: OpenTarget) => void openFile(this.app, path, target),
+        initialLayout: this.plugin.settings.defaultLayout,
+      },
     });
   }
 

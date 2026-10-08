@@ -94,6 +94,18 @@ export function indexTree(root: TreeNode): Map<string, TreeNode> {
   return index;
 }
 
+/** The uid of every folder in the tree, for the "Expand folders" toggle. */
+export function folderUids(root: TreeNode): string[] {
+  const uids: string[] = [];
+  const walk = (node: TreeNode): void => {
+    if (node.kind !== "folder") return;
+    uids.push(node.uid);
+    node.children.forEach(walk);
+  };
+  walk(root);
+  return uids;
+}
+
 /** The nodes from the root down to `node`, used to highlight the path back to the root. */
 export function ancestry(node: TreeNode): TreeNode[] {
   const chain: TreeNode[] = [];

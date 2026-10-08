@@ -1,11 +1,18 @@
 <script lang="ts">
-  // A curved, dashed branch. The highlighted path back to the root flows faster.
+  // A curved, dashed branch, vertical or radial. The highlighted path back to the root flows faster.
   import { BaseEdge, type EdgeProps } from "@xyflow/svelte";
-  import { verticalBranchPath } from "../layout/edgePath";
+  import { radialBranchPath, verticalBranchPath } from "../layout/edgePath";
+  import type { Point } from "../layout/types";
 
   let { id, sourceX, sourceY, targetX, targetY, data }: EdgeProps = $props();
 
-  const path = $derived(verticalBranchPath(sourceX, sourceY, targetX, targetY));
+  // A radial layout passes its centre, which its branches curve around.
+  const centre = $derived((data?.centre as Point | null | undefined) ?? null);
+  const path = $derived(
+    centre
+      ? radialBranchPath(centre, sourceX, sourceY, targetX, targetY)
+      : verticalBranchPath(sourceX, sourceY, targetX, targetY),
+  );
   const highlighted = $derived(data?.highlight === true);
 </script>
 

@@ -10,6 +10,8 @@ import { getContext, setContext } from "svelte";
 export interface CanvasActions {
   /** The folder badge was clicked: show or hide just this folder's files. */
   onbadge: (id: string) => void;
+  /** A card was double-clicked: focus a folder, or open a file. */
+  onopen: (id: string, modifiers: { ctrlKey: boolean; metaKey: boolean }) => void;
 }
 
 const KEY = Symbol("island-tree-canvas-actions");

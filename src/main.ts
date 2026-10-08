@@ -15,7 +15,7 @@ export default class IslandTreePlugin extends Plugin {
   async onload(): Promise<void> {
     await this.loadSettings();
 
-    this.registerView(VIEW_TYPE_ISLAND_TREE, (leaf) => new IslandTreeView(leaf));
+    this.registerView(VIEW_TYPE_ISLAND_TREE, (leaf) => new IslandTreeView(leaf, this));
 
     this.addRibbonIcon("network", "Open dashboard", () => {
       void this.activateView("tab");

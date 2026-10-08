@@ -9,6 +9,12 @@ import type { CardDisplay } from "../model/display";
 export type CardData = {
   display: CardDisplay;
   selected: boolean;
+  /** The card matches the search text. */
+  hit: boolean;
+  /** A search is active and this card is neither a match nor on the way to one. */
+  dim: boolean;
+  /** Smaller text and padding, used by the radial layout. */
+  compact: boolean;
 };
 
 /** One card on the canvas, with where it hangs in the tree. */

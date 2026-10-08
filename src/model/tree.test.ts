@@ -4,6 +4,7 @@ import {
   ancestry,
   buildTree,
   compareEntries,
+  folderUids,
   indexTree,
   type RawEntry,
 } from "./tree";
@@ -76,6 +77,22 @@ describe("buildTree", () => {
     const before = JSON.stringify(raw);
     buildTree(raw, new UidRegistry());
     expect(JSON.stringify(raw)).toBe(before);
+  });
+});
+
+describe("folderUids", () => {
+  it("lists every folder, including nested ones, and no files", () => {
+    const root = buildTree(
+      {
+        name: "Vault",
+        path: "/",
+        children: [folder("A", [folder("B", [file("x.md", "/A/B")], "/A")]), file("top.md")],
+      },
+      new UidRegistry(),
+    );
+    const uids = folderUids(root);
+    const index = indexTree(root);
+    expect(uids.map((uid) => index.get(uid)?.name)).toEqual(["Vault", "A", "B"]);
   });
 });
 

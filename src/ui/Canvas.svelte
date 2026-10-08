@@ -17,25 +17,40 @@
   import { provideCanvasActions } from "./context";
   import IslandNode from "./IslandNode.svelte";
   import BranchEdge from "./BranchEdge.svelte";
+  import FitController from "./FitController.svelte";
 
   let {
     items,
     targets,
     cardWidth,
     cardHeight,
+    radialCentre,
+    fitKey,
     onnodeclick,
     onbadge,
+    onopen,
   }: {
     items: CanvasItem[];
     /** Card centres by id. */
     targets: Map<string, Point>;
     cardWidth: number;
     cardHeight: number;
+    /** The middle of a radial layout, or null for vertical. */
+    radialCentre: Point | null;
+    /** Changing this value moves the camera to frame all cards. */
+    fitKey: number;
     onnodeclick: (id: string) => void;
     onbadge: (id: string) => void;
+    onopen: (id: string, modifiers: { ctrlKey: boolean; metaKey: boolean }) => void;
   } = $props();
 
-  provideCanvasActions({ onbadge: (id) => onbadge(id) });
+  provideCanvasActions({
+    onbadge: (id) => onbadge(id),
+    onopen: (id, modifiers) => onopen(id, modifiers),
+  });
+
+  let paneWidth = $state(0);
+  let paneHeight = $state(0);
 
   const nodeTypes = { island: IslandNode };
   const edgeTypes = { branch: BranchEdge };
@@ -67,7 +82,7 @@
     });
   }
 
-  function buildEdges(list: CanvasItem[]): Edge[] {
+  function buildEdges(list: CanvasItem[], centre: Point | null): Edge[] {
     return list
       .filter((item) => item.parentId !== null)
       .map((item) => ({
@@ -75,7 +90,7 @@
         source: item.parentId as string,
         target: item.id,
         type: "branch",
-        data: { highlight: item.highlight },
+        data: { highlight: item.highlight, centre },
         selectable: false,
         focusable: false,
         deletable: false,
@@ -102,13 +117,14 @@
   untrack(() => {
     current = new Map(targets);
     nodes = buildNodes(items, targets);
-    edges = buildEdges(items);
+    edges = buildEdges(items, radialCentre);
   });
 
   let first = true;
   $effect(() => {
     const list = items;
     const goal = targets;
+    const centre = radialCentre;
     if (first) {
       first = false;
       return;
@@ -119,7 +135,7 @@
       list.map(({ id, parentId }) => ({ id, parentId })),
     );
     nodes = buildNodes(list, goal);
-    edges = buildEdges(list);
+    edges = buildEdges(list, centre);
     kick();
   });
 
@@ -128,7 +144,7 @@
   });
 </script>
 
-<div class="island-canvas">
+<div class="island-canvas" bind:clientWidth={paneWidth} bind:clientHeight={paneHeight}>
   <SvelteFlow
     {nodes}
     {edges}
@@ -148,5 +164,13 @@
   >
     <Background variant={BackgroundVariant.Dots} gap={22} size={1.2} />
     <Controls showLock={false} />
+    <FitController
+      trigger={fitKey}
+      {targets}
+      {cardWidth}
+      {cardHeight}
+      width={paneWidth}
+      height={paneHeight}
+    />
   </SvelteFlow>
 </div>

@@ -93,3 +93,35 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 **Decision:** `readVault` walks the whole vault each time the view opens, and card size and gaps are constants in `App.svelte`.
 
 **Why:** Lazy building and live updates are milestone 4, and the settings that control sizes are milestone 5. The visible tree is small even for large vaults because folders start closed, but the full walk is the first thing to measure in the milestone 7 performance test.
+
+## D-015: Search is a temporary overlay, not saved state (milestone 3)
+
+**Decision:** Typing in the search box does not change `open`, `showAll` or `filesFor`. `withSearchReveal` adds the folders leading to each match on top of them while the query is non-empty, and clearing the query restores the view as it was. Matching is a case-insensitive substring of the name. Typing also leaves any focus, as the mockup does.
+
+**Why:** The mockup left every folder it had opened during a search open afterwards, which is hard to undo. The overlay keeps SPEC.md section 4 rule 7 (matches highlight, ancestors open, parent folders list files, other cards fade) without the side effect.
+
+**Cost:** while a search is active, closing a folder on the way to a match has no effect.
+
+## D-016: The camera re-fits on layout, focus and reset only (milestone 3)
+
+**Decision:** `fitKey` in `App.svelte` is bumped when the layout changes, the focus changes (including Reset focus and the breadcrumb) and on Reset. `FitController.svelte` then frames the target positions with `getViewportForBounds` and `setViewport`. Folder clicks, the Expand toggles and search do not move the camera.
+
+**Why:** Re-fitting on every change makes the view jump while browsing. The camera frames where cards are going, not where they are, because they are still gliding when it moves (`layout/bounds.ts`). It sits in a child component because only descendants of `<SvelteFlow>` can reach the viewport.
+
+## D-017: Radial layout constants and a layout dispatcher (milestone 3)
+
+**Decision:** `layout/layout.ts` chooses the engine for the current mode and holds the card sizes: 116×40 for vertical, 88×30 for radial (both from the mockup). Ring radii are 0, 125, 235, 335, 425 then +90 per further ring, as in the mockup. Radial cards use a smaller font and padding (`island-card-compact`).
+
+**Why:** One place decides the engine and the sizes. They stay constants until the settings milestone. The mockup's detailed-card scale of 1.3 is supported by `layoutRadial` (`scale`) but not used until detailed cards exist in milestone 4.
+
+## D-018: Double click focuses folders and opens files (milestone 3)
+
+**Decision:** A double click on a folder focuses it. A double click on a file opens it in a new tab, or in a split with Ctrl or Cmd, through `workspace.getLeaf("tab" | "split")` and `leaf.openFile`. The file is found with `vault.getFileByPath`; if it has gone, a short Obsidian notice says so (the in-view toast arrives in milestone 6). The two single clicks that precede a double click toggle a folder twice, which cancels out.
+
+**Why:** SPEC.md section 2 defines these gestures, and the dashboard is of little use if files cannot be opened. Svelte Flow has no node double click event, so the card element handles it.
+
+## D-019: Radial branches and the centre handle (milestone 3)
+
+**Decision:** The radial centre travels in each edge's data. `radialBranchPath` places both control points on the mid radius, one at the parent's angle and one at the child's. A parent on the centre has no angle of its own, so it uses the child's. Centre handles (D-012) work for both layouts unchanged.
+
+**Why:** It follows SPEC.md section 5. Using the target centre means branches look slightly off for the fraction of a second a layout switch takes to glide; acceptable for now.
