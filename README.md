@@ -2,7 +2,7 @@
 
 An Obsidian plugin that shows your vault's folders and files as an animated, canvas-style dashboard: rounded "island" cards joined by curved, flowing branches, in a vertical or radial layout on a dotted grid.
 
-> **Status: early development (milestone 1 of 7).** The plugin currently opens an empty view. The dashboard itself arrives in milestone 2. See [`PROGRESS.md`](PROGRESS.md).
+> **Status: early development (milestone 2 of 7).** The plugin shows a read-only vertical tree of your vault. Radial layout, search, live updates, settings and editing are still to come. See [`PROGRESS.md`](PROGRESS.md).
 
 ## Planned features
 
@@ -22,6 +22,8 @@ Once released, install it from **Settings → Community plugins → Browse** and
 
 - Click the network icon in the ribbon, or run **Open dashboard** from the command palette.
 - Run **Open dashboard in sidebar** to open it in the right sidebar.
+- Click a folder to open or close it. Click the small badge on a folder to show or hide its files. Click "+N more" to show everything in a long list.
+- Drag the background to pan and scroll to zoom.
 
 No hotkeys are set by default. Assign your own in **Settings → Hotkeys**.
 

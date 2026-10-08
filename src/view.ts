@@ -7,6 +7,7 @@
  */
 import { ItemView, type WorkspaceLeaf } from "obsidian";
 import { mount, unmount } from "svelte";
+import { readVault } from "./model/vault";
 import App from "./ui/App.svelte";
 
 export const VIEW_TYPE_ISLAND_TREE = "island-tree-view";
@@ -33,7 +34,10 @@ export class IslandTreeView extends ItemView {
   async onOpen(): Promise<void> {
     this.contentEl.empty();
     this.contentEl.addClass("island-tree-view");
-    this.component = mount(App, { target: this.contentEl });
+    this.component = mount(App, {
+      target: this.contentEl,
+      props: { loadTree: () => readVault(this.app.vault) },
+    });
   }
 
   // Destroying the component here stops its listeners and animation frames

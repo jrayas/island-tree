@@ -9,7 +9,9 @@ import builtins from "builtin-modules";
 const production = process.argv[2] === "production";
 
 const context = await esbuild.context({
-  entryPoints: ["src/main.ts"],
+  // main.ts becomes main.js; styles.css is bundled with Svelte Flow's stylesheet
+  // into the styles.css Obsidian loads, so no style elements are injected at runtime.
+  entryPoints: { main: "src/main.ts", styles: "src/styles.css" },
   bundle: true,
   // Obsidian and Electron provide these at runtime, so they must not be bundled.
   external: [
@@ -31,6 +33,8 @@ const context = await esbuild.context({
   plugins: [
     esbuildSvelte({
       compilerOptions: { css: "injected", dev: !production },
+      // Warnings inside node_modules are the libraries' to fix, not ours.
+      filterWarnings: (warning) => !warning.filename?.includes("node_modules"),
     }),
   ],
   mainFields: ["svelte", "browser", "module", "main"],
@@ -41,7 +45,7 @@ const context = await esbuild.context({
   sourcemap: production ? false : "inline",
   treeShaking: true,
   minify: production,
-  outfile: "main.js",
+  outdir: ".",
 });
 
 if (production) {
