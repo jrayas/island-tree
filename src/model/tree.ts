@@ -44,6 +44,24 @@ export class UidRegistry {
     }
     return uid;
   }
+
+  /**
+   * Records that a file or folder moved, so it keeps its id under the new path.
+   * A folder takes everything beneath it along. Calling it again for a child that
+   * has already moved does nothing, so it is safe whether Obsidian reports a
+   * folder rename once or once for every file inside.
+   */
+  moved(oldPath: string, newPath: string): void {
+    if (oldPath === newPath) return;
+    const prefix = `${oldPath}/`;
+    const renames: [string, string, string][] = [];
+    for (const [path, uid] of this.byPath) {
+      if (path === oldPath) renames.push([path, newPath, uid]);
+      else if (path.startsWith(prefix)) renames.push([path, newPath + path.slice(oldPath.length), uid]);
+    }
+    for (const [from] of renames) this.byPath.delete(from);
+    for (const [, to, uid] of renames) this.byPath.set(to, uid);
+  }
 }
 
 /**

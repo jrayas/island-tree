@@ -2,7 +2,7 @@
 
 An Obsidian plugin that shows your vault's folders and files as an animated, canvas-style dashboard: rounded "island" cards joined by curved, flowing branches, in a vertical or radial layout on a dotted grid.
 
-> **Status: early development (milestone 3 of 7).** The plugin shows a read-only tree of your vault in a vertical or radial layout, with search and focus. Live updates, file details, settings and editing are still to come. See [`PROGRESS.md`](PROGRESS.md).
+> **Status: early development (milestone 4 of 7).** The plugin shows a read-only, live-updating tree of your vault in a vertical or radial layout, with search, focus and file details. Settings and editing are still to come. See [`PROGRESS.md`](PROGRESS.md).
 
 ## Planned features
 
@@ -25,6 +25,8 @@ Once released, install it from **Settings → Community plugins → Browse** and
 - Click a folder to open or close it. Click the small badge on a folder to show or hide its files. Click "+N more" to show everything in a long list.
 - Drag the background to pan and scroll to zoom.
 - Use **Vertical** and **Radial** to change the layout, **Expand folders** and **Expand files** to open everything, and **Reset** to go back to the start.
+- The dashboard follows your vault: new, renamed, moved and deleted notes appear without reloading.
+- Turn on **Details** for bigger cards with a second row for notes: a dot for how recently it changed (green today, amber within a week, grey older), its age, size, number of links and its status. The status comes from a `status` property in the note. Zoom in to see the row; zoomed far out, cards shrink to a colour and a short name.
 - Type in **Search names** to reveal matching files and folders. Clear the box to return to your view.
 - Double click a folder to focus on it, or select one and use **Focus selected**. The breadcrumb and **Reset focus** take you back up.
 - Double click a file to open it in a new tab, or hold Ctrl (Cmd on a Mac) to open it in a split.

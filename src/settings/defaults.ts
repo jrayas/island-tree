@@ -14,6 +14,8 @@ export interface IslandTreeSettings {
   /** Schema version, so saved data can be migrated when fields change. */
   version: number;
   defaultLayout: LayoutMode;
+  /** The frontmatter property whose value shows as a status chip on file cards. */
+  statusProperty: string;
 }
 
 export const SETTINGS_VERSION = 1;
@@ -21,6 +23,7 @@ export const SETTINGS_VERSION = 1;
 export const DEFAULT_SETTINGS: IslandTreeSettings = {
   version: SETTINGS_VERSION,
   defaultLayout: "vertical",
+  statusProperty: "status",
 };
 
 /**

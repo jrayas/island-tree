@@ -7,12 +7,14 @@
     layoutMode,
     foldersOn,
     filesOn,
+    detailOn,
     query,
     canFocus,
     isFocused,
     onlayout,
     onfolders,
     onfiles,
+    ondetail,
     onreset,
     onquery,
     onfocus,
@@ -21,6 +23,7 @@
     layoutMode: LayoutMode;
     foldersOn: boolean;
     filesOn: boolean;
+    detailOn: boolean;
     query: string;
     /** A folder is selected, so Focus selected can act. */
     canFocus: boolean;
@@ -29,6 +32,7 @@
     onlayout: (mode: LayoutMode) => void;
     onfolders: () => void;
     onfiles: () => void;
+    ondetail: () => void;
     onreset: () => void;
     onquery: (text: string) => void;
     onfocus: () => void;
@@ -58,6 +62,9 @@
     >
     <button type="button" class:is-active={filesOn} aria-pressed={filesOn} onclick={onfiles}
       >Expand files</button
+    >
+    <button type="button" class:is-active={detailOn} aria-pressed={detailOn} onclick={ondetail}
+      >Details</button
     >
     <button type="button" onclick={onreset}>Reset</button>
   </div>

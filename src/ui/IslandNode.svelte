@@ -1,15 +1,21 @@
 <script lang="ts">
   // One card: a file, a folder (with its badge) or a "+N more" pill.
+  // What it shows depends on the zoom: far out only a type colour and a short
+  // name, close in the second row of details when Details is on.
   // Styling lives in styles.css, so the release ships a single stylesheet.
   import { Handle, Position } from "@xyflow/svelte";
   import { icon } from "./icon";
   import type { CardData } from "./cardData";
-  import { useCanvasActions } from "./context";
+  import { useCanvasActions, useZoom } from "./context";
 
   let { id, data }: { id: string; data: CardData } = $props();
   const actions = useCanvasActions();
+  const zoom = useZoom();
 
   const display = $derived(data.display);
+  const minimal = $derived(zoom.level === "minimal");
+  const showDetail = $derived(data.detail && zoom.level === "detailed" && display.kind !== "more");
+  const meta = $derived(data.meta);
 
   function open(event: MouseEvent): void {
     actions.onopen(id, event);
@@ -30,31 +36,53 @@
   class:island-card-hit={data.hit}
   class:island-card-dim={data.dim}
   class:island-card-compact={data.compact}
+  class:island-card-minimal={minimal}
   title={display.tooltip}
   ondblclick={open}
   role="presentation"
 >
   <!-- Handles sit at the card centre and are invisible: branches are drawn between centres. -->
   <Handle type="target" position={Position.Top} class="island-handle" isConnectable={false} />
-  {#if display.icon}
-    <span
-      class="island-card-icon"
-      style:color={display.colour}
-      use:icon={display.icon}
-      aria-hidden="true"
-    ></span>
-  {/if}
-  <span class="island-card-name">{display.label}</span>
-  {#if display.kind === "folder"}
-    <button
-      type="button"
-      class="island-card-badge"
-      class:island-card-badge-on={display.filesShown}
-      aria-label={display.tooltip}
-      onclick={badgeClick}
-      onpointerdown={(event) => event.stopPropagation()}
-      ondblclick={(event) => event.stopPropagation()}
-    >{display.subfolders}·{display.files}</button>
+  <div class="island-card-row">
+    {#if minimal && display.kind !== "more"}
+      <span
+        class="island-card-swatch"
+        style:background={display.colour ?? "var(--interactive-accent)"}
+        aria-hidden="true"
+      ></span>
+    {:else if display.icon}
+      <span
+        class="island-card-icon"
+        style:color={display.colour}
+        use:icon={display.icon}
+        aria-hidden="true"
+      ></span>
+    {/if}
+    <span class="island-card-name">{display.label}</span>
+    {#if display.kind === "folder" && !minimal}
+      <button
+        type="button"
+        class="island-card-badge"
+        class:island-card-badge-on={display.filesShown}
+        aria-label={display.tooltip}
+        onclick={badgeClick}
+        onpointerdown={(event) => event.stopPropagation()}
+        ondblclick={(event) => event.stopPropagation()}
+      >{display.subfolders}·{display.files}</button>
+    {/if}
+  </div>
+  {#if showDetail && display.kind === "folder"}
+    <div class="island-card-meta">
+      <span>{display.items} {display.items === 1 ? "item" : "items"}</span>
+    </div>
+  {:else if showDetail && meta}
+    <div class="island-card-meta">
+      <span class="island-dot island-dot-{meta.recency}" aria-hidden="true"></span>
+      <span>{meta.age} · {meta.size} · {meta.links} {meta.links === 1 ? "link" : "links"}</span>
+      {#if meta.status}
+        <span class="island-chip island-chip-{meta.statusKind}">{meta.status}</span>
+      {/if}
+    </div>
   {/if}
   <Handle type="source" position={Position.Bottom} class="island-handle" isConnectable={false} />
 </div>

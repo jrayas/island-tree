@@ -12,5 +12,12 @@ export default [
       parserOptions: { project: "./tsconfig.json" },
     },
   },
+  {
+    // Svelte's runes are compiler syntax, not real globals, in `.svelte.ts` files.
+    files: ["src/**/*.svelte.ts"],
+    languageOptions: {
+      globals: { $state: "readonly", $derived: "readonly", $effect: "readonly" },
+    },
+  },
   { ignores: ["main.js", "node_modules/**", "**/*.svelte"] },
 ];

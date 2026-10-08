@@ -14,10 +14,12 @@
   import { easeFactor, seedPositions, stepPositions } from "../layout/animate";
   import type { Point } from "../layout/types";
   import type { CanvasItem } from "./cardData";
-  import { provideCanvasActions } from "./context";
+  import { provideCanvasActions, provideZoom } from "./context";
   import IslandNode from "./IslandNode.svelte";
   import BranchEdge from "./BranchEdge.svelte";
   import FitController from "./FitController.svelte";
+  import ZoomWatcher from "./ZoomWatcher.svelte";
+  import { ZoomState } from "./zoomState.svelte";
 
   let {
     items,
@@ -48,6 +50,8 @@
     onbadge: (id) => onbadge(id),
     onopen: (id, modifiers) => onopen(id, modifiers),
   });
+
+  provideZoom(new ZoomState());
 
   let paneWidth = $state(0);
   let paneHeight = $state(0);
@@ -164,6 +168,7 @@
   >
     <Background variant={BackgroundVariant.Dots} gap={22} size={1.2} />
     <Controls showLock={false} />
+    <ZoomWatcher />
     <FitController
       trigger={fitKey}
       {targets}

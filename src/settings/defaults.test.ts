@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { clampNumber } from "./defaults";
+import { DEFAULT_SETTINGS, clampNumber } from "./defaults";
+
+describe("DEFAULT_SETTINGS", () => {
+  it("looks for a status property called status", () => {
+    expect(DEFAULT_SETTINGS.statusProperty).toBe("status");
+  });
+});
 
 describe("clampNumber", () => {
   it("returns values already in range unchanged", () => {

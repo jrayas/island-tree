@@ -125,3 +125,41 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 **Decision:** The radial centre travels in each edge's data. `radialBranchPath` places both control points on the mid radius, one at the parent's angle and one at the child's. A parent on the centre has no angle of its own, so it uses the child's. Centre handles (D-012) work for both layouts unchanged.
 
 **Why:** It follows SPEC.md section 5. Using the target centre means branches look slightly off for the fraction of a second a layout switch takes to glide; acceptable for now.
+
+## D-020: Live updates rebuild the whole tree with stable ids (milestone 4)
+
+**Decision:** When files are created, deleted or moved, `App.svelte` rebuilds the full node tree from the vault, reusing the same `UidRegistry` so every path keeps its id. A rename or move is reported to the registry (`moved`) at once, before the debounced rebuild, so the card keeps its id and glides to its new parent. `reconcileViewState` then removes ids that no longer exist. SPEC.md section 7 prefers incremental updates and lazy building of collapsed folders; both are deferred.
+
+**Why:** Patching the tree adds a lot of risk (renames, moves, folder renames, ordering) for no visible gain on normal vaults, and the rebuild is a single pass over the vault. The 10,000-file test in milestone 7 will measure it, and incremental or lazy building can then be added with a measured target.
+
+**Revisit if:** the rebuild takes noticeably long on a large vault, or typing in a note causes a visible stall (modify events do not rebuild the tree, only re-read details).
+
+## D-021: Notifications wait for quiet and arrive once (milestone 4)
+
+**Decision:** `watch.ts` debounces structure events (`create`, `delete`, `rename`) and metadata events (`modify`, `changed`, `resolved`) separately, each after 150 ms with no new event. Renames also call `onRename` immediately. The returned function removes every listener and cancels pending calls, and the app calls it when the view closes.
+
+**Why:** Editing a note fires `modify` and `changed` many times a second. A smoke test with 200 events two milliseconds apart produced one update after the burst ended. Rename identity must be recorded before the rebuild, or the card would vanish and reappear.
+
+## D-022: File details are read for visible cards only (milestone 4)
+
+**Decision:** `MetaReader` reads modified time, size, links, tags and status when a card is built or the info panel needs it, never for the whole vault. The link index (outgoing and incoming counts, inverted once from `resolvedLinks`) is cached until a change makes it stale. A "link" counts a distinct linked note, not each mention; a card shows outgoing plus incoming, and the info panel shows both.
+
+**Why:** A vault with thousands of notes should cost nothing for notes nobody is looking at. Counting distinct notes avoids one note linking the same page ten times inflating the figure. SPEC.md says not to use undocumented backlink helpers, so backlinks come from inverting `resolvedLinks`.
+
+## D-023: Status property, chip colours and recency (milestone 4)
+
+**Decision:** The status comes from the frontmatter property named by the `statusProperty` setting (default `status`; a settings control arrives in milestone 5). It accepts a string, a number or the first item of a list. `done` is green, `review` is blue and any other value is amber, as in the mockup; a file without a status shows no chip. The recency dot is green for edited today, amber within 7 days and grey after that, counted in calendar days.
+
+**Why:** Matches the mockup. Statuses are free text, so unknown values need a neutral but visible colour.
+
+## D-024: Details toggle, card sizes and semantic zoom (milestone 4)
+
+**Decision:** A Details toggle switches to bigger cards (168×58 vertical, 132×48 radial, rings spread by 1.3) with a second row. The row shows only when the camera zoom is at least 0.7; below 0.45 every card becomes a type-coloured dot and a short name; between the two it is the normal single row. The camera re-frames when Details is toggled, because card sizes change. The zoom level lives in shared reactive state (`ZoomState`), not in the node data, so zooming does not rebuild every card.
+
+**Why:** SPEC.md section 6. The thresholds are constants until the settings milestone.
+
+## D-025: What happens to selection and focus when files disappear (milestone 4)
+
+**Decision:** If the selected card is deleted the selection clears. If the focused folder is deleted the view returns to the vault root. While Expand folders is on, folders created later are opened, but a folder the user closed by hand stays closed.
+
+**Why:** A stale selection or focus would leave the view pointing at nothing. Manual clicks win over the toggle (SPEC.md section 4 rule 6), which is why only folders that did not exist before are opened.

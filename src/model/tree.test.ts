@@ -26,6 +26,44 @@ describe("UidRegistry", () => {
   });
 });
 
+describe("UidRegistry.moved", () => {
+  it("keeps the uid under the new path", () => {
+    const registry = new UidRegistry();
+    const uid = registry.uidFor("/a.md");
+    registry.moved("/a.md", "/b/a.md");
+    expect(registry.uidFor("/b/a.md")).toBe(uid);
+    expect(registry.uidFor("/a.md")).not.toBe(uid);
+  });
+
+  it("takes everything under a folder along but not look-alike names", () => {
+    const registry = new UidRegistry();
+    const folderUid = registry.uidFor("/Notes");
+    const childUid = registry.uidFor("/Notes/deep/x.md");
+    const otherUid = registry.uidFor("/Notes2/x.md");
+    registry.moved("/Notes", "/Archive");
+    expect(registry.uidFor("/Archive")).toBe(folderUid);
+    expect(registry.uidFor("/Archive/deep/x.md")).toBe(childUid);
+    expect(registry.uidFor("/Notes2/x.md")).toBe(otherUid);
+  });
+
+  it("does nothing when called again for a child that already moved", () => {
+    const registry = new UidRegistry();
+    registry.uidFor("/Notes");
+    const childUid = registry.uidFor("/Notes/x.md");
+    registry.moved("/Notes", "/Archive");
+    registry.moved("/Notes/x.md", "/Archive/x.md");
+    expect(registry.uidFor("/Archive/x.md")).toBe(childUid);
+  });
+
+  it("ignores a move to the same path and a path it has never seen", () => {
+    const registry = new UidRegistry();
+    const uid = registry.uidFor("/a.md");
+    registry.moved("/a.md", "/a.md");
+    registry.moved("/unknown.md", "/other.md");
+    expect(registry.uidFor("/a.md")).toBe(uid);
+  });
+});
+
 describe("compareEntries", () => {
   it("puts folders before files", () => {
     expect(compareEntries({ name: "z", children: [] }, { name: "a" })).toBeLessThan(0);

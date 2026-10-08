@@ -18,6 +18,8 @@ export interface ViewState extends VisibilityState {
   /** The search text as typed. */
   query: string;
   layoutMode: LayoutMode;
+  /** The Details toggle: bigger cards with a second row of file details. */
+  detail: boolean;
 }
 
 /** The starting state: only the root is open, so its subfolders are listed. */
@@ -32,6 +34,7 @@ export function createViewState(rootUid: string, layoutMode: LayoutMode = "verti
     focusRoot: rootUid,
     query: "",
     layoutMode,
+    detail: false,
   };
 }
 
@@ -113,7 +116,11 @@ export function setLayout(state: ViewState, layoutMode: LayoutMode): ViewState {
   return state.layoutMode === layoutMode ? state : { ...state, layoutMode };
 }
 
-/** The "Reset" button: back to the starting view, keeping the chosen layout. */
+export function setDetail(state: ViewState, detail: boolean): ViewState {
+  return state.detail === detail ? state : { ...state, detail };
+}
+
+/** The "Reset" button: back to the starting view, keeping the chosen layout and detail level. */
 export function resetView(state: ViewState, rootUid: string): ViewState {
-  return createViewState(rootUid, state.layoutMode);
+  return { ...createViewState(rootUid, state.layoutMode), detail: state.detail };
 }

@@ -6,6 +6,7 @@ import {
   resetView,
   select,
   setFilesOn,
+  setDetail,
   setFoldersOn,
   setLayout,
   setQuery,
@@ -26,6 +27,7 @@ describe("createViewState", () => {
     expect(s.focusRoot).toBe("root");
     expect(s.query).toBe("");
     expect(s.layoutMode).toBe("vertical");
+    expect(s.detail).toBe(false);
   });
 
   it("can start in the radial layout", () => {
@@ -143,11 +145,24 @@ describe("setLayout", () => {
   });
 });
 
+describe("setDetail", () => {
+  it("switches detail on and keeps the same object when unchanged", () => {
+    const s = start();
+    expect(setDetail(s, true).detail).toBe(true);
+    expect(setDetail(s, false)).toBe(s);
+  });
+});
+
 describe("resetView", () => {
-  it("goes back to the start but keeps the layout", () => {
-    const messy = setQuery(select(toggleOpen(setLayout(start(), "radial"), "a"), "a"), "x", "root");
+  it("goes back to the start but keeps the layout and detail level", () => {
+    const messy = setQuery(
+      select(toggleOpen(setDetail(setLayout(start(), "radial"), true), "a"), "a"),
+      "x",
+      "root",
+    );
     const reset = resetView(messy, "root");
     expect(reset.layoutMode).toBe("radial");
+    expect(reset.detail).toBe(true);
     expect(reset.query).toBe("");
     expect(reset.selected).toBeNull();
     expect([...reset.open]).toEqual(["root"]);

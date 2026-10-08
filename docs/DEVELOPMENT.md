@@ -81,6 +81,20 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Changing the plugin's default layout is not possible yet (settings arrive in milestone 5); the dashboard starts vertical.
 - [ ] No errors in the developer console (Ctrl+Shift+I) during any of the above.
 
+**Milestone 4** (use notes with links between them, tags, and a `status:` property in some frontmatter; both light and dark themes)
+
+- [ ] Create a note in the file explorer: its card appears, growing out of its folder, within about a quarter of a second. Delete it: the card goes. Rename it: the card keeps its place and changes its name, and it stays selected if it was.
+- [ ] Move a note to another folder by dragging it in the file explorer: its card glides to the new parent.
+- [ ] Rename or move a whole folder: the folder and its open children keep their state (open, files shown).
+- [ ] Typing in a note does not make the dashboard flicker or stall. Saving a change to its links, tags or `status` updates its card within a moment.
+- [ ] **Details** makes cards bigger and, when zoomed in, adds a second row to files: a coloured dot (green edited today, amber within a week, grey older), the age, the size, the link count and a status chip. Folders show their item count.
+- [ ] A `status: done` note has a green chip, `status: review` a blue one, any other status an amber one, and a note with no status has none.
+- [ ] Hovering a file card shows its age, size, links and tags. Selecting it shows the modified date, size, links out and backlinks, tags and status in the info panel.
+- [ ] Zoom out with the scroll wheel: below about 45 percent cards shrink to a coloured dot and a short name; zooming back in restores them. The detail row only shows at about 70 percent and above.
+- [ ] With Details on, the radial layout spreads the rings so the bigger cards do not overlap.
+- [ ] The tab can be closed and reopened after many edits with no errors in the developer console, and after closing, editing notes causes no console errors (the listeners are removed).
+- [ ] Changing the `status` property name is not possible yet (settings arrive in milestone 5); the default is `status`.
+
 ## Project conventions
 
 - British English and sentence case in all UI text.

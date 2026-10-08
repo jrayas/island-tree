@@ -62,6 +62,33 @@ describe("describeItem", () => {
     expect(card.tooltip).toBe("spec.pdf (PDF)");
   });
 
+  it("adds age, size, links, tags and status to a file's tooltip when details are known", () => {
+    const s = state([root.uid], true);
+    const tree = buildVisibleTree(root, s);
+    const pdf = tree.children.find((c) => c.node?.name === "spec.pdf")!;
+    const meta = {
+      recency: "week" as const,
+      age: "3d ago",
+      size: "2.0 KB",
+      links: 1,
+      outgoing: 1,
+      incoming: 0,
+      tags: ["#plan", "#web"],
+      status: "review",
+      statusKind: "review" as const,
+      modified: "5 Oct 2026",
+    };
+    expect(describeItem(pdf, s, meta).tooltip).toBe(
+      "spec.pdf (PDF) | 3d ago | 2.0 KB | 1 link | #plan #web | status: review",
+    );
+  });
+
+  it("reports a folder's total item count", () => {
+    const s = state([root.uid]);
+    const tree = buildVisibleTree(root, s);
+    expect(describeItem(tree.children[0], s).items).toBe(2);
+  });
+
   it("describes a pill with the hidden count and no icon", () => {
     const many = buildTree(
       {

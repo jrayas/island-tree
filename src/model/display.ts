@@ -5,6 +5,7 @@
  * unit tested, and so the card stays a plain view of this data.
  */
 import { CATEGORY_STYLES, fileCategory } from "./fileType";
+import type { MetaDisplay } from "./meta";
 import { filesVisible, type VisibilityState, type VisibleNode } from "./visibility";
 
 export interface CardDisplay {
@@ -17,6 +18,8 @@ export interface CardDisplay {
   /** Folders only: number of subfolders and files inside. */
   subfolders: number;
   files: number;
+  /** Folders only: total children, for the detail row ("5 items"). */
+  items: number;
   isOpen: boolean;
   /** Folders only: whether this folder currently lists its files. */
   filesShown: boolean;
@@ -27,7 +30,15 @@ function plural(count: number, singular: string, pluralForm: string): string {
   return `${count} ${count === 1 ? singular : pluralForm}`;
 }
 
-export function describeItem(item: VisibleNode, state: VisibilityState): CardDisplay {
+/**
+ * What a card shows for one item. File details are optional: they come from the
+ * metadata cache and may not be available, in which case the card still works.
+ */
+export function describeItem(
+  item: VisibleNode,
+  state: VisibilityState,
+  meta: MetaDisplay | null = null,
+): CardDisplay {
   if (item.kind === "more" || !item.node) {
     return {
       kind: "more",
@@ -36,6 +47,7 @@ export function describeItem(item: VisibleNode, state: VisibilityState): CardDis
       colour: null,
       subfolders: 0,
       files: 0,
+      items: 0,
       isOpen: false,
       filesShown: false,
       tooltip: `Show ${plural(item.hidden, "more item", "more items")}`,
@@ -55,6 +67,7 @@ export function describeItem(item: VisibleNode, state: VisibilityState): CardDis
       colour: null,
       subfolders,
       files,
+      items: node.children.length,
       isOpen,
       filesShown,
       tooltip: `${node.name}: ${plural(subfolders, "folder", "folders")}, ${plural(files, "file", "files")} (files ${filesShown ? "shown" : "hidden"})`,
@@ -62,6 +75,12 @@ export function describeItem(item: VisibleNode, state: VisibilityState): CardDis
   }
 
   const style = CATEGORY_STYLES[fileCategory(node.name)];
+  let tooltip = `${node.name} (${style.label})`;
+  if (meta) {
+    tooltip += ` | ${meta.age} | ${meta.size} | ${plural(meta.links, "link", "links")}`;
+    if (meta.tags.length > 0) tooltip += ` | ${meta.tags.join(" ")}`;
+    if (meta.status) tooltip += ` | status: ${meta.status}`;
+  }
   return {
     kind: "file",
     label: node.name,
@@ -69,8 +88,9 @@ export function describeItem(item: VisibleNode, state: VisibilityState): CardDis
     colour: style.colour,
     subfolders: 0,
     files: 0,
+    items: 0,
     isOpen: false,
     filesShown: false,
-    tooltip: `${node.name} (${style.label})`,
+    tooltip,
   };
 }

@@ -10,7 +10,9 @@ import { mount, unmount } from "svelte";
 import { openFile } from "./actions/open";
 import type { OpenTarget } from "./actions/target";
 import type IslandTreePlugin from "./main";
+import { MetaReader } from "./model/metaSource";
 import { readVault } from "./model/vault";
+import { watchVault, type VaultWatchHandlers } from "./model/watch";
 import App from "./ui/App.svelte";
 
 export const VIEW_TYPE_ISLAND_TREE = "island-tree-view";
@@ -40,10 +42,25 @@ export class IslandTreeView extends ItemView {
   async onOpen(): Promise<void> {
     this.contentEl.empty();
     this.contentEl.addClass("island-tree-view");
+    const reader = new MetaReader(this.app, () => this.plugin.settings.statusProperty);
     this.component = mount(App, {
       target: this.contentEl,
       props: {
         loadTree: () => readVault(this.app.vault),
+        readMeta: (path: string) => reader.read(path),
+        // The link index goes stale on any change, so drop it before the app re-reads details.
+        watchVault: (handlers: VaultWatchHandlers) =>
+          watchVault(this.app, {
+            ...handlers,
+            onStructure: () => {
+              reader.invalidate();
+              handlers.onStructure();
+            },
+            onMetadata: () => {
+              reader.invalidate();
+              handlers.onMetadata();
+            },
+          }),
         openFile: (path: string, target: OpenTarget) => void openFile(this.app, path, target),
         initialLayout: this.plugin.settings.defaultLayout,
       },
