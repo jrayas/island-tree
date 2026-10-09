@@ -1,5 +1,5 @@
 <script lang="ts">
-  // A curved, dashed branch, vertical or radial, or in the mind map layout a solid branch from
+  // A curved, dashed, flowing branch: vertical, radial, or in the mind map layout running from
   // card edge to card edge. The highlighted path back to the root flows faster.
   import { BaseEdge, type EdgeProps } from "@xyflow/svelte";
   import { branchPath, mindMapPath } from "../layout/edgePath";
@@ -25,9 +25,5 @@
   {id}
   {path}
   interactionWidth={0}
-  class={[
-    "island-edge",
-    highlighted && "island-edge-highlight",
-    side && "island-edge-solid",
-  ]}
+  class={highlighted ? "island-edge island-edge-highlight" : "island-edge"}
 />

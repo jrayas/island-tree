@@ -36,7 +36,7 @@ Last updated: milestone 5 (settings).
 
 **Mind map layout** (D-040)
 
-- A third layout with a balanced and a one-sided view, chosen with one toolbar button that cycles them and remembers the choice (a new Layout setting). Solid card-edge to card-edge branches, framed with the root in the middle. Checked in headless Chrome with Obsidian's stylesheet: no overlaps, every branch starts and ends on a card edge, all existing controls re-lay it out.
+- A third layout with a balanced and a one-sided view, chosen with one toolbar button that cycles them and remembers the choice (a new Layout setting). Card-edge to card-edge branches with the same flowing dashed line as the other layouts, framed with the root in the middle. Checked in headless Chrome with Obsidian's stylesheet: no overlaps, every branch starts and ends on a card edge, all existing controls re-lay it out.
 
 **Zoom to area** (D-039)
 
