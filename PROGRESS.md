@@ -30,9 +30,14 @@ Last updated: milestone 5 (settings).
 - Checks: `svelte-check` 0 errors and 0 warnings, 267 unit tests passing, lint 0 errors (one accepted warning, D-026).
 - Throwaway jsdom smoke tests (kept outside the project): the settings page was driven end to end against a stand-in for Obsidian's `Setting`, `Modal` and `Notice`, covering every tab, the arrow keys, sliders, toggles, dropdowns, text, reset, all preset actions, export, a hostile import with its summary, reset tab and reset all, the delayed save, and unsubscribing on hide, with no errors. The dashboard was driven against live setting changes: card size, list limit, grid type, details switches, status property and tag switches, and the start-with options.
 
+**UI change after milestone 5: one continuous surface** (D-034)
+
+- The graph fills the view below the toolbar and breadcrumb in the same colour as Obsidian Canvas (`--background-primary`), with faint Canvas-like dots. The selection details are floating text at the bottom left instead of a strip. The camera frames the tree as soon as the view has a size. The toolbar, cards, connectors and accent colour were not touched.
+
 ## Open issues
 
 - **Milestones 2 to 5 have not been tried in a real Obsidian vault.** The jsdom tests use stand-ins for Obsidian and cannot measure layout, so they could not check that **branches draw**, whether the radial layout looks right, how the cards, the settings page and the preview look in your theme, how the controls feel, or how smooth the gliding is. Please run the milestone 2 to 5 checklists in `docs/DEVELOPMENT.md` and tell me what you see. If branches do not appear, the likely cause is how Svelte Flow measures the centre handles (D-012); the curve-style setting would then show nothing either.
+- **Canvas colour match** is by variable, not by sight: compare with a Canvas tab as the checklist in `docs/DEVELOPMENT.md` says, and change two lines if your theme gives Canvas its own colour (D-034).
 - **Settings page layout** is the part most likely to need visual fixes: the preview's scaling, the tab strip, the row spacing and the slider value labels are written but unseen.
 - **Folder renames:** I am not certain whether Obsidian sends one `rename` event for a folder or one per file inside it. The code handles both (D-020).
 - **Author name is a placeholder** ("Your name") in `manifest.json` and `LICENSE`.

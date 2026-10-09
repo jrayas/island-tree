@@ -269,6 +269,7 @@
     }}
   />
   <Breadcrumb {crumbs} onselect={focusCrumb} />
+  <div class="island-stage">
   <Canvas
     {items}
     targets={placed.positions}
@@ -287,4 +288,5 @@
       tags: cfg.cards.showTags,
     })}
   />
+  </div>
 </div>

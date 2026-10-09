@@ -23,7 +23,7 @@ function seconds(base: number, speed: number): string {
 export function settingsToCssVars(settings: IslandTreeSettings): Record<string, string> {
   const { cards, lines, canvas } = settings;
   const animate = lines.flowSpeed > 0;
-  const gridBase = canvas.gridColour === "" ? "var(--background-modifier-border-hover)" : canvas.gridColour;
+  const gridBase = canvas.gridColour === "" ? "var(--background-modifier-border)" : canvas.gridColour;
 
   return {
     "--island-card-radius": `${cards.radius}px`,

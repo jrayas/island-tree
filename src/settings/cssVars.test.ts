@@ -17,7 +17,7 @@ describe("settingsToCssVars", () => {
     expect(vars["--island-line-dash"]).toBe("4 6");
     expect(vars["--island-highlight-colour"]).toBe("var(--interactive-accent)");
     expect(vars["--island-grid-colour"]).toBe(
-      "color-mix(in srgb, var(--background-modifier-border-hover) 100%, transparent)",
+      "color-mix(in srgb, var(--background-modifier-border) 100%, transparent)",
     );
   });
 

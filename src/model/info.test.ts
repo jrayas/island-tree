@@ -39,7 +39,7 @@ describe("describeSelection", () => {
     expect(describeSelection(projects)).toEqual({
       title: "Projects",
       path: "My vault / Projects",
-      details: ["Folder", "1 subfolder, 2 files"],
+      details: ["1 subfolder, 2 files"],
     });
   });
 

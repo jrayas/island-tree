@@ -16,9 +16,6 @@ export interface SelectionInfo {
   details: string[];
 }
 
-export const NOTHING_SELECTED =
-  "Select a card to see its details. Double-click a file to open it, or a folder to focus on it.";
-
 /** The path from the vault root to a node, joined with " / " for reading. */
 export function pathLabel(node: TreeNode): string {
   return ancestry(node)
@@ -46,7 +43,7 @@ export function describeSelection(
     return {
       title: node.name,
       path: pathLabel(node),
-      details: [`Folder`, `${plural(folders, "subfolder", "subfolders")}, ${plural(files, "file", "files")}`],
+      details: [`${plural(folders, "subfolder", "subfolders")}, ${plural(files, "file", "files")}`],
     };
   }
   const details = [CATEGORY_STYLES[fileCategory(node.name)].label];

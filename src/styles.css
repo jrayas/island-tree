@@ -17,10 +17,17 @@
   height: 100%;
 }
 
-.island-tree-view .island-canvas {
+/* The stage fills everything below the toolbar; the graph and the floating text sit inside it. */
+.island-tree-view .island-stage {
+  position: relative;
   flex: 1 1 0;
   min-height: 0;
   width: 100%;
+}
+
+.island-tree-view .island-canvas {
+  width: 100%;
+  height: 100%;
 }
 
 /* Toolbar */
@@ -79,36 +86,71 @@
   color: var(--text-normal);
 }
 
-/* Info panel */
+/* Selection details: plain text floating over the graph, bottom left. No box, border or
+   background, and it never takes clicks. It sits to the right of the zoom buttons. */
 .island-tree-view .island-info {
-  padding: var(--size-4-2) var(--size-4-3);
-  border-top: 1px solid var(--background-modifier-border);
-  background: var(--background-primary);
-  color: var(--text-muted);
-  font-size: var(--font-ui-small);
-  min-height: 3.5em;
+  position: absolute;
+  bottom: 15px;
+  left: 56px;
+  z-index: 6;
+  max-width: min(60ch, calc(100% - 72px));
+  font-family: var(--font-interface);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 150ms ease,
+    visibility 150ms ease;
+  /* A faint halo in the background colour keeps the text readable if a card or line passes behind. */
+  text-shadow:
+    0 0 6px var(--background-primary),
+    0 0 2px var(--background-primary);
+}
+
+.island-tree-view .island-info.is-visible {
+  opacity: 1;
+  visibility: visible;
 }
 
 .island-tree-view .island-info-title {
   color: var(--text-normal);
+  font-size: var(--font-ui-medium);
   font-weight: var(--font-semibold);
 }
 
 .island-tree-view .island-info-path {
-  font-family: var(--font-monospace);
+  color: var(--text-muted);
   font-size: var(--font-ui-smaller);
+}
+
+.island-tree-view .island-info-line {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .island-tree-view .island-info {
+    transition: none;
+  }
 }
 
 /* Map Svelte Flow's colours onto Obsidian's theme. */
 .island-tree-view .svelte-flow {
-  --xy-background-color: var(--background-secondary);
-  --xy-background-pattern-color: var(--island-grid-colour, var(--background-modifier-border-hover));
+  --xy-background-color: var(--background-primary);
+  --xy-background-pattern-color: var(--island-grid-colour, var(--background-modifier-border));
   --xy-controls-button-background-color: var(--background-primary);
   --xy-controls-button-background-color-hover: var(--background-modifier-hover);
   --xy-controls-button-color: var(--text-normal);
   --xy-controls-button-border-color: var(--background-modifier-border);
   --xy-attribution-background-color: transparent;
+  background: var(--background-primary);
   font-family: var(--font-interface);
+}
+
+/* The zoom buttons stay above the floating text and always take clicks. */
+.island-tree-view .svelte-flow__controls {
+  z-index: 7;
+  pointer-events: all;
 }
 
 .island-tree-view .svelte-flow__attribution {

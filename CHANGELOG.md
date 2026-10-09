@@ -4,6 +4,12 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 ## Unreleased
 
+### Changed
+
+- The graph now fills the whole view below the toolbar and breadcrumb, painted with the same colour as Obsidian's Canvas (`--background-primary`) so the view reads as one continuous surface. The dots default to a fainter, Canvas-like colour (`--background-modifier-border`).
+- The selection details moved from a strip at the bottom to plain text floating over the graph at the bottom left: name, path and a quiet details line, fading in and out, never blocking the graph. The folder line no longer starts with the word "Folder".
+- The camera frames the tree as soon as the dashboard has a size, as well as when the layout, focus or size settings change.
+
 ### Added
 
 - Milestone 5, settings: a full settings page with a live preview, a horizontal tab strip (Cards, Lines and grid, Layout, Presets) and a reset button on every setting. Cards: size, corner radius, border, padding, text size, which details show, and the status property name. Lines and grid: curve style (curved, step, straight), thickness, dash pattern, flow speed, highlight colour, and the grid (dots, lines or none) with size, spacing, opacity and colour. Layout: default layout, spacing, ring distances, the "+N more" limit, and whether Expand folders and Expand files start on. Presets: Compact, Comfortable and Large, saved presets you can rename and delete, reset one tab or everything, and export or import settings as JSON by file or clipboard, with a summary before anything changes. Changes apply to an open dashboard straight away. Defaults follow your Obsidian theme.

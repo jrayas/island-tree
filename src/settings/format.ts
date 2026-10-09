@@ -17,7 +17,7 @@ export function previewGrid(
   size: number,
   spacing: number,
 ): { image: string; size: string } {
-  const colour = "var(--island-grid-colour, var(--background-modifier-border-hover))";
+  const colour = "var(--island-grid-colour, var(--background-modifier-border))";
   const cell = `${spacing}px ${spacing}px`;
   if (type === "dots") {
     return { image: `radial-gradient(circle, ${colour} ${size}px, transparent ${size + 0.5}px)`, size: cell };

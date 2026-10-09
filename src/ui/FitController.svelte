@@ -25,15 +25,28 @@
 
   const { setViewport } = useSvelteFlow();
   let last = untrack(() => trigger);
+  // The first fit happens as soon as the pane has a size, so the tree uses the whole view on load.
+  let fitted = false;
+
+  /** Frames the target positions. Returns false when there is nothing to frame yet. */
+  function frame(duration: number): boolean {
+    const box = boundsOfCards(targets.values(), cardWidth, cardHeight);
+    if (!box || width === 0 || height === 0) return false;
+    void setViewport(getViewportForBounds(box, width, height, 0.2, 1, 0.2), { duration });
+    return true;
+  }
 
   $effect(() => {
+    if (!fitted) {
+      if (frame(0)) {
+        fitted = true;
+        last = trigger;
+      }
+      return;
+    }
     if (trigger === last) return;
     last = trigger;
-    const box = boundsOfCards(targets.values(), cardWidth, cardHeight);
-    if (!box || width === 0 || height === 0) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    void setViewport(getViewportForBounds(box, width, height, 0.2, 1, 0.2), {
-      duration: reduce ? 0 : 400,
-    });
+    frame(reduce ? 0 : 400);
   });
 </script>

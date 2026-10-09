@@ -213,3 +213,9 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 **Decision:** Destructive buttons get the `mod-warning` class directly. The methods for it are deprecated (`setWarning`) or need Obsidian 1.13 (`setDestructive`), and the lint rules forbid disabling the deprecation check.
 
 **Why:** It works on every supported version and keeps the lint clean.
+
+## D-034: One surface: graph in Canvas's colour, details floating over it (after milestone 5)
+
+**Decision:** The graph and the selection text share a `.island-stage` that fills the view below the breadcrumb. `.svelte-flow` and its background are painted `--background-primary`, the grid default is `--background-modifier-border`, and the details are absolutely positioned text with no box, `pointer-events: none` and a fade. The text sits to the right of the zoom buttons (left 56px) because Svelte Flow's controls already occupy the bottom left corner. Its third line joins a file's details with " · ". The grid colour setting still overrides the dot colour, so the dots are set in CSS rather than through the Background component's colour props.
+
+**Why:** A requested UI change: the graph must read as one continuous surface like Obsidian's own Canvas, with no permanent strip taking layout space. Obsidian's Canvas uses its own variables (`--canvas-background`, `--canvas-dot-pattern`), which default to the same values as the ones used here in the default theme; I could not check a theme that overrides them from here, so `docs/DEVELOPMENT.md` says how to compare and which two lines to change.

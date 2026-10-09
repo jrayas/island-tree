@@ -75,7 +75,7 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Typing in **Search names** opens the path to each match, rings the matches in yellow and fades the other cards. Clearing the box returns to exactly what was open before.
 - [ ] Double click a folder: the view focuses on it, the breadcrumb shows `Vault / Folder`, and **Reset focus** is enabled. Clicking `Vault` in the breadcrumb (or **Reset focus**) goes back.
 - [ ] **Focus selected** is greyed out until a folder is selected.
-- [ ] The info panel shows the selected card's name, path and counts (folder) or type (file).
+- [ ] Selecting a card fades in plain text at the bottom left, to the right of the zoom buttons: the name in bold, the path in smaller muted text and one quiet line (folder counts, or the file's type and details). Selecting nothing fades it out. It has no box and never blocks dragging or clicking.
 - [ ] Double click a note: it opens in a new tab. Ctrl (Cmd) with double click opens a split. Double clicking a file that was deleted after the dashboard opened shows a short notice, not an error.
 - [ ] **Reset** returns to the starting view and keeps the layout you chose.
 - [ ] The dashboard starts in the layout chosen as the default layout in the settings (vertical until you change it).
@@ -113,6 +113,14 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Close and reopen Obsidian: every setting, and the saved presets, are still there.
 - [ ] Settings made in an earlier version (a vault that used the plugin before milestone 5) still load: the default layout and status property are kept.
 - [ ] No errors in the developer console (Ctrl+Shift+I) while using any of the above.
+
+**Full-surface graph** (compare side by side with a Canvas tab, in a light and a dark theme)
+
+- [ ] The graph fills the whole view below the toolbar and breadcrumb, to the bottom and both sides: no bordered box and no strip at the bottom.
+- [ ] The graph colour matches an Obsidian Canvas tab exactly, with no visible seam between the toolbar, breadcrumb and graph. If it differs, open developer tools (Ctrl+Shift+I on Windows, Cmd+Option+I on Mac), select the Canvas background and look at its computed `background-color`, and the Canvas dots, and compare with `--background-primary` and `--background-modifier-border` on this view. If the theme gives Canvas its own colour (Obsidian's variables are `--canvas-background` and `--canvas-dot-pattern`), change the two lines in `src/styles.css` under `.island-tree-view .svelte-flow` to `var(--canvas-background, var(--background-primary))` and `var(--canvas-dot-pattern, var(--background-modifier-border))`.
+- [ ] The dots are as faint as Canvas's and do not lighten the area. The grid colour and opacity settings still change them.
+- [ ] The tree is framed to the available space when the dashboard opens.
+- [ ] The zoom buttons are visible and clickable, and are not covered by the floating text.
 
 ## Project conventions
 
