@@ -184,7 +184,7 @@
         size={grid.size}
       />
     {/if}
-    <Controls showLock={false} position="bottom-left" />
+    <Controls showLock={false} position="top-left" />
     <ZoomWatcher />
     <FitController
       trigger={fitKey}

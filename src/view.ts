@@ -77,8 +77,8 @@ export class IslandTreeView extends ItemView {
   }
 
   /**
-   * Keeps --island-clear on the view equal to how far the floating status bar rises into it
-   * (0px when it is hidden or not over this view). The bar is found by its class, which is
+   * Keeps --island-clear on the view equal to how far the details text must rise to clear the
+   * floating status bar (0px when it is hidden or does not reach the text). The bar is found by its class, which is
    * not part of the plugin API, so a missing bar simply means no lift. Returns a function
    * that stops measuring.
    */
@@ -87,18 +87,20 @@ export class IslandTreeView extends ItemView {
     const doc = view.ownerDocument;
     const win = doc.defaultView ?? window;
     const update = (): void => {
-      const stage = view.querySelector(".island-stage");
-      const gap = stage ? parseFloat(win.getComputedStyle(stage).getPropertyValue("--island-edge-gap")) : NaN;
       const bar = doc.querySelector(".status-bar");
+      const text = view.querySelector(".island-info");
       const clearance = statusBarClearance(
         view.getBoundingClientRect(),
         bar?.getBoundingClientRect() ?? null,
-        Number.isNaN(gap) ? 24 : gap,
+        text?.getBoundingClientRect() ?? null,
       );
       view.setCssProps({ "--island-clear": `${clearance}px` });
     };
     const observer = new win.ResizeObserver(update);
     observer.observe(view);
+    // The text's width changes with the selection, and decides whether the bar reaches it.
+    const text = view.querySelector(".island-info");
+    if (text) observer.observe(text);
     const bar = doc.querySelector(".status-bar");
     if (bar) observer.observe(bar);
     win.addEventListener("resize", update);

@@ -56,7 +56,7 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 **Milestone 2** (use a test vault with a few folders, and one folder with more than six items)
 
 - [ ] The dashboard opens showing the vault name as the top card with its subfolders below, joined by curved dashed lines that slowly flow.
-- [ ] A dotted grid shows behind the cards. Dragging the background pans and scrolling zooms. The zoom buttons and fit button (bottom left) work.
+- [ ] A dotted grid shows behind the cards. Dragging the background pans and scrolling zooms. The zoom buttons and fit button (left edge, near the middle) work.
 - [ ] Clicking a folder opens it, with its subfolders gliding out from it, and clicking it again closes it. The branches stay attached to the cards while they move.
 - [ ] Clicking a card selects it (blue ring) and the lines from it up to the root turn the accent colour and flow faster.
 - [ ] The badge on a folder (for example `2·5`) shows that folder's files when clicked, and hides them when clicked again. Clicking the badge does not also close the folder.
@@ -75,7 +75,7 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Typing in **Search names** opens the path to each match, rings the matches in yellow and fades the other cards. Clearing the box returns to exactly what was open before.
 - [ ] Double click a folder: the view focuses on it, the breadcrumb shows `Vault / Folder`, and **Reset focus** is enabled. Clicking `Vault` in the breadcrumb (or **Reset focus**) goes back.
 - [ ] **Focus selected** is greyed out until a folder is selected.
-- [ ] Selecting a card fades in plain text at the bottom right, right-aligned and clear of the status bar: the name in bold, the path in smaller muted text and one quiet line (folder counts, or the file's type and details). Selecting nothing fades it out. It has no box and never blocks dragging or clicking.
+- [ ] Selecting a card fades in plain text at the bottom left, left-aligned: the name in bold, the path in smaller muted text and one quiet line (folder counts, or the file's type and details). Selecting nothing fades it out. It has no box and never blocks dragging or clicking.
 - [ ] Double click a note: it opens in a new tab. Ctrl (Cmd) with double click opens a split. Double clicking a file that was deleted after the dashboard opened shows a short notice, not an error.
 - [ ] **Reset** returns to the starting view and keeps the layout you chose.
 - [ ] The dashboard starts in the layout chosen as the default layout in the settings (vertical until you change it).
@@ -124,13 +124,13 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 
 **Bottom area** (try a wide pane, a narrow pane, and with and without a card selected)
 
-- [ ] The three zoom buttons are bottom left, 8px apart, with their own outlines, 24px from the left and bottom edges. There is no "Svelte Flow" label anywhere.
-- [ ] With a card selected, the text is bottom right, right-aligned, 24px from the right and bottom edges, and its last line (the counts) ends level with the bottom of the fit button.
-- [ ] A card with a very long name and path: the name and the path each stop at two lines with an ellipsis, the text grows upward, and it never reaches the zoom buttons in a narrow pane.
-- [ ] Measure the gap in developer tools (Ctrl+Shift+I, Cmd+Option+I on Mac): select the zoom buttons panel (`.svelte-flow__controls`) and the details text (`.island-info`). With the status bar hidden, each has 24px between its bottom edge and the bottom of the pane (`.workspace-leaf-content`). The view (`.view-content.island-tree-view`) has zero padding, and the graph reaches both sides and the bottom.
-- [ ] Status bar shown, with this pane in the bottom-right corner of the window: the buttons and the text rise together to sit just above it (about 4px clear). Hide or remove the status bar and they drop back to exactly 24px. A pane that does not touch the bar's corner stays at 24px.
+- [ ] The three zoom buttons are a column on the left edge, 24px from the left, 8px apart with their own outlines, with the middle of the column 45% of the way down the graph (below the toolbar and breadcrumb). There is no "Svelte Flow" label anywhere. Change `--island-zoom-offset-y` in `src/styles.css` to move them.
+- [ ] With a card selected, the text is bottom left, left-aligned, 24px from the left and bottom edges.
+- [ ] A card with a very long name and path: the name and the path each stop at two lines with an ellipsis, the text grows upward, and it stops at least 24px below the zoom buttons. In a very short pane the top of the name is cut first, never the counts line.
+- [ ] Measure in developer tools (Ctrl+Shift+I, Cmd+Option+I on Mac): with the status bar hidden, `.island-info` has 24px between its left and bottom edges and the pane (`.workspace-leaf-content`), and `.svelte-flow__controls` has 24px on the left. The view (`.view-content.island-tree-view`) has zero padding. Resize the pane taller and shorter: the button column stays centred on the same point and never goes under the toolbar or breadcrumb.
+- [ ] Status bar shown: the text sits at 24px unless the bar reaches it sideways (a narrow pane, or a long line in the bottom-right pane), in which case it rises to sit about 4px above the bar. Hide the bar and it drops back to exactly 24px. The zoom buttons never move for the bar.
 - [ ] The breadcrumb under the toolbar is in the interface font.
-- [ ] With nothing selected nothing shows at the bottom right.
+- [ ] With nothing selected nothing shows at the bottom left.
 
 ## Project conventions
 

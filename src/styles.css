@@ -26,13 +26,19 @@
   flex: 1 1 0;
   min-height: 0;
   width: 100%;
-  /* One inset for every floating element: the zoom buttons' left, the details text's right,
-     and the bottom clearance for both. */
+  /* One inset for every floating element: the left of the zoom buttons and of the details text,
+     and the bottom of the text. */
   --island-edge-gap: 24px;
-  /* The bottom offset of both: the plain gap unless Obsidian's floating status bar covers this
-     view. view.ts measures the bar and sets --island-clear on the view (0px when it is hidden
-     or elsewhere), so there is no leftover lift. */
+  /* The details text's bottom offset: the plain gap unless Obsidian's floating status bar covers
+     it. view.ts measures the bar and sets --island-clear on the view (0px when it is hidden or
+     elsewhere), so there is no leftover lift. */
   --island-bottom: max(var(--island-edge-gap), var(--island-clear, 0px));
+  /* Where the middle of the zoom stack sits, measured down from the top of the graph. Change
+     this to move the stack up or down (keep it between 0% and 100%). */
+  --island-zoom-offset-y: 45%;
+  /* Half the stack's height: three 26px buttons and two 8px gaps. Add 17px per extra button
+     (half of 26px + 8px) if a button is ever added. Used to keep the details text clear. */
+  --island-zoom-half: 47px;
 }
 
 .island-tree-view .island-canvas {
@@ -96,17 +102,28 @@
   color: var(--text-normal);
 }
 
-/* Selection details: plain text floating over the graph, bottom right and right-aligned. No
-   box, border or background, and it never takes clicks. It is anchored by its bottom edge, so
-   long text grows upward. The width cap keeps its left edge clear of the zoom buttons (one gap,
-   26px of button, one gap) plus the right inset. */
+/* Selection details: plain text floating over the graph, bottom left and left-aligned. No box,
+   border or background, and it never takes clicks. It is anchored by its bottom edge, so long
+   text grows upward, and its height is capped so it stops a gap short of the zoom stack: when
+   there is not enough room the top of the name is cut first, never the counts line. */
 .island-tree-view .island-info {
   position: absolute;
-  right: var(--island-edge-gap);
+  left: var(--island-edge-gap);
   bottom: var(--island-bottom);
   z-index: 6;
-  max-width: min(60ch, calc(100% - 3 * var(--island-edge-gap) - 26px));
-  text-align: right;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  max-width: min(60ch, calc(100% - 2 * var(--island-edge-gap)));
+  max-height: max(
+    0px,
+    calc(
+      100% - var(--island-bottom) - var(--island-zoom-offset-y) - var(--island-zoom-half) -
+        var(--island-edge-gap)
+    )
+  );
+  text-align: left;
   overflow-wrap: anywhere;
   font-family: var(--font-interface);
   pointer-events: none;
@@ -119,6 +136,10 @@
   text-shadow:
     0 0 6px var(--background-primary),
     0 0 2px var(--background-primary);
+}
+
+.island-tree-view .island-info > * {
+  flex: none;
 }
 
 .island-tree-view .island-info.is-visible {
@@ -147,7 +168,6 @@
   font-size: var(--font-ui-smaller);
 }
 
-/* A tight line box puts the text's bottom edge on the same line as the fit button's. */
 .island-tree-view .island-info-line {
   color: var(--text-muted);
   font-size: var(--font-ui-smaller);
@@ -172,15 +192,32 @@
   font-family: var(--font-interface);
 }
 
-/* Zoom buttons: bottom left, 8px apart, inset by the shared edge gap. Svelte Flow's panel adds a
-   15px margin of its own, replaced here so the bottom edge of the fit button sits on the same
-   line as the bottom of the details text. */
-.island-tree-view .svelte-flow__controls {
+/* Zoom buttons: a column on the left edge, centred on --island-zoom-offset-y. The panel is made
+   a flex box that is symmetric around that point (and kept inside the graph), with the buttons
+   centred in it, so it stays centred whatever the pane height and when a button is added. "safe"
+   centring starts the stack at the top inset instead of spilling out of a very short pane. The
+   box itself ignores the pointer so only the buttons take clicks. Svelte Flow's own top, bottom
+   and 15px margin are overridden here, with one extra class so these win. */
+.island-tree-view .svelte-flow__panel.svelte-flow__controls {
+  --half: min(var(--island-zoom-offset-y), calc(100% - var(--island-zoom-offset-y)));
   z-index: 7;
-  pointer-events: all;
-  margin: 0 0 var(--island-bottom) var(--island-edge-gap);
+  box-sizing: border-box;
+  top: calc(var(--island-zoom-offset-y) - var(--half));
+  bottom: auto;
+  left: var(--island-edge-gap);
+  height: calc(2 * var(--half));
+  margin: 0;
+  padding: var(--island-edge-gap) 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
   gap: 8px;
   box-shadow: none;
+  pointer-events: none;
+}
+
+.island-tree-view .svelte-flow__controls-button {
+  pointer-events: all;
 }
 
 /* Each button stands alone now that they no longer touch, so each gets its own outline. */
