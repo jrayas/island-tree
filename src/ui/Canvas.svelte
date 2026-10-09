@@ -172,6 +172,7 @@
     edgesFocusable={false}
     elementsSelectable={false}
     zoomOnDoubleClick={false}
+    attributionPosition="bottom-left"
     onnodeclick={({ node }) => onnodeclick(node.id)}
   >
     {#if grid.type !== "none"}
@@ -181,7 +182,7 @@
         size={grid.size}
       />
     {/if}
-    <Controls showLock={false} />
+    <Controls showLock={false} position="bottom-left" />
     <ZoomWatcher />
     <FitController
       trigger={fitKey}

@@ -86,14 +86,18 @@
   color: var(--text-normal);
 }
 
-/* Selection details: plain text floating over the graph, bottom left. No box, border or
-   background, and it never takes clicks. It sits to the right of the zoom buttons. */
+/* Selection details: plain text floating over the graph, bottom right and right-aligned. No
+   box, border or background, and it never takes clicks. It is lifted 48px to clear Obsidian's
+   status bar. The width cap keeps its left edge 64px from the pane edge, past the zoom buttons
+   (18px + 26px wide), so a narrow pane wraps the text rather than letting it collide. */
 .island-tree-view .island-info {
   position: absolute;
-  bottom: 15px;
-  left: 56px;
+  right: 16px;
+  bottom: 48px;
   z-index: 6;
-  max-width: min(60ch, calc(100% - 72px));
+  max-width: min(60ch, calc(100% - 80px));
+  text-align: right;
+  overflow-wrap: anywhere;
   font-family: var(--font-interface);
   pointer-events: none;
   opacity: 0;
@@ -147,14 +151,33 @@
   font-family: var(--font-interface);
 }
 
-/* The zoom buttons stay above the floating text and always take clicks. */
+/* Bottom left, from the bottom up: the "Svelte Flow" credit, a clear strip, then the zoom
+   buttons. Both are Svelte Flow panels placed with fixed offsets from the bottom edge, so
+   they cannot overlap at any pane size (the credit is one line of 10px text). */
+.island-tree-view .svelte-flow__attribution {
+  margin: 0 0 8px 18px;
+  color: var(--text-faint);
+}
+
+/* Svelte Flow's stylesheet hard-codes the link colour; follow the theme instead. */
+.island-tree-view .svelte-flow__attribution a {
+  color: inherit;
+}
+
 .island-tree-view .svelte-flow__controls {
   z-index: 7;
   pointer-events: all;
+  /* 15px panel margin + 30px extra lifts the buttons clear of the credit. */
+  margin: 0 0 45px 18px;
+  gap: 8px;
+  box-shadow: none;
 }
 
-.island-tree-view .svelte-flow__attribution {
-  color: var(--text-faint);
+/* Each button stands alone now that they no longer touch, so each gets its own outline. */
+.island-tree-view .svelte-flow__controls-button {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  box-shadow: none;
 }
 
 /* Cards */

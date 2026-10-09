@@ -75,7 +75,7 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Typing in **Search names** opens the path to each match, rings the matches in yellow and fades the other cards. Clearing the box returns to exactly what was open before.
 - [ ] Double click a folder: the view focuses on it, the breadcrumb shows `Vault / Folder`, and **Reset focus** is enabled. Clicking `Vault` in the breadcrumb (or **Reset focus**) goes back.
 - [ ] **Focus selected** is greyed out until a folder is selected.
-- [ ] Selecting a card fades in plain text at the bottom left, to the right of the zoom buttons: the name in bold, the path in smaller muted text and one quiet line (folder counts, or the file's type and details). Selecting nothing fades it out. It has no box and never blocks dragging or clicking.
+- [ ] Selecting a card fades in plain text at the bottom right, right-aligned and clear of the status bar: the name in bold, the path in smaller muted text and one quiet line (folder counts, or the file's type and details). Selecting nothing fades it out. It has no box and never blocks dragging or clicking.
 - [ ] Double click a note: it opens in a new tab. Ctrl (Cmd) with double click opens a split. Double clicking a file that was deleted after the dashboard opened shows a short notice, not an error.
 - [ ] **Reset** returns to the starting view and keeps the layout you chose.
 - [ ] The dashboard starts in the layout chosen as the default layout in the settings (vertical until you change it).
@@ -121,6 +121,14 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] The dots are as faint as Canvas's and do not lighten the area. The grid colour and opacity settings still change them.
 - [ ] The tree is framed to the available space when the dashboard opens.
 - [ ] The zoom buttons are visible and clickable, and are not covered by the floating text.
+
+**Bottom area** (try a wide pane, a narrow pane, and with and without a card selected)
+
+- [ ] The three zoom buttons are bottom left, 8px apart, with their own outlines, about 18px from the left edge and clearly above the "Svelte Flow" credit.
+- [ ] The credit is bottom left under the buttons, in a faint theme colour, and never touches them at any pane size.
+- [ ] With a card selected, the text is bottom right, right-aligned, above Obsidian's status bar.
+- [ ] In a narrow pane the text wraps (long paths break) and stops before the zoom buttons instead of overlapping them.
+- [ ] With nothing selected nothing shows at the bottom right.
 
 ## Project conventions
 
