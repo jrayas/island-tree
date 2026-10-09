@@ -127,7 +127,8 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] The three zoom buttons are bottom left, 8px apart, with their own outlines, 24px from the left and bottom edges. There is no "Svelte Flow" label anywhere.
 - [ ] With a card selected, the text is bottom right, right-aligned, 24px from the right and bottom edges, and its last line (the counts) ends level with the bottom of the fit button.
 - [ ] A card with a very long name and path: the name and the path each stop at two lines with an ellipsis, the text grows upward, and it never reaches the zoom buttons in a narrow pane.
-- [ ] With the status bar shown and hidden (Appearance, or a theme that floats it), nothing is covered. If a floating status bar overlaps the text or buttons, raise `--island-edge-gap` in `src/styles.css`.
+- [ ] Measure the gap in developer tools (Ctrl+Shift+I, Cmd+Option+I on Mac): select the zoom buttons panel (`.svelte-flow__controls`) and the details text (`.island-info`). With the status bar hidden, each has 24px between its bottom edge and the bottom of the pane (`.workspace-leaf-content`). The view (`.view-content.island-tree-view`) has zero padding, and the graph reaches both sides and the bottom.
+- [ ] Status bar shown, with this pane in the bottom-right corner of the window: the buttons and the text rise together to sit just above it (about 4px clear). Hide or remove the status bar and they drop back to exactly 24px. A pane that does not touch the bar's corner stays at 24px.
 - [ ] The breadcrumb under the toolbar is in the interface font.
 - [ ] With nothing selected nothing shows at the bottom right.
 

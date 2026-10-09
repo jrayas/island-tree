@@ -61,7 +61,7 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | File | Purpose |
 |---|---|
 | `src/main.ts` | Plugin entry. Loads settings through `loadSettingsFrom` (which migrates and validates), owns the `SettingsStore`, registers the view, ribbon icon, commands and settings tab, and flushes pending saves on unload. `activateView` reuses an existing leaf instead of opening duplicates. |
-| `src/view.ts` | `IslandTreeView`, a thin `ItemView` that mounts the Svelte app in `onOpen` and unmounts it in `onClose`, passing in the vault reader, the file opener, the metadata reader, the watcher and the settings store. It also writes the settings as CSS variables on its root (`setCssProps`) and stops when closed. View type id: `island-tree-view`. |
+| `src/view.ts` | `IslandTreeView`, a thin `ItemView` that mounts the Svelte app in `onOpen` and unmounts it in `onClose`, passing in the vault reader, the file opener, the metadata reader, the watcher and the settings store. It also writes the settings as CSS variables on its root (`setCssProps`), measures Obsidian's floating status bar and sets `--island-clear` on its root (0px when the bar is hidden or elsewhere, D-037), and stops both when closed. View type id: `island-tree-view`. |
 | `src/settings/defaults.ts` | Short import for `DEFAULT_SETTINGS`, `SETTINGS_VERSION` and `clampNumber`. The defaults themselves come from the schema. |
 | `src/settings/SettingsTab.ts` | The settings page: header, live preview, a horizontal tab strip (a proper tablist: arrow keys, Home and End, roving focus, scrolls sideways) and the chosen tab. Uses the classic `display()` API (D-026). |
 
@@ -90,6 +90,7 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | `src/layout/vertical.ts` | `layoutVertical`: parents centred over children, level `d` at `y = d * (cardHeight + levelGap)`. Subtree widths memoised. |
 | `src/layout/radial.ts` | `layoutRadial` and `ringRadius`: root in the middle, one ring per level, angle shared by visible leaf count, starting straight up. |
 | `src/layout/layout.ts` | `computeLayout(mode, root, detail, options)` picks the engine. `cardSizeFor` derives the four card sizes from the one configured width and height using the mockup's ratios (at 116×40: 168×58, 88×30, 132×48). `ringRadii` scales the rings from the first ring's radius (125: 125, 235, 335, 425). Detailed radial rings spread by 1.3. |
+| `src/layout/statusBar.ts` | `statusBarClearance`: how far the bottom elements must rise to clear a status bar that covers the view, or 0. Pure geometry. |
 | `src/layout/zoomLevel.ts` | `zoomLevel`: below 0.45 minimal, from 0.7 detailed, otherwise normal. |
 | `src/layout/animate.ts` | `easeFactor` (frame-rate independent), `seedPositions` (new cards start at their parent), `stepPositions`. |
 | `src/layout/bounds.ts` | `boundsOfCards`: the box around target positions, for fitting the camera. |

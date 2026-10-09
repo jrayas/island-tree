@@ -4,8 +4,11 @@
    .island-tree-view so they win over Svelte Flow's. */
 @import "@xyflow/svelte/dist/style.css";
 
-/* The view fills the pane and the canvas fills the view. */
-.island-tree-view {
+/* The view fills the pane and the canvas fills the view. Obsidian pads every view with
+   `.workspace-leaf-content .view-content` (12px at the top and sides, 32px at the bottom), which
+   has two classes and so beat a single-class rule here. The extra class makes this win, so the
+   graph and its floating elements reach the true edges of the pane. */
+.workspace-leaf-content .view-content.island-tree-view {
   padding: 0;
   overflow: hidden;
 }
@@ -24,8 +27,12 @@
   min-height: 0;
   width: 100%;
   /* One inset for every floating element: the zoom buttons' left, the details text's right,
-     and the bottom clearance for both. Raise it if a floating status bar overlaps them. */
+     and the bottom clearance for both. */
   --island-edge-gap: 24px;
+  /* The bottom offset of both: the plain gap unless Obsidian's floating status bar covers this
+     view. view.ts measures the bar and sets --island-clear on the view (0px when it is hidden
+     or elsewhere), so there is no leftover lift. */
+  --island-bottom: max(var(--island-edge-gap), var(--island-clear, 0px));
 }
 
 .island-tree-view .island-canvas {
@@ -96,7 +103,7 @@
 .island-tree-view .island-info {
   position: absolute;
   right: var(--island-edge-gap);
-  bottom: var(--island-edge-gap);
+  bottom: var(--island-bottom);
   z-index: 6;
   max-width: min(60ch, calc(100% - 3 * var(--island-edge-gap) - 26px));
   text-align: right;
@@ -171,7 +178,7 @@
 .island-tree-view .svelte-flow__controls {
   z-index: 7;
   pointer-events: all;
-  margin: 0 0 var(--island-edge-gap) var(--island-edge-gap);
+  margin: 0 0 var(--island-bottom) var(--island-edge-gap);
   gap: 8px;
   box-shadow: none;
 }

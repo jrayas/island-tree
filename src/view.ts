@@ -12,6 +12,7 @@ import type { OpenTarget } from "./actions/target";
 import type IslandTreePlugin from "./main";
 import { MetaReader } from "./model/metaSource";
 import { readVault } from "./model/vault";
+import { statusBarClearance } from "./layout/statusBar";
 import { settingsToCssVars } from "./settings/cssVars";
 import { watchVault, type VaultWatchHandlers } from "./model/watch";
 import App from "./ui/App.svelte";
@@ -21,6 +22,7 @@ export const VIEW_TYPE_ISLAND_TREE = "island-tree-view";
 export class IslandTreeView extends ItemView {
   private component: ReturnType<typeof mount> | null = null;
   private stopStyling: (() => void) | null = null;
+  private stopMeasuring: (() => void) | null = null;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -71,6 +73,41 @@ export class IslandTreeView extends ItemView {
         settings: this.plugin.store,
       },
     });
+    this.stopMeasuring = this.watchStatusBar();
+  }
+
+  /**
+   * Keeps --island-clear on the view equal to how far the floating status bar rises into it
+   * (0px when it is hidden or not over this view). The bar is found by its class, which is
+   * not part of the plugin API, so a missing bar simply means no lift. Returns a function
+   * that stops measuring.
+   */
+  private watchStatusBar(): () => void {
+    const view = this.contentEl;
+    const doc = view.ownerDocument;
+    const win = doc.defaultView ?? window;
+    const update = (): void => {
+      const stage = view.querySelector(".island-stage");
+      const gap = stage ? parseFloat(win.getComputedStyle(stage).getPropertyValue("--island-edge-gap")) : NaN;
+      const bar = doc.querySelector(".status-bar");
+      const clearance = statusBarClearance(
+        view.getBoundingClientRect(),
+        bar?.getBoundingClientRect() ?? null,
+        Number.isNaN(gap) ? 24 : gap,
+      );
+      view.setCssProps({ "--island-clear": `${clearance}px` });
+    };
+    const observer = new win.ResizeObserver(update);
+    observer.observe(view);
+    const bar = doc.querySelector(".status-bar");
+    if (bar) observer.observe(bar);
+    win.addEventListener("resize", update);
+    this.registerEvent(this.app.workspace.on("layout-change", update));
+    update();
+    return () => {
+      observer.disconnect();
+      win.removeEventListener("resize", update);
+    };
   }
 
   // Destroying the component here stops its listeners and animation frames
@@ -78,6 +115,8 @@ export class IslandTreeView extends ItemView {
   async onClose(): Promise<void> {
     this.stopStyling?.();
     this.stopStyling = null;
+    this.stopMeasuring?.();
+    this.stopMeasuring = null;
     if (this.component) {
       void unmount(this.component);
       this.component = null;
