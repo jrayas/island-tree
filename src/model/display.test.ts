@@ -83,6 +83,18 @@ describe("describeItem", () => {
     );
   });
 
+  it("leaves tags out of the tooltip when they are switched off", () => {
+    const s = state([root.uid], true);
+    const tree = buildVisibleTree(root, s);
+    const pdf = tree.children.find((c) => c.node?.name === "spec.pdf")!;
+    const meta = {
+      recency: "today" as const, age: "today", size: "1 B", links: 0, outgoing: 0, incoming: 0,
+      tags: ["#plan"], status: null, statusKind: "other" as const, modified: "8 Oct 2026",
+    };
+    expect(describeItem(pdf, s, meta, { tags: false }).tooltip).not.toContain("#plan");
+    expect(describeItem(pdf, s, meta, { tags: true }).tooltip).toContain("#plan");
+  });
+
   it("reports a folder's total item count", () => {
     const s = state([root.uid]);
     const tree = buildVisibleTree(root, s);

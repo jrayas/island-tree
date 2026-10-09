@@ -7,6 +7,9 @@
 
 export type LayoutMode = "vertical" | "radial";
 
+/** How a branch leaves one card and reaches the next. */
+export type CurveStyle = "curved" | "step" | "straight";
+
 export interface LayoutNode {
   id: string;
   children: readonly LayoutNode[];

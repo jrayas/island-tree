@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ageLabel,
+  cardRow,
   buildLinkIndex,
   daysSince,
   describeMeta,
@@ -142,5 +143,48 @@ describe("describeMeta", () => {
     const display = describeMeta({ ...meta, status: null }, NOW);
     expect(display.status).toBeNull();
     expect(display.statusKind).toBe("other");
+  });
+});
+
+describe("cardRow", () => {
+  const meta = describeMeta(
+    { mtime: at(2026, 10, 5), size: 2048, outgoing: 2, incoming: 1, tags: [], status: "done" },
+    NOW,
+  );
+  const all = { age: true, size: true, links: true, status: true };
+
+  it("shows everything when everything is on", () => {
+    expect(cardRow(meta, all)).toEqual({
+      dot: "week",
+      text: "3d ago · 2.0 KB · 3 links",
+      status: { label: "done", kind: "done" },
+    });
+  });
+
+  it("leaves out whatever is switched off", () => {
+    expect(cardRow(meta, { ...all, size: false })?.text).toBe("3d ago · 3 links");
+    expect(cardRow(meta, { ...all, age: false })?.dot).toBeNull();
+    expect(cardRow(meta, { ...all, age: false })?.text).toBe("2.0 KB · 3 links");
+    expect(cardRow(meta, { ...all, status: false })?.status).toBeNull();
+  });
+
+  it("uses the singular for one link", () => {
+    const one = describeMeta(
+      { mtime: at(2026, 10, 8), size: 10, outgoing: 1, incoming: 0, tags: [], status: null },
+      NOW,
+    );
+    expect(cardRow(one, all)?.text).toBe("today · 10 B · 1 link");
+  });
+
+  it("has no status when the note has none", () => {
+    const none = describeMeta(
+      { mtime: at(2026, 10, 8), size: 10, outgoing: 0, incoming: 0, tags: [], status: null },
+      NOW,
+    );
+    expect(cardRow(none, all)?.status).toBeNull();
+  });
+
+  it("returns null when everything is off", () => {
+    expect(cardRow(meta, { age: false, size: false, links: false, status: false })).toBeNull();
   });
 });

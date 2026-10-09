@@ -102,7 +102,7 @@
 /* Map Svelte Flow's colours onto Obsidian's theme. */
 .island-tree-view .svelte-flow {
   --xy-background-color: var(--background-secondary);
-  --xy-background-pattern-color: var(--background-modifier-border-hover);
+  --xy-background-pattern-color: var(--island-grid-colour, var(--background-modifier-border-hover));
   --xy-controls-button-background-color: var(--background-primary);
   --xy-controls-button-background-color-hover: var(--background-modifier-hover);
   --xy-controls-button-color: var(--text-normal);
@@ -124,13 +124,13 @@
   gap: 2px;
   width: 100%;
   height: 100%;
-  padding: 0 12px;
+  padding: 0 var(--island-card-padding-x, 12px);
   box-sizing: border-box;
-  border: 1px solid var(--background-modifier-border-hover);
-  border-radius: 20px;
+  border: var(--island-card-border, 1px) solid var(--background-modifier-border-hover);
+  border-radius: var(--island-card-radius, 20px);
   background: var(--background-primary);
   color: var(--text-normal);
-  font-size: var(--font-ui-small);
+  font-size: var(--island-font-size, var(--font-ui-small));
   cursor: pointer;
 }
 
@@ -163,7 +163,7 @@
 }
 
 .island-tree-view .island-card-selected {
-  box-shadow: 0 0 0 2px var(--interactive-accent);
+  box-shadow: 0 0 0 2px var(--island-highlight-colour, var(--interactive-accent));
 }
 
 /* Search: matches get a ring, everything else fades. */
@@ -177,8 +177,8 @@
 
 /* The radial layout packs cards closer, so they are smaller. */
 .island-tree-view .island-card-compact {
-  padding: 0 9px;
-  font-size: var(--font-ui-smaller);
+  padding: 0 calc(var(--island-card-padding-x, 12px) * 0.75);
+  font-size: var(--island-font-size-compact, var(--font-ui-smaller));
 }
 
 .island-tree-view .island-card-compact .island-card-row {
@@ -309,15 +309,16 @@
 .island-tree-view .island-edge {
   fill: none;
   stroke: var(--text-faint);
-  stroke-width: 1.5;
-  stroke-dasharray: 4 6;
-  animation: island-flow 1.8s linear infinite;
+  stroke-width: var(--island-line-width, 1.5px);
+  stroke-dasharray: var(--island-line-dash, 4 6);
+  stroke-linecap: var(--island-line-cap, butt);
+  animation: var(--island-line-animation, island-flow 1.8s linear infinite);
 }
 
 .island-tree-view .island-edge-highlight {
-  stroke: var(--interactive-accent);
-  stroke-width: 2;
-  animation-duration: 0.7s;
+  stroke: var(--island-highlight-colour, var(--interactive-accent));
+  stroke-width: calc(var(--island-line-width, 1.5px) + 0.5px);
+  animation: var(--island-line-animation-highlight, island-flow 0.7s linear infinite);
 }
 
 @keyframes island-flow {
@@ -330,4 +331,116 @@
   .island-tree-view .island-edge {
     animation: none;
   }
+}
+
+/* Settings page */
+.island-settings .island-settings-header {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-3);
+  margin-bottom: var(--size-4-3);
+  padding: var(--size-4-3);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background: var(--background-secondary);
+}
+
+.island-settings .island-settings-icon {
+  display: inline-flex;
+  color: var(--interactive-accent);
+}
+
+.island-settings .island-settings-icon .svg-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.island-settings .island-settings-title {
+  font-size: var(--font-ui-large);
+  font-weight: var(--font-semibold);
+}
+
+.island-settings .island-settings-subtitle {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+/* The live preview */
+.island-settings .island-preview {
+  margin-bottom: var(--size-4-3);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background: var(--background-secondary);
+}
+
+.island-settings .island-preview-stage {
+  position: relative;
+  height: 190px;
+  overflow: hidden;
+  background-image: var(--preview-grid-image, none);
+  background-size: var(--preview-grid-size, auto);
+}
+
+.island-settings .island-preview-scene {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: center;
+}
+
+.island-settings .island-preview-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+}
+
+.island-settings .island-preview-card {
+  position: absolute;
+}
+
+/* The tab strip scrolls sideways in a narrow pane. */
+.island-settings .island-tabs {
+  display: flex;
+  gap: var(--size-2-2);
+  margin-bottom: var(--size-4-3);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.island-settings .island-tab {
+  flex: none;
+  height: auto;
+  padding: var(--size-4-2) var(--size-4-3);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.island-settings .island-tab.is-active {
+  border-bottom-color: var(--interactive-accent);
+  color: var(--text-normal);
+}
+
+.island-settings .island-tab:focus-visible {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: -2px;
+}
+
+.island-settings .island-setting-value {
+  min-width: 5.5em;
+  margin-right: var(--size-4-2);
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  text-align: right;
+}
+
+.island-modal-error {
+  min-height: 1.5em;
+  color: var(--text-error);
+  font-size: var(--font-ui-small);
 }

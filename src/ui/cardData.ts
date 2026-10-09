@@ -5,7 +5,7 @@
  * string-keyed record. Plain values only: no functions (see context.ts).
  */
 import type { CardDisplay } from "../model/display";
-import type { MetaDisplay } from "../model/meta";
+import type { CardRow } from "../model/meta";
 
 export type CardData = {
   display: CardDisplay;
@@ -18,8 +18,8 @@ export type CardData = {
   compact: boolean;
   /** The Details toggle is on, so close-up cards show a second row. */
   detail: boolean;
-  /** File details, or null for folders and files the cache has not described yet. */
-  meta: MetaDisplay | null;
+  /** The detail row for a file, following the Show settings, or null when there is nothing to show. */
+  row: CardRow | null;
 };
 
 /** One card on the canvas, with where it hangs in the tree. */

@@ -141,3 +141,38 @@ export function describeMeta(meta: FileMeta, now: number): MetaDisplay {
     }),
   };
 }
+
+/** Which pieces of file detail a card's second row may show. */
+export interface CardShow {
+  /** The recency dot and the age. */
+  age: boolean;
+  size: boolean;
+  links: boolean;
+  status: boolean;
+}
+
+/** The second row of a detailed card, ready to draw. */
+export interface CardRow {
+  /** Recency dot colour, or null when ages are hidden. */
+  dot: Recency | null;
+  /** Age, size and links joined with " · ", or an empty string. */
+  text: string;
+  status: { label: string; kind: StatusKind } | null;
+}
+
+/**
+ * Chooses what the second row of a detailed card shows, following the settings.
+ * Returns null when everything is switched off, so the card draws no empty row.
+ */
+export function cardRow(meta: MetaDisplay, show: CardShow): CardRow | null {
+  const parts: string[] = [];
+  if (show.age) parts.push(meta.age);
+  if (show.size) parts.push(meta.size);
+  if (show.links) parts.push(`${meta.links} ${meta.links === 1 ? "link" : "links"}`);
+  const row: CardRow = {
+    dot: show.age ? meta.recency : null,
+    text: parts.join(" · "),
+    status: show.status && meta.status ? { label: meta.status, kind: meta.statusKind } : null,
+  };
+  return row.dot === null && row.text === "" && row.status === null ? null : row;
+}

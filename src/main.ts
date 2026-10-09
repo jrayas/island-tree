@@ -4,16 +4,23 @@
  * Registers the view, ribbon icon, commands and settings tab, and loads and
  * saves settings. Everything registered here is cleaned up by Obsidian on unload.
  */
-import { Plugin, type WorkspaceLeaf } from "obsidian";
+import { Notice, Plugin, type WorkspaceLeaf } from "obsidian";
 import { IslandTreeSettingTab } from "./settings/SettingsTab";
-import { DEFAULT_SETTINGS, type IslandTreeSettings } from "./settings/defaults";
+import { loadSettingsFrom } from "./settings/validate";
+import { SettingsStore } from "./settings/store";
 import { IslandTreeView, VIEW_TYPE_ISLAND_TREE } from "./view";
 
 export default class IslandTreePlugin extends Plugin {
-  settings: IslandTreeSettings = DEFAULT_SETTINGS;
+  /** The live settings, shared by the settings page and every open dashboard. */
+  store!: SettingsStore;
 
   async onload(): Promise<void> {
-    await this.loadSettings();
+    this.store = new SettingsStore(
+      loadSettingsFrom(await this.loadData()),
+      (settings) => this.saveData(settings),
+      300,
+      () => new Notice("Island tree could not save its settings."),
+    );
 
     this.registerView(VIEW_TYPE_ISLAND_TREE, (leaf) => new IslandTreeView(leaf, this));
 
@@ -52,12 +59,8 @@ export default class IslandTreePlugin extends Plugin {
     await workspace.revealLeaf(leaf);
   }
 
-  async loadSettings(): Promise<void> {
-    const saved = (await this.loadData()) as Partial<IslandTreeSettings> | null;
-    this.settings = { ...DEFAULT_SETTINGS, ...saved };
-  }
-
-  async saveSettings(): Promise<void> {
-    await this.saveData(this.settings);
+  // A change made just before closing Obsidian is still waiting for its delayed save.
+  onunload(): void {
+    void this.store.flush();
   }
 }

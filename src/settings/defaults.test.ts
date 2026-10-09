@@ -1,9 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_SETTINGS, clampNumber } from "./defaults";
+import { DEFAULT_SETTINGS, SETTINGS_VERSION, clampNumber } from "./defaults";
 
 describe("DEFAULT_SETTINGS", () => {
-  it("looks for a status property called status", () => {
-    expect(DEFAULT_SETTINGS.statusProperty).toBe("status");
+  it("has the current version and no saved presets", () => {
+    expect(DEFAULT_SETTINGS.version).toBe(SETTINGS_VERSION);
+    expect(DEFAULT_SETTINGS.presets).toEqual([]);
+  });
+
+  it("matches the look the dashboard had before settings existed", () => {
+    expect(DEFAULT_SETTINGS.cards).toMatchObject({ width: 116, height: 40, radius: 20, fontSize: 0 });
+    expect(DEFAULT_SETTINGS.layout).toMatchObject({
+      defaultLayout: "vertical",
+      gap: 14,
+      levelGap: 44,
+      ringRadius: 125,
+      ringStep: 90,
+      overflowLimit: 6,
+    });
+    expect(DEFAULT_SETTINGS.lines).toMatchObject({ curve: "curved", dash: "dashed", flowSpeed: 1 });
+    expect(DEFAULT_SETTINGS.canvas).toMatchObject({ grid: "dots", gridSpacing: 22 });
+  });
+
+  it("looks for a status property called status and starts locked", () => {
+    expect(DEFAULT_SETTINGS.cards.statusProperty).toBe("status");
+    expect(DEFAULT_SETTINGS.editing.startLocked).toBe(true);
   });
 });
 

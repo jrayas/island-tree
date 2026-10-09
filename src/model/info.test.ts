@@ -66,6 +66,15 @@ describe("describeSelection", () => {
     ]);
   });
 
+  it("leaves tags out when they are switched off", () => {
+    const meta = {
+      recency: "today" as const, age: "today", size: "1 B", links: 0, outgoing: 0, incoming: 0,
+      tags: ["#plan"], status: null, statusKind: "other" as const, modified: "8 Oct 2026",
+    };
+    const lines = describeSelection(plan!, meta, { tags: false })?.details ?? [];
+    expect(lines.some((l) => l.startsWith("Tags"))).toBe(false);
+  });
+
   it("leaves out tags and status when there are none", () => {
     const meta = {
       recency: "older" as const,

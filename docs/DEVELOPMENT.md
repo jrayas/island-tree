@@ -78,7 +78,7 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] The info panel shows the selected card's name, path and counts (folder) or type (file).
 - [ ] Double click a note: it opens in a new tab. Ctrl (Cmd) with double click opens a split. Double clicking a file that was deleted after the dashboard opened shows a short notice, not an error.
 - [ ] **Reset** returns to the starting view and keeps the layout you chose.
-- [ ] Changing the plugin's default layout is not possible yet (settings arrive in milestone 5); the dashboard starts vertical.
+- [ ] The dashboard starts in the layout chosen as the default layout in the settings (vertical until you change it).
 - [ ] No errors in the developer console (Ctrl+Shift+I) during any of the above.
 
 **Milestone 4** (use notes with links between them, tags, and a `status:` property in some frontmatter; both light and dark themes)
@@ -93,7 +93,26 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Zoom out with the scroll wheel: below about 45 percent cards shrink to a coloured dot and a short name; zooming back in restores them. The detail row only shows at about 70 percent and above.
 - [ ] With Details on, the radial layout spreads the rings so the bigger cards do not overlap.
 - [ ] The tab can be closed and reopened after many edits with no errors in the developer console, and after closing, editing notes causes no console errors (the listeners are removed).
-- [ ] Changing the `status` property name is not possible yet (settings arrive in milestone 5); the default is `status`.
+- [ ] The `status` property name can now be changed in the settings (milestone 5), and cards pick up the new name.
+
+**Milestone 5** (open **Settings → Island tree** with a dashboard open beside it if you can, in both light and dark themes)
+
+- [ ] The page shows a header, a live preview of three sample cards, a tab strip (Cards, Lines and grid, Layout, Presets) and the settings for the chosen tab. Resizing the settings window narrow makes the tab strip scroll sideways.
+- [ ] Tab keyboard use: Tab reaches the selected tab, the Left and Right arrows move between tabs, Home and End jump to the first and last.
+- [ ] Moving **Card width**, **Corner radius**, **Text size** and the other card controls changes the preview at once, and an open dashboard follows (cards resize and glide, the camera re-frames).
+- [ ] **Text size** at 0 shows "the theme size" and follows Obsidian's interface text size.
+- [ ] **Start with details on** and the five **Show** switches change the preview's second row. With **Show size** off, the size disappears from the dashboard's detail row. **Show tags** off removes tags from the card tooltip and the info panel.
+- [ ] **Status property**: change it to the name you use in your notes; the status chips follow. A blank value is ignored.
+- [ ] Lines and grid: curve style (curved, step, straight), thickness, dash pattern and the highlight colour change the dashboard's branches and the selected card's path. **Flow speed** 0 stops the animation. The colour pickers have a "Use the theme colour" button.
+- [ ] Grid: dots, lines and none, with size, spacing, opacity and colour. The dashboard background follows.
+- [ ] Layout: card gap, level spacing, first ring radius, ring step and **List limit** change the dashboard (the "+N more" card appears later or earlier). **Start with all folders open** and **Start with files shown** decide what a freshly opened dashboard, and **Reset**, return to.
+- [ ] Every row has a reset button that returns just that setting to its default.
+- [ ] Presets: **Compact**, **Comfortable** and **Large** each change the look when applied. **Save preset** keeps the current look under a name; a blank, duplicate or built-in name is refused with a message. A saved preset can be applied, renamed and deleted (with a confirmation).
+- [ ] **Reset tab** and **Reset all** work, and **Reset all** asks first and keeps saved presets.
+- [ ] Export: **Copy** puts JSON on the clipboard and **Save file** downloads `island-tree-settings.json`. Import: **Paste** and **Choose file** show a summary before anything changes. Edit the JSON to set `cards.width` to 9999 and add an unknown key: the summary says the width was adjusted to 260 and the key ignored. A file that is not an Island tree settings file shows a short notice.
+- [ ] Close and reopen Obsidian: every setting, and the saved presets, are still there.
+- [ ] Settings made in an earlier version (a vault that used the plugin before milestone 5) still load: the default layout and status property are kept.
+- [ ] No errors in the developer console (Ctrl+Shift+I) while using any of the above.
 
 ## Project conventions
 

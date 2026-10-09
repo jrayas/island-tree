@@ -33,11 +33,13 @@ function plural(count: number, singular: string, pluralForm: string): string {
 /**
  * What a card shows for one item. File details are optional: they come from the
  * metadata cache and may not be available, in which case the card still works.
+ * `options.tags` follows the Show tags setting.
  */
 export function describeItem(
   item: VisibleNode,
   state: VisibilityState,
   meta: MetaDisplay | null = null,
+  options: { tags: boolean } = { tags: true },
 ): CardDisplay {
   if (item.kind === "more" || !item.node) {
     return {
@@ -78,7 +80,7 @@ export function describeItem(
   let tooltip = `${node.name} (${style.label})`;
   if (meta) {
     tooltip += ` | ${meta.age} | ${meta.size} | ${plural(meta.links, "link", "links")}`;
-    if (meta.tags.length > 0) tooltip += ` | ${meta.tags.join(" ")}`;
+    if (options.tags && meta.tags.length > 0) tooltip += ` | ${meta.tags.join(" ")}`;
     if (meta.status) tooltip += ` | status: ${meta.status}`;
   }
   return {

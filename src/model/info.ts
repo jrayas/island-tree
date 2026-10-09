@@ -37,6 +37,7 @@ function plural(count: number, singular: string, pluralForm: string): string {
 export function describeSelection(
   node: TreeNode | null,
   meta: MetaDisplay | null = null,
+  options: { tags: boolean } = { tags: true },
 ): SelectionInfo | null {
   if (!node) return null;
   if (node.kind === "folder") {
@@ -55,7 +56,7 @@ export function describeSelection(
       `Size ${meta.size}`,
       `${plural(meta.outgoing, "link", "links")} out, ${plural(meta.incoming, "backlink", "backlinks")}`,
     );
-    if (meta.tags.length > 0) details.push(`Tags: ${meta.tags.join(" ")}`);
+    if (options.tags && meta.tags.length > 0) details.push(`Tags: ${meta.tags.join(" ")}`);
     if (meta.status) details.push(`Status: ${meta.status}`);
   }
   return { title: node.name, path: pathLabel(node), details };

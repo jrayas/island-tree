@@ -10,11 +10,11 @@ This file describes what is actually built, not the plan. For the plan see `SPEC
 | 2 | Read-only tree, vertical layout, cards, edges, pan and zoom, dot grid | Done (not yet tried in Obsidian, see `PROGRESS.md`) |
 | 3 | Radial layout, focus, search, overflow pills, toggles, breadcrumb, info panel | Done (not yet tried in Obsidian; the overflow pill came with milestone 2) |
 | 4 | Live updates and metadata | Done (not yet tried in Obsidian) |
-| 5 | Settings tabs, presets, import and export | Not started |
+| 5 | Settings tabs, presets, import and export | Done (not yet tried in Obsidian). The Editing tab arrives with editing in milestone 6 |
 | 6 | Editing, lock, undo | Not started |
 | 7 | Polish, release workflow, submission | Not started |
 
-## How the pieces fit (after milestone 4)
+## How the pieces fit (after milestone 5)
 
 ```
 Obsidian loads main.js + styles.css
@@ -27,8 +27,10 @@ Obsidian loads main.js + styles.css
        │                              openFile   = (path, target) => workspace      (src/actions/open.ts)
        │                              initialLayout = settings.defaultLayout
        ├─ ribbon icon + 2 commands ─► activateView("tab" | "sidebar")
-       ├─ addSettingTab ──► src/settings/SettingsTab.ts  (empty)
-       └─ load/saveData  ◄─► src/settings/defaults.ts
+       ├─ addSettingTab ──► src/settings/SettingsTab.ts  (header, live preview, tab strip, tabs)
+       └─ store: SettingsStore ◄─► loadData / saveData   (src/settings/store.ts, validated on load)
+            └─ every open dashboard and the settings page subscribe: a change restyles (CSS variables)
+               and re-lays out the dashboard at once
 
 App.svelte  (owns tree + view state; everything below it is derived)
   RawEntry ─buildTree(registry)─► TreeNode        (rebuilt on create / delete / move; ids stay stable)
@@ -57,10 +59,10 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 
 | File | Purpose |
 |---|---|
-| `src/main.ts` | Plugin entry. Registers the view, ribbon icon, commands and settings tab. `activateView` reuses an existing leaf instead of opening duplicates. |
-| `src/view.ts` | `IslandTreeView`, a thin `ItemView` that mounts the Svelte app in `onOpen` and unmounts it in `onClose`, passing in the vault reader, the file opener and the default layout. View type id: `island-tree-view`. |
-| `src/settings/defaults.ts` | `IslandTreeSettings` type (`defaultLayout`, `statusProperty`), `DEFAULT_SETTINGS`, `SETTINGS_VERSION`, `clampNumber`. Re-exports `LayoutMode`. |
-| `src/settings/SettingsTab.ts` | Empty `PluginSettingTab`. |
+| `src/main.ts` | Plugin entry. Loads settings through `loadSettingsFrom` (which migrates and validates), owns the `SettingsStore`, registers the view, ribbon icon, commands and settings tab, and flushes pending saves on unload. `activateView` reuses an existing leaf instead of opening duplicates. |
+| `src/view.ts` | `IslandTreeView`, a thin `ItemView` that mounts the Svelte app in `onOpen` and unmounts it in `onClose`, passing in the vault reader, the file opener, the metadata reader, the watcher and the settings store. It also writes the settings as CSS variables on its root (`setCssProps`) and stops when closed. View type id: `island-tree-view`. |
+| `src/settings/defaults.ts` | Short import for `DEFAULT_SETTINGS`, `SETTINGS_VERSION` and `clampNumber`. The defaults themselves come from the schema. |
+| `src/settings/SettingsTab.ts` | The settings page: header, live preview, a horizontal tab strip (a proper tablist: arrow keys, Home and End, roving focus, scrolls sideways) and the chosen tab. Uses the classic `display()` API (D-026). |
 
 ### Model (pure, unit tested; only `vault.ts`, `metaSource.ts` and `watch.ts` import Obsidian)
 
@@ -86,11 +88,11 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | `src/layout/types.ts` | `LayoutMode`, `LayoutNode`, `Point` (card centre), `LayoutResult` (positions, size, radial `centre`). |
 | `src/layout/vertical.ts` | `layoutVertical`: parents centred over children, level `d` at `y = d * (cardHeight + levelGap)`. Subtree widths memoised. |
 | `src/layout/radial.ts` | `layoutRadial` and `ringRadius`: root in the middle, one ring per level, angle shared by visible leaf count, starting straight up. |
-| `src/layout/layout.ts` | `computeLayout(mode, root, detail)` picks the engine and holds the card size per mode: 116×40 vertical and 88×30 radial, or 168×58 and 132×48 with Details on, where the rings also spread by 1.3. |
+| `src/layout/layout.ts` | `computeLayout(mode, root, detail, options)` picks the engine. `cardSizeFor` derives the four card sizes from the one configured width and height using the mockup's ratios (at 116×40: 168×58, 88×30, 132×48). `ringRadii` scales the rings from the first ring's radius (125: 125, 235, 335, 425). Detailed radial rings spread by 1.3. |
 | `src/layout/zoomLevel.ts` | `zoomLevel`: below 0.45 minimal, from 0.7 detailed, otherwise normal. |
 | `src/layout/animate.ts` | `easeFactor` (frame-rate independent), `seedPositions` (new cards start at their parent), `stepPositions`. |
 | `src/layout/bounds.ts` | `boundsOfCards`: the box around target positions, for fitting the camera. |
-| `src/layout/edgePath.ts` | `verticalBranchPath` and `radialBranchPath`: the cubic curves between two cards. |
+| `src/layout/edgePath.ts` | The branch shapes: curved, step and straight, for the vertical and the radial layout, and `branchPath` which picks one for a curve style. Used by the dashboard and by the settings preview. |
 
 ### Actions
 
@@ -103,18 +105,36 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 
 | File | Purpose |
 |---|---|
-| `src/ui/App.svelte` | Root. Builds the tree once on open, holds `viewState`, derives visible items, layout and `CanvasItem[]`. Click rules: a folder click opens or closes it and selects it; a file click selects; a pill click expands the parent's overflow; a badge click toggles that folder's files; a double click focuses a folder or opens a file. `fitKey` is bumped for layout, focus and reset so the camera re-frames. |
+| `src/ui/App.svelte` | Root. Takes the `SettingsStore`, keeps the latest settings in `cfg`, builds the tree, holds `viewState`, derives visible items, layout and `CanvasItem[]`. The "start with" settings decide the first view and what Reset returns to. Changes to card size or spacing bump `fitKey` so the camera re-frames; a new status property name makes cards re-read their details. Click rules: a folder click opens or closes it and selects it; a file click selects; a pill click expands the parent's overflow; a badge click toggles that folder's files; a double click focuses a folder or opens a file. |
 | `src/ui/Toolbar.svelte` | Layout switch, Expand folders, Expand files, Details, Reset, search box, Focus selected, Reset focus. Stateless. |
 | `src/ui/Breadcrumb.svelte` | Path from the vault root to the focus; ancestors are buttons that move the focus up. |
 | `src/ui/InfoPanel.svelte` | Details of the selected card, in an `aria-live` region. |
-| `src/ui/Canvas.svelte` | Wraps Svelte Flow (pan, zoom, dot `Background`, `Controls`). Runs the animation loop: each frame it steps positions and rebuilds `nodes` so branches follow the cards. Respects `prefers-reduced-motion` by jumping straight to the target. |
+| `src/ui/Canvas.svelte` | Wraps Svelte Flow (pan, zoom, the grid `Background` as dots or lines or nothing, `Controls`). Runs the animation loop: each frame it steps positions and rebuilds `nodes` so branches follow the cards. Passes the curve style to the branches. Respects `prefers-reduced-motion` by jumping straight to the target. |
 | `src/ui/ZoomWatcher.svelte` | Lives inside `<SvelteFlow>`; copies the camera zoom into the shared `ZoomState` (`zoomState.svelte.ts`). The level changes only when a threshold is crossed. |
 | `src/ui/FitController.svelte` | Lives inside `<SvelteFlow>`; when `fitKey` changes it sets the viewport to frame the target positions. |
 | `src/ui/IslandNode.svelte` | The card: icon, name, folder badge (subfolders · files), or the "+N more" pill. With Details on and the camera close enough, a second row shows the recency dot, age, size, links and status chip (folders show their item count). Far out it shows only a type colour and the name. Match ring, fade and compact styling come from its data. |
-| `src/ui/BranchEdge.svelte` | The curved dashed branch, vertical or radial depending on whether the edge data carries a centre. Highlight class on the path from the selected card to the root. |
+| `src/ui/BranchEdge.svelte` | The dashed branch, drawn with `branchPath` in the chosen curve style, vertical or radial depending on whether the edge data carries a centre. Highlight class on the path from the selected card to the root. |
 | `src/ui/cardData.ts` | `CardData` and `CanvasItem` types. Plain values only. |
 | `src/ui/context.ts` | Svelte context carrying the badge and double-click callbacks and the shared zoom state to cards. |
 | `src/ui/icon.ts` | `use:icon` action that calls Obsidian's `setIcon`. |
+
+### Settings
+
+Everything here is pure and unit tested unless marked Obsidian.
+
+| File | Purpose |
+|---|---|
+| `src/settings/schema.ts` | The one table of settings: group, tab, section, label, description, type, range and default for each, plus the typed `IslandTreeSettings` (`cards`, `lines`, `canvas`, `layout`, `editing`, `presets`). `DEFAULT_SETTINGS` is built from it. `TABS` lists the tabs shown. |
+| `src/settings/validate.ts` | `coerceField` (limit, snap, type-check one value), `sanitiseSettings` (any input to valid settings plus a report of what was applied, adjusted, rejected or ignored), `migrateSettings` (version 1 to 2), `loadSettingsFrom`. |
+| `src/settings/presets.ts` | The built-in looks (Compact, Comfortable, Large), saving, renaming and deleting presets, name rules, `applyPreset`, `resetTab`, `resetEverything`. A preset covers the Cards, Lines and grid and Layout settings, not the status property or editing. |
+| `src/settings/importExport.ts` | `exportSettings` and `parseImport`: size limit, format and version checks, then the same validation as saved data; imported presets are added unless their name is taken. |
+| `src/settings/cssVars.ts` | `settingsToCssVars`: settings to CSS variables. Empty colours and a text size of 0 point at Obsidian theme variables. |
+| `src/settings/store.ts` | `SettingsStore`: holds the live settings, notifies subscribers at once, saves 300 ms after the last change, `flush` on unload. |
+| `src/settings/format.ts` | Wording for slider values and the preview's grid CSS. |
+| `src/settings/controls.ts` | (Obsidian) `renderField`: draws one `Setting` row from a schema entry (slider, dropdown, toggle, colour picker or text), with a reset button. Every change goes through `coerceField`. |
+| `src/settings/tabs.ts` | (Obsidian) `renderFieldTab` (generated from the schema, with section headings) and `renderPresetsTab` (built-ins, saved presets, save, reset, export and import). |
+| `src/settings/Preview.ts` | (Obsidian) The live preview: three sample cards drawn with the real layout, branch and card styles. |
+| `src/settings/modals.ts` | (Obsidian) Dialogs that return promises: ask for text, confirm, and summarise an import. |
 
 ### Styles
 
@@ -138,7 +158,9 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 
 - Every create, delete or move rebuilds the whole tree (with stable ids); it is not patched and collapsed folders are not built lazily. The 10,000-file test in milestone 7 decides whether that needs to change (D-020).
 - Folders show no file details beyond their counts and, in Details mode, their item count.
-- Card sizes, gaps and ring radii are constants in `layout/layout.ts` and `layout/radial.ts` until milestone 5.
+- The Editing tab and its behaviour arrive in milestone 6. Its settings are already in the schema, validated, exported and imported.
+- The settings page uses the classic API, so its settings are not in Obsidian's own settings search on 1.13 and later (D-026).
+- Presets store the current values, not a link to the defaults, so a preset made today keeps today's look even if a default changes later.
 - Removed cards disappear at once instead of fading out (polish, milestone 7).
 - While a search is active, folders on the way to a match stay open; closing one by hand has no effect until the search is cleared.
 - Details wording uses British date format (for example 8 Oct 2026) whatever the system locale.

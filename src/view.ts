@@ -12,6 +12,7 @@ import type { OpenTarget } from "./actions/target";
 import type IslandTreePlugin from "./main";
 import { MetaReader } from "./model/metaSource";
 import { readVault } from "./model/vault";
+import { settingsToCssVars } from "./settings/cssVars";
 import { watchVault, type VaultWatchHandlers } from "./model/watch";
 import App from "./ui/App.svelte";
 
@@ -19,6 +20,7 @@ export const VIEW_TYPE_ISLAND_TREE = "island-tree-view";
 
 export class IslandTreeView extends ItemView {
   private component: ReturnType<typeof mount> | null = null;
+  private stopStyling: (() => void) | null = null;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -42,7 +44,11 @@ export class IslandTreeView extends ItemView {
   async onOpen(): Promise<void> {
     this.contentEl.empty();
     this.contentEl.addClass("island-tree-view");
-    const reader = new MetaReader(this.app, () => this.plugin.settings.statusProperty);
+    // Every visual setting is a CSS variable on the view, so a change restyles it at once.
+    this.stopStyling = this.plugin.store.subscribe((settings) => {
+      this.contentEl.setCssProps(settingsToCssVars(settings));
+    });
+    const reader = new MetaReader(this.app, () => this.plugin.store.get().cards.statusProperty);
     this.component = mount(App, {
       target: this.contentEl,
       props: {
@@ -62,7 +68,7 @@ export class IslandTreeView extends ItemView {
             },
           }),
         openFile: (path: string, target: OpenTarget) => void openFile(this.app, path, target),
-        initialLayout: this.plugin.settings.defaultLayout,
+        settings: this.plugin.store,
       },
     });
   }
@@ -70,6 +76,8 @@ export class IslandTreeView extends ItemView {
   // Destroying the component here stops its listeners and animation frames
   // when the leaf closes, which community plugin review checks for.
   async onClose(): Promise<void> {
+    this.stopStyling?.();
+    this.stopStyling = null;
     if (this.component) {
       void unmount(this.component);
       this.component = null;

@@ -12,7 +12,8 @@
     type Node,
   } from "@xyflow/svelte";
   import { easeFactor, seedPositions, stepPositions } from "../layout/animate";
-  import type { Point } from "../layout/types";
+  import type { CurveStyle, Point } from "../layout/types";
+  import type { GridType } from "../settings/schema";
   import type { CanvasItem } from "./cardData";
   import { provideCanvasActions, provideZoom } from "./context";
   import IslandNode from "./IslandNode.svelte";
@@ -27,6 +28,8 @@
     cardWidth,
     cardHeight,
     radialCentre,
+    curve,
+    grid,
     fitKey,
     onnodeclick,
     onbadge,
@@ -39,6 +42,10 @@
     cardHeight: number;
     /** The middle of a radial layout, or null for vertical. */
     radialCentre: Point | null;
+    /** How branches are drawn. */
+    curve: CurveStyle;
+    /** The pattern behind the cards. */
+    grid: { type: GridType; size: number; spacing: number };
     /** Changing this value moves the camera to frame all cards. */
     fitKey: number;
     onnodeclick: (id: string) => void;
@@ -86,7 +93,7 @@
     });
   }
 
-  function buildEdges(list: CanvasItem[], centre: Point | null): Edge[] {
+  function buildEdges(list: CanvasItem[], centre: Point | null, style: CurveStyle): Edge[] {
     return list
       .filter((item) => item.parentId !== null)
       .map((item) => ({
@@ -94,7 +101,7 @@
         source: item.parentId as string,
         target: item.id,
         type: "branch",
-        data: { highlight: item.highlight, centre },
+        data: { highlight: item.highlight, centre, curve: style },
         selectable: false,
         focusable: false,
         deletable: false,
@@ -121,7 +128,7 @@
   untrack(() => {
     current = new Map(targets);
     nodes = buildNodes(items, targets);
-    edges = buildEdges(items, radialCentre);
+    edges = buildEdges(items, radialCentre, curve);
   });
 
   let first = true;
@@ -129,6 +136,7 @@
     const list = items;
     const goal = targets;
     const centre = radialCentre;
+    const style = curve;
     if (first) {
       first = false;
       return;
@@ -139,7 +147,7 @@
       list.map(({ id, parentId }) => ({ id, parentId })),
     );
     nodes = buildNodes(list, goal);
-    edges = buildEdges(list, centre);
+    edges = buildEdges(list, centre, style);
     kick();
   });
 
@@ -166,7 +174,13 @@
     zoomOnDoubleClick={false}
     onnodeclick={({ node }) => onnodeclick(node.id)}
   >
-    <Background variant={BackgroundVariant.Dots} gap={22} size={1.2} />
+    {#if grid.type !== "none"}
+      <Background
+        variant={grid.type === "lines" ? BackgroundVariant.Lines : BackgroundVariant.Dots}
+        gap={grid.spacing}
+        size={grid.size}
+      />
+    {/if}
     <Controls showLock={false} />
     <ZoomWatcher />
     <FitController

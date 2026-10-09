@@ -19,5 +19,10 @@ export default [
       globals: { $state: "readonly", $derived: "readonly", $effect: "readonly" },
     },
   },
+  {
+    // Tests stand in for the browser's timers, so they must call the plain ones.
+    files: ["src/**/*.test.ts"],
+    rules: { "obsidianmd/prefer-window-timers": "off" },
+  },
   { ignores: ["main.js", "node_modules/**", "**/*.svelte"] },
 ];

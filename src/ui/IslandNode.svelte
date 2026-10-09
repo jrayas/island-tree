@@ -15,7 +15,7 @@
   const display = $derived(data.display);
   const minimal = $derived(zoom.level === "minimal");
   const showDetail = $derived(data.detail && zoom.level === "detailed" && display.kind !== "more");
-  const meta = $derived(data.meta);
+  const row = $derived(data.row);
 
   function open(event: MouseEvent): void {
     actions.onopen(id, event);
@@ -75,12 +75,14 @@
     <div class="island-card-meta">
       <span>{display.items} {display.items === 1 ? "item" : "items"}</span>
     </div>
-  {:else if showDetail && meta}
+  {:else if showDetail && row}
     <div class="island-card-meta">
-      <span class="island-dot island-dot-{meta.recency}" aria-hidden="true"></span>
-      <span>{meta.age} · {meta.size} · {meta.links} {meta.links === 1 ? "link" : "links"}</span>
-      {#if meta.status}
-        <span class="island-chip island-chip-{meta.statusKind}">{meta.status}</span>
+      {#if row.dot}
+        <span class="island-dot island-dot-{row.dot}" aria-hidden="true"></span>
+      {/if}
+      {#if row.text}<span>{row.text}</span>{/if}
+      {#if row.status}
+        <span class="island-chip island-chip-{row.status.kind}">{row.status.label}</span>
       {/if}
     </div>
   {/if}

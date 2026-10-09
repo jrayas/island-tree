@@ -2,7 +2,7 @@
 
 An Obsidian plugin that shows your vault's folders and files as an animated, canvas-style dashboard: rounded "island" cards joined by curved, flowing branches, in a vertical or radial layout on a dotted grid.
 
-> **Status: early development (milestone 4 of 7).** The plugin shows a read-only, live-updating tree of your vault in a vertical or radial layout, with search, focus and file details. Settings and editing are still to come. See [`PROGRESS.md`](PROGRESS.md).
+> **Status: early development (milestone 5 of 7).** The plugin shows a read-only, live-updating tree of your vault in a vertical or radial layout, with search, focus, file details and a full settings page. Editing and the release polish are still to come. See [`PROGRESS.md`](PROGRESS.md).
 
 ## Planned features
 
@@ -35,7 +35,14 @@ No hotkeys are set by default. Assign your own in **Settings → Hotkeys**.
 
 ## Settings
 
-Settings arrive in milestone 5.
+Open **Settings → Island tree**. A live preview at the top shows each change as you make it, and an open dashboard follows too.
+
+- **Cards:** width, height, corner radius, border width, side padding and text size. Which details show (age, size, links, tags, status), whether details start on, and the name of the status property.
+- **Lines and grid:** curve style (curved, step or straight), thickness, dash pattern, flow speed (0 stops the animation) and highlight colour. The grid behind the cards: dots, lines or none, with size, spacing, opacity and colour.
+- **Layout:** the default layout, gap between cards, spacing between levels, ring distances for the radial layout, how many items a folder lists before "+N more", and whether Expand folders and Expand files start on.
+- **Presets:** Compact, Comfortable and Large, your own saved looks, resetting one tab or everything, and exporting or importing settings as JSON (file or clipboard). An import shows a summary and checks every value before anything changes.
+
+An empty colour or a text size of 0 follows your Obsidian theme. Every setting has a reset button.
 
 ## Known limits
 

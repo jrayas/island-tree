@@ -1,15 +1,17 @@
 <script lang="ts">
   // Root component. Owns the vault tree and the view state, works out what is
   // visible and where it goes, and hands the canvas plain data. The handlers
-  // below are the only places the view state changes.
+  // below are the only places the view state changes. Settings arrive through a
+  // store, so changing one in the settings page restyles and re-lays out an open
+  // dashboard at once.
   import { untrack } from "svelte";
   import { openTarget, type OpenTarget } from "../actions/target";
-  import { computeLayout } from "../layout/layout";
-  import type { LayoutMode } from "../layout/types";
+  import { computeLayout, type LayoutOptions } from "../layout/layout";
   import { describeItem } from "../model/display";
   import { describeSelection } from "../model/info";
-  import { describeMeta, type FileMeta, type MetaDisplay } from "../model/meta";
+  import { cardRow, describeMeta, type FileMeta, type MetaDisplay } from "../model/meta";
   import { isDimmed, searchTree, withSearchReveal } from "../model/search";
+  import type { SettingsStore } from "../settings/store";
   import { reconcileViewState } from "../model/sync";
   import type { VaultWatchHandlers } from "../model/watch";
   import {
@@ -22,10 +24,10 @@
   } from "../model/tree";
   import { buildVisibleTree, flattenVisible } from "../model/visibility";
   import {
-    createViewState,
     focusOn,
+    initialViewState,
     resetFocus,
-    resetView,
+    restartView,
     select,
     setDetail,
     setFilesOn,
@@ -35,6 +37,7 @@
     showAllFor,
     toggleFilesFor,
     toggleOpen,
+    type StartOptions,
     type ViewState,
   } from "../model/viewState";
   import Breadcrumb from "./Breadcrumb.svelte";
@@ -48,7 +51,7 @@
     readMeta,
     watchVault,
     openFile,
-    initialLayout,
+    settings,
   }: {
     loadTree: () => RawEntry;
     /** Details for a file, or null when they are not known. */
@@ -56,8 +59,16 @@
     /** Starts listening for vault changes and returns a function that stops. */
     watchVault: (handlers: VaultWatchHandlers) => () => void;
     openFile: (path: string, target: OpenTarget) => void;
-    initialLayout: LayoutMode;
+    settings: SettingsStore;
   } = $props();
+
+  // The live settings. Reading `cfg` in a derived value makes it follow changes.
+  let cfg = $state.raw(untrack(() => settings.get()));
+  $effect(() =>
+    settings.subscribe((next) => {
+      cfg = next;
+    }),
+  );
 
   // Ids stay the same for the same path across rebuilds, and follow a file when it moves.
   const registry = new UidRegistry();
@@ -67,18 +78,57 @@
   // Bumped when details may have changed, so cards re-read them.
   let metaVersion = $state(0);
 
-  let viewState = $state.raw<ViewState>(untrack(() => createViewState(root.uid, initialLayout)));
+  /** What the dashboard should start with, from the "start with" settings. */
+  function startOptions(): StartOptions {
+    return {
+      layoutMode: cfg.layout.defaultLayout,
+      detail: cfg.cards.startDetailed,
+      expandFolders: cfg.layout.startExpandFolders,
+      expandFiles: cfg.layout.startExpandFiles,
+    };
+  }
+
+  let viewState = $state.raw<ViewState>(
+    untrack(() => initialViewState(root.uid, folderUids(root), startOptions())),
+  );
   // Bumped whenever the camera should re-frame the cards: layout, focus and reset,
-  // but not folder clicks, so the view does not jump while browsing.
+  // or a setting that changes card sizes or spacing, but not folder clicks, so the
+  // view does not jump while browsing.
   let fitKey = $state(0);
+
+  const layoutOptions = $derived<LayoutOptions>({
+    cardWidth: cfg.cards.width,
+    cardHeight: cfg.cards.height,
+    gap: cfg.layout.gap,
+    levelGap: cfg.layout.levelGap,
+    ringRadius: cfg.layout.ringRadius,
+    ringStep: cfg.layout.ringStep,
+  });
+  const layoutKey = $derived(JSON.stringify(layoutOptions));
+  let lastLayoutKey = untrack(() => layoutKey);
+  $effect(() => {
+    if (layoutKey === lastLayoutKey) return;
+    lastLayoutKey = layoutKey;
+    fitKey += 1;
+  });
+
+  // A new status property name means every card's status must be read again.
+  let lastStatusProperty = untrack(() => cfg.cards.statusProperty);
+  $effect(() => {
+    if (cfg.cards.statusProperty === lastStatusProperty) return;
+    lastStatusProperty = cfg.cards.statusProperty;
+    metaVersion += 1;
+  });
 
   const search = $derived(searchTree(root, viewState.query));
   // The search reveals matches without touching the saved state, so clearing it restores the view.
   const effective = $derived(withSearchReveal(viewState, search));
   const focusNode = $derived(index.get(viewState.focusRoot) ?? root);
-  const visibleRoot = $derived(buildVisibleTree(focusNode, effective));
+  const visibleRoot = $derived(buildVisibleTree(focusNode, effective, cfg.layout.overflowLimit));
   const visible = $derived(flattenVisible(visibleRoot));
-  const placed = $derived(computeLayout(viewState.layoutMode, visibleRoot, viewState.detail));
+  const placed = $derived(
+    computeLayout(viewState.layoutMode, visibleRoot, viewState.detail, layoutOptions),
+  );
 
   const selectedNode = $derived(viewState.selected ? index.get(viewState.selected) : undefined);
 
@@ -103,13 +153,20 @@
         parentId: item.parentId,
         highlight: highlighted.has(item.id),
         data: {
-          display: describeItem(item, effective, meta),
+          display: describeItem(item, effective, meta, { tags: cfg.cards.showTags }),
           selected: viewState.selected === item.id,
           hit: search?.hits.has(item.id) ?? false,
           dim: isDimmed(item.id, search),
           compact: viewState.layoutMode === "radial",
           detail: viewState.detail,
-          meta,
+          row: meta
+            ? cardRow(meta, {
+                age: cfg.cards.showAge,
+                size: cfg.cards.showSize,
+                links: cfg.cards.showLinks,
+                status: cfg.cards.showStatus,
+              })
+            : null,
         },
       };
     }),
@@ -201,7 +258,7 @@
       refit();
     }}
     onreset={() => {
-      viewState = resetView(viewState, root.uid);
+      viewState = restartView(viewState, initialViewState(root.uid, allFolders, startOptions()));
       refit();
     }}
     onquery={(text) => (viewState = setQuery(viewState, text, root.uid))}
@@ -218,10 +275,16 @@
     cardWidth={placed.cardSize.width}
     cardHeight={placed.cardSize.height}
     radialCentre={placed.centre}
+    curve={cfg.lines.curve}
+    grid={{ type: cfg.canvas.grid, size: cfg.canvas.gridSize, spacing: cfg.canvas.gridSpacing }}
     {fitKey}
     onnodeclick={activate}
     onbadge={(id) => (viewState = toggleFilesFor(viewState, id))}
     onopen={openCard}
   />
-  <InfoPanel info={describeSelection(selectedNode ?? null, metaFor(selectedNode))} />
+  <InfoPanel
+    info={describeSelection(selectedNode ?? null, metaFor(selectedNode), {
+      tags: cfg.cards.showTags,
+    })}
+  />
 </div>

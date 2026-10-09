@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { CARD_SIZES, DETAILED_CARD_SIZES, cardSizeFor, computeLayout } from "./layout";
+import { DETAILED_RING_SCALE, cardSizeFor, computeLayout, ringRadii, type LayoutOptions } from "./layout";
 import type { LayoutNode } from "./types";
+
+const options: LayoutOptions = {
+  cardWidth: 116,
+  cardHeight: 40,
+  gap: 14,
+  levelGap: 44,
+  ringRadius: 125,
+  ringStep: 90,
+};
 
 const tree: LayoutNode = {
   id: "r",
@@ -10,39 +19,74 @@ const tree: LayoutNode = {
   ],
 };
 
+describe("cardSizeFor", () => {
+  it("gives the mockup's four sizes at the default width and height", () => {
+    expect(cardSizeFor("vertical", false, 116, 40)).toEqual({ width: 116, height: 40 });
+    expect(cardSizeFor("vertical", true, 116, 40)).toEqual({ width: 168, height: 58 });
+    expect(cardSizeFor("radial", false, 116, 40)).toEqual({ width: 88, height: 30 });
+    expect(cardSizeFor("radial", true, 116, 40)).toEqual({ width: 132, height: 48 });
+  });
+
+  it("scales every size with the configured width and height", () => {
+    expect(cardSizeFor("vertical", false, 200, 60)).toEqual({ width: 200, height: 60 });
+    expect(cardSizeFor("vertical", true, 200, 60)).toEqual({ width: 290, height: 87 });
+    expect(cardSizeFor("radial", false, 200, 60).width).toBeLessThan(200);
+  });
+});
+
+describe("ringRadii", () => {
+  it("gives the mockup's rings at the default first radius", () => {
+    expect(ringRadii(125)).toEqual([0, 125, 235, 335, 425]);
+  });
+
+  it("scales all rings from the first one", () => {
+    expect(ringRadii(100)).toEqual([0, 100, 188, 268, 340]);
+  });
+});
+
 describe("computeLayout", () => {
   it("uses the vertical engine and its card size in vertical mode", () => {
-    const result = computeLayout("vertical", tree);
-    expect(result.cardSize).toEqual(CARD_SIZES.vertical);
+    const result = computeLayout("vertical", tree, false, options);
+    expect(result.cardSize).toEqual({ width: 116, height: 40 });
     expect(result.centre).toBeNull();
     expect(result.positions.get("a")?.y).toBe(result.positions.get("b")?.y);
   });
 
+  it("uses the configured gap and level spacing", () => {
+    const tight = computeLayout("vertical", tree, false, { ...options, gap: 4, levelGap: 20 });
+    const loose = computeLayout("vertical", tree, false, { ...options, gap: 40, levelGap: 80 });
+    expect(loose.width).toBeGreaterThan(tight.width);
+    expect(loose.height).toBeGreaterThan(tight.height);
+  });
+
   it("uses the radial engine and smaller cards in radial mode", () => {
-    const result = computeLayout("radial", tree);
-    expect(result.cardSize).toEqual(CARD_SIZES.radial);
+    const result = computeLayout("radial", tree, false, options);
+    expect(result.cardSize).toEqual({ width: 88, height: 30 });
     expect(result.centre).not.toBeNull();
     expect(result.positions.get("r")).toEqual(result.centre);
   });
 
+  it("uses the configured first ring radius", () => {
+    const distance = (ring: number): number => {
+      const layout = computeLayout("radial", tree, false, { ...options, ringRadius: ring });
+      const a = layout.positions.get("a")!;
+      return Math.hypot(a.x - layout.centre!.x, a.y - layout.centre!.y);
+    };
+    expect(distance(125)).toBeCloseTo(125);
+    expect(distance(200)).toBeCloseTo(200);
+  });
+
   it("uses the bigger detailed sizes when detail is on", () => {
-    expect(computeLayout("vertical", tree, true).cardSize).toEqual(DETAILED_CARD_SIZES.vertical);
-    expect(cardSizeFor("radial", true)).toEqual(DETAILED_CARD_SIZES.radial);
-    expect(cardSizeFor("radial", false)).toEqual(CARD_SIZES.radial);
+    expect(computeLayout("vertical", tree, true, options).cardSize).toEqual({ width: 168, height: 58 });
   });
 
   it("spreads the radial rings out for detailed cards", () => {
-    const plain = computeLayout("radial", tree, false);
-    const detailed = computeLayout("radial", tree, true);
+    const plain = computeLayout("radial", tree, false, options);
+    const detailed = computeLayout("radial", tree, true, options);
     const distance = (layout: typeof plain): number => {
       const a = layout.positions.get("a")!;
       return Math.hypot(a.x - layout.centre!.x, a.y - layout.centre!.y);
     };
-    expect(distance(detailed)).toBeCloseTo(distance(plain) * 1.3);
-  });
-
-  it("makes radial cards smaller than vertical ones", () => {
-    expect(CARD_SIZES.radial.width).toBeLessThan(CARD_SIZES.vertical.width);
-    expect(CARD_SIZES.radial.height).toBeLessThan(CARD_SIZES.vertical.height);
+    expect(distance(detailed)).toBeCloseTo(distance(plain) * DETAILED_RING_SCALE);
   });
 });

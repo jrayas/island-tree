@@ -3,7 +3,8 @@ import {
   createViewState,
   focusOn,
   resetFocus,
-  resetView,
+  initialViewState,
+  restartView,
   select,
   setFilesOn,
   setDetail,
@@ -153,18 +154,43 @@ describe("setDetail", () => {
   });
 });
 
-describe("resetView", () => {
-  it("goes back to the start but keeps the layout and detail level", () => {
+describe("initialViewState", () => {
+  const folders = ["root", "a", "b"];
+
+  it("starts plain by default", () => {
+    const s = initialViewState("root", folders, {
+      layoutMode: "vertical", detail: false, expandFolders: false, expandFiles: false,
+    });
+    expect(s).toEqual(createViewState("root"));
+  });
+
+  it("follows the start settings", () => {
+    const s = initialViewState("root", folders, {
+      layoutMode: "radial", detail: true, expandFolders: true, expandFiles: true,
+    });
+    expect(s.layoutMode).toBe("radial");
+    expect(s.detail).toBe(true);
+    expect(s.filesOn).toBe(true);
+    expect(s.foldersOn).toBe(true);
+    expect([...s.open].sort()).toEqual(["a", "b", "root"]);
+  });
+});
+
+describe("restartView", () => {
+  it("goes back to the starting view but keeps the layout and detail level chosen since", () => {
+    const initial = initialViewState("root", ["root", "a"], {
+      layoutMode: "vertical", detail: false, expandFolders: true, expandFiles: false,
+    });
     const messy = setQuery(
-      select(toggleOpen(setDetail(setLayout(start(), "radial"), true), "a"), "a"),
+      select(toggleOpen(setDetail(setLayout(initial, "radial"), true), "a"), "a"),
       "x",
       "root",
     );
-    const reset = resetView(messy, "root");
+    const reset = restartView(messy, initial);
     expect(reset.layoutMode).toBe("radial");
     expect(reset.detail).toBe(true);
     expect(reset.query).toBe("");
     expect(reset.selected).toBeNull();
-    expect([...reset.open]).toEqual(["root"]);
+    expect([...reset.open].sort()).toEqual(["a", "root"]);
   });
 });

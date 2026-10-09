@@ -46,7 +46,7 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 
 **Why:** Our minimum version is 1.7.2, and the full settings page needs a custom horizontal tab strip and a live preview, which the declarative API may not support. Decide in milestone 5 after reading the current docs for that API.
 
-**Revisit:** milestone 5.
+**Settled in milestone 5:** see D-026.
 
 ## D-008: Dev dependency audit findings accepted (milestone 1)
 
@@ -163,3 +163,53 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 **Decision:** If the selected card is deleted the selection clears. If the focused folder is deleted the view returns to the vault root. While Expand folders is on, folders created later are opened, but a folder the user closed by hand stays closed.
 
 **Why:** A stale selection or focus would leave the view pointing at nothing. Manual clicks win over the toggle (SPEC.md section 4 rule 6), which is why only folders that did not exist before are opened.
+
+## D-026: Classic settings API with a custom tab strip (milestone 5)
+
+**Decision:** The settings page implements `display()` and builds its own header, live preview and tab strip from `Setting` rows. It does not implement the declarative `getSettingDefinitions()`. This settles D-007. The lint warning `obsidianmd/settings-tab/prefer-setting-definitions` stays and is accepted.
+
+**Why:** The declarative API needs Obsidian 1.13 or later, while the plugin supports 1.7.2. A custom tab strip and a live preview are what `SPEC.md` section 9 asks for and do not fit a list of definitions.
+
+**Cost:** on Obsidian 1.13 and later these settings do not appear in the global settings search. Adding `getSettingDefinitions()` later, for newer versions only, would fix that without removing this page.
+
+## D-027: One schema table drives settings, validation, controls, presets and import (milestone 5)
+
+**Decision:** `settings/schema.ts` lists every setting once. Validation, defaults, the controls, presets, reset and export are generated from it. Saved data is nested by group (`cards`, `lines`, `canvas`, `layout`, `editing`) with a `presets` list, schema version 2. Version 1 data (flat `defaultLayout` and `statusProperty`) is migrated on load.
+
+**Why:** Adding a setting means adding one entry, and the page, validation and import cannot disagree. Everything that touches untrusted data goes through one function, `coerceField`.
+
+## D-028: Theme-following defaults (milestone 5)
+
+**Decision:** An empty colour setting means "follow the theme" (the accent for the highlight, a border colour for the grid), and a text size of 0 means the Obsidian interface size. Colours must be hex (`#rgb`, `#rrggbb` or `#rrggbbaa`); anything else is rejected, so a setting can never inject other CSS.
+
+**Why:** `SPEC.md` section 9 says defaults point at Obsidian theme variables. Hex-only values come straight from the colour picker and are safe to put in a CSS variable.
+
+## D-029: Card sizes and ring radii derived from one value each (milestone 5)
+
+**Decision:** The settings give one card width and height. The detailed and radial sizes are derived with the mockup's ratios, and the ring radii are multiples of the first ring's radius (1, 1.88, 2.68 and 3.4 times). At the defaults the results equal the mockup's numbers exactly.
+
+**Why:** Four independent sizes and five ring radii would be too many controls, and keeping the proportions means cards never overlap when you resize them. Rounding makes some sizes differ by a pixel from a hand-picked value.
+
+## D-030: What a preset contains (milestone 5)
+
+**Decision:** A preset stores every Cards, Lines and grid and Layout setting except the status property name, which belongs to the person's notes, not the look. The Editing settings are never part of a preset. Applying a preset first returns the whole look to its defaults, then sets the preset's values. The built-ins are Compact, Comfortable (the defaults) and Large. A name must be 1 to 40 characters, unique ignoring case, and not a built-in's. At most 30 presets are kept.
+
+**Why:** Applying a look should not change how the dashboard behaves or which property is read. Resetting first makes a built-in that sets only a few values give the same result every time.
+
+## D-031: Import is untrusted input (milestone 5)
+
+**Decision:** An imported file must be at most 1,000,000 characters, valid JSON, labelled `island-tree-settings` and not from a newer settings version. Every value then goes through the same checks as saved data. Unknown keys are ignored, out-of-range numbers are adjusted, wrong types and unknown options fall back to the default, and a summary says which. Nothing changes until the person presses Apply. Imported presets are added; one whose name is already used is skipped.
+
+**Why:** `SPEC.md` section 9 says never to trust imported data. Showing the summary first means a wrong file does not silently change the look.
+
+## D-032: Saving is delayed and flushed on unload; settings apply live (milestone 5)
+
+**Decision:** `SettingsStore` tells subscribers immediately, saves 300 ms after the last change, and saves any pending change when the plugin unloads. Open dashboards subscribe, so colours, line style and similar changes apply at once. Changes to card size or spacing also animate the cards and re-frame the camera, and a new status property name makes cards read their details again. The settings page redraws only the preview on a change, not the controls, so a slider is not interrupted while being dragged.
+
+**Why:** A slider fires many changes a second and each save writes a file. The live link makes the page worth using.
+
+## D-033: Warning style by class, not by the new method (milestone 5)
+
+**Decision:** Destructive buttons get the `mod-warning` class directly. The methods for it are deprecated (`setWarning`) or need Obsidian 1.13 (`setDestructive`), and the lint rules forbid disabling the deprecation check.
+
+**Why:** It works on every supported version and keeps the lint clean.

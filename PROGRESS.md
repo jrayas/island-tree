@@ -1,6 +1,6 @@
 # Progress
 
-Last updated: milestone 4 (live updates and details).
+Last updated: milestone 5 (settings).
 
 ## Done
 
@@ -16,31 +16,35 @@ Last updated: milestone 4 (live updates and details).
 
 - Radial layout, Expand folders and Expand files, Reset, search as a temporary overlay, focus mode with breadcrumb, info panel, double click to focus a folder or open a file, camera re-fit on layout, focus and reset.
 
-**Milestone 4: live updates and metadata**
+**Milestone 4: live updates and metadata** (commit 0c55f6a)
 
-- Live updates: vault `create`, `delete`, `rename`, `modify` and metadata `changed`, `resolved` are watched, held back until 150 ms of quiet, and delivered once (D-021). Creating, deleting, renaming or moving a note rebuilds the tree with stable ids, so a renamed or moved card keeps its identity and glides (D-020). The view state is tidied afterwards: deleted selection cleared, deleted focus returns to the root, new folders opened while Expand folders is on, folders closed by hand left alone (D-025). Listeners are removed when the view closes.
-- File details: modified time, size, outgoing and incoming links, tags and the status property, read only for visible cards (D-022). Link index inverted once from `resolvedLinks` and cached.
-- Details toggle: bigger cards, a second row with recency dot, age, size, links and a coloured status chip; folders show their item count. The camera re-frames when it is toggled (D-024). Radial rings spread by 1.3 for detailed cards.
-- Semantic zoom: below 0.45 cards become a type colour and short name; the detail row shows from 0.7 (D-024). The zoom level is shared state, so zooming does not rebuild cards.
-- Info panel shows modified date, size, links out and backlinks, tags and status. Tags show in the card tooltip.
-- `statusProperty` setting (default `status`), with its control due in milestone 5.
-- Checks: `svelte-check` 0 errors and 0 warnings, 163 unit tests passing, lint 0 errors.
-- Throwaway jsdom smoke tests (kept outside the project): details rows and chips appear with Details on at a wide view and disappear at a narrow one, where cards go minimal; rename, create, delete and a new folder under Expand folders all behaved as intended, and a folder closed by hand stayed closed after a refresh; no console errors. A separate test of the watcher with a fake vault sent 400 events over about a second and got one update after they stopped, reported a rename at once, and left no listeners after stopping.
+- Vault watching with debounce, stable ids across renames and moves, view-state tidying, file details (age, size, links, tags, status), Details toggle and semantic zoom.
+
+**Milestone 5: settings**
+
+- One schema table (`settings/schema.ts`) describes every setting; validation, defaults, controls, presets, resets and export come from it (D-027). Saved data is nested by group, version 2, and version 1 data is migrated.
+- Settings page: header, live preview built with the real layout and styles, an accessible horizontal tab strip, and generated controls with a reset button on each row (D-026).
+- Cards: size, corner radius, border, padding, text size (0 follows the theme), start-detailed, which details show, status property name. Lines and grid: curve style (curved, step, straight, in both layouts), thickness, dash, flow speed, highlight colour, grid type, size, spacing, opacity and colour. Layout: default layout, gap, level spacing, ring radius and step, list limit, start-expanded switches. Editing: in the schema and validated, no tab yet (milestone 6).
+- Presets: Compact, Comfortable and Large; save, rename and delete your own; reset a tab or everything (D-030). Export and import as JSON by clipboard or file, with a summary shown before anything changes (D-031).
+- Settings apply live: open dashboards restyle through CSS variables and re-lay out with a re-fit (D-032). Saving waits 300 ms after the last change and flushes on unload.
+- Checks: `svelte-check` 0 errors and 0 warnings, 267 unit tests passing, lint 0 errors (one accepted warning, D-026).
+- Throwaway jsdom smoke tests (kept outside the project): the settings page was driven end to end against a stand-in for Obsidian's `Setting`, `Modal` and `Notice`, covering every tab, the arrow keys, sliders, toggles, dropdowns, text, reset, all preset actions, export, a hostile import with its summary, reset tab and reset all, the delayed save, and unsubscribing on hide, with no errors. The dashboard was driven against live setting changes: card size, list limit, grid type, details switches, status property and tag switches, and the start-with options.
 
 ## Open issues
 
-- **Milestones 2, 3 and 4 have not been tried in a real Obsidian vault.** The jsdom tests cannot measure layout and use a stand-in for Obsidian's `debounce`, so they could not check that **branches draw**, whether the **radial layout looks right**, how cards look in your theme, how smooth the gliding is, where the camera lands, or how the live updates feel against real file events. Please run the milestone 2, 3 and 4 checklists in `docs/DEVELOPMENT.md` and tell me what you see. If branches do not appear, the likely cause is how Svelte Flow measures the centre handles (D-012).
-- **Folder renames:** I am not certain whether Obsidian sends one `rename` event for a folder or one per file inside it. The code handles both (D-020), but it has not been seen with real events.
+- **Milestones 2 to 5 have not been tried in a real Obsidian vault.** The jsdom tests use stand-ins for Obsidian and cannot measure layout, so they could not check that **branches draw**, whether the radial layout looks right, how the cards, the settings page and the preview look in your theme, how the controls feel, or how smooth the gliding is. Please run the milestone 2 to 5 checklists in `docs/DEVELOPMENT.md` and tell me what you see. If branches do not appear, the likely cause is how Svelte Flow measures the centre handles (D-012); the curve-style setting would then show nothing either.
+- **Settings page layout** is the part most likely to need visual fixes: the preview's scaling, the tab strip, the row spacing and the slider value labels are written but unseen.
+- **Folder renames:** I am not certain whether Obsidian sends one `rename` event for a folder or one per file inside it. The code handles both (D-020).
 - **Author name is a placeholder** ("Your name") in `manifest.json` and `LICENSE`.
-- **Lint warning:** the settings tab does not use the declarative `getSettingDefinitions()` API (D-007, decide in milestone 5).
+- **Lint warning accepted:** no `getSettingDefinitions()`, so the settings are not in Obsidian 1.13's global settings search (D-026).
 - **`npm audit`:** 3 moderate findings via the `obsidian` typings (D-008). Development only.
 - **Svelte Flow attribution** (a small "Svelte Flow" link, bottom right) is kept on. Say if you want it hidden.
-- **Spec differences:** command names (D-006), JavaScript easing instead of CSS transitions (D-010), click behaviour (D-013), search as an overlay (D-015), full rebuild instead of incremental or lazy updates (D-020). `SPEC.md` still describes the original wording.
-- The default layout and the status property name cannot be changed until milestone 5.
+- **Spec differences:** command names (D-006), JavaScript easing instead of CSS transitions (D-010), click behaviour (D-013), search as an overlay (D-015), full rebuild instead of incremental or lazy updates (D-020), one card size and one ring radius setting instead of many (D-029). `SPEC.md` still describes the original wording.
 - Removed cards vanish instead of fading out (polish, milestone 7).
 - Branches use the target layout's centre, so they look slightly off for a moment while switching layouts (D-019).
 - Dates are written in British format whatever the system locale.
+- Changing the default layout or the "start with" settings affects the next time the dashboard opens (and Reset), not one already open.
 
 ## Next step
 
-Milestone 5: settings (tab strip, all controls, CSS variables, live preview, presets, import and export with validation). A plan listing the files will be shown for approval first.
+Milestone 6: editing (lock, rename, create, trash, drag to move, undo, auto-relock) and the Editing settings tab. A plan listing the files will be shown for approval first.

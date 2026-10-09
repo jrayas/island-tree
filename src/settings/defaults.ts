@@ -1,30 +1,12 @@
 /**
- * Settings shape, defaults and validation helpers.
+ * Default settings and the number-clamping helper.
  *
- * Milestone 1 holds only the fields needed to prove saving works. Later
- * milestones add the full set (see SPEC.md section 9) in this one typed object,
- * so defaults, ranges and import validation all live in a single place.
+ * The defaults themselves come from the table in `schema.ts`; this file is the
+ * short import for code that just wants them (SPEC.md section 3).
  */
-
-import type { LayoutMode } from "../layout/types";
-
-export type { LayoutMode };
-
-export interface IslandTreeSettings {
-  /** Schema version, so saved data can be migrated when fields change. */
-  version: number;
-  defaultLayout: LayoutMode;
-  /** The frontmatter property whose value shows as a status chip on file cards. */
-  statusProperty: string;
-}
-
-export const SETTINGS_VERSION = 1;
-
-export const DEFAULT_SETTINGS: IslandTreeSettings = {
-  version: SETTINGS_VERSION,
-  defaultLayout: "vertical",
-  statusProperty: "status",
-};
+export { DEFAULT_SETTINGS, SETTINGS_VERSION } from "./schema";
+export type { IslandTreeSettings } from "./schema";
+export type { LayoutMode } from "../layout/types";
 
 /**
  * Clamps a value into an inclusive range, falling back when it is not a usable

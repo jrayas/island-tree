@@ -116,11 +116,38 @@ export function setLayout(state: ViewState, layoutMode: LayoutMode): ViewState {
   return state.layoutMode === layoutMode ? state : { ...state, layoutMode };
 }
 
+/** What the settings say the dashboard should start with. */
+export interface StartOptions {
+  layoutMode: LayoutMode;
+  detail: boolean;
+  expandFolders: boolean;
+  expandFiles: boolean;
+}
+
+/** The view the dashboard opens with, following the "start with" settings. */
+export function initialViewState(
+  rootUid: string,
+  allFolders: readonly string[],
+  start: StartOptions,
+): ViewState {
+  const base = createViewState(rootUid, start.layoutMode);
+  return {
+    ...base,
+    detail: start.detail,
+    foldersOn: start.expandFolders,
+    open: start.expandFolders ? new Set(allFolders) : base.open,
+    filesOn: start.expandFiles,
+  };
+}
+
 export function setDetail(state: ViewState, detail: boolean): ViewState {
   return state.detail === detail ? state : { ...state, detail };
 }
 
-/** The "Reset" button: back to the starting view, keeping the chosen layout and detail level. */
-export function resetView(state: ViewState, rootUid: string): ViewState {
-  return { ...createViewState(rootUid, state.layoutMode), detail: state.detail };
+/**
+ * The "Reset" button: back to the starting view, but keeping the layout and
+ * detail level the user has chosen since.
+ */
+export function restartView(state: ViewState, initial: ViewState): ViewState {
+  return { ...initial, layoutMode: state.layoutMode, detail: state.detail };
 }
