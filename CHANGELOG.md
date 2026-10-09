@@ -20,6 +20,9 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 ### Added
 
+- Zoom to area: a fourth zoom button (dashed rectangle, accent-coloured while on) and Shift-drag draw a faint rectangle over the graph and glide the camera to fit it with a little space around it. Drags under 20px are ignored, Escape cancels, the zoom stops at 1.5, and the graph cannot pan while you draw. Works in every layout.
+- The rules behind it as a pure module with unit tests.
+
 - Milestone 5, settings: a full settings page with a live preview, a horizontal tab strip (Cards, Lines and grid, Layout, Presets) and a reset button on every setting. Cards: size, corner radius, border, padding, text size, which details show, and the status property name. Lines and grid: curve style (curved, step, straight), thickness, dash pattern, flow speed, highlight colour, and the grid (dots, lines or none) with size, spacing, opacity and colour. Layout: default layout, spacing, ring distances, the "+N more" limit, and whether Expand folders and Expand files start on. Presets: Compact, Comfortable and Large, saved presets you can rename and delete, reset one tab or everything, and export or import settings as JSON by file or clipboard, with a summary before anything changes. Changes apply to an open dashboard straight away. Defaults follow your Obsidian theme.
 - Settings are validated on load and on import (numbers limited to their range, unknown options and keys ignored, colours must be hex) and saved shortly after the last change. Settings saved by earlier versions are upgraded automatically.
 - Settings schema, validation, presets, import and export, CSS variables, the settings store and the new branch shapes as pure modules with unit tests.

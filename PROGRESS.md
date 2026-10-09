@@ -34,9 +34,13 @@ Last updated: milestone 5 (settings).
 
 - The graph fills the view below the toolbar and breadcrumb in the same colour as Obsidian Canvas (`--background-primary`), with faint Canvas-like dots. The selection details are floating text instead of a strip (bottom left, 24px from the edges; the zoom buttons are a column on the left edge near the middle, 8px apart, D-035, D-038). The extra bottom gap was Obsidian's own view padding, now overridden (D-037), and the text rises only while the floating status bar actually reaches it. The on-screen Svelte Flow credit is hidden and credited in the README (D-036). The camera frames the tree as soon as the view has a size. The toolbar, cards, connectors and accent colour were not touched.
 
+**Zoom to area** (D-039)
+
+- A fourth zoom button (dashed rectangle) and Shift-drag draw a rectangle and glide the camera to fit it, with a minimum size, a zoom cap, Escape to cancel, and no panning while drawing.
+
 ## Open issues
 
-- **Milestones 2 to 5 have not been tried in a real Obsidian vault.** The jsdom tests use stand-ins for Obsidian and cannot measure layout, so they could not check that **branches draw**, whether the radial layout looks right, how the cards, the settings page and the preview look in your theme, how the controls feel, or how smooth the gliding is. Please run the milestone 2 to 5 checklists in `docs/DEVELOPMENT.md` and tell me what you see. If branches do not appear, the likely cause is how Svelte Flow measures the centre handles (D-012); the curve-style setting would then show nothing either.
+- **Milestones 2 to 5 have not been tried in a real Obsidian vault.** Since the bottom-spacing work they have been driven in headless Chrome with real input events and Obsidian's own stylesheet, outside the project: **branches draw**, the camera frames the tree on load, cards and the zoom controls lay out as intended, and Zoom to area works (D-039). That is still not Obsidian itself, and the radial layout, the settings page and the preview have not been looked at. Please run the milestone 2 to 5 checklists in `docs/DEVELOPMENT.md` and tell me what you see.
 - **Canvas colour match** is by variable, not by sight: compare with a Canvas tab as the checklist in `docs/DEVELOPMENT.md` says, and change two lines if your theme gives Canvas its own colour (D-034).
 - **Settings page layout** is the part most likely to need visual fixes: the preview's scaling, the tab strip, the row spacing and the slider value labels are written but unseen.
 - **Folder renames:** I am not certain whether Obsidian sends one `rename` event for a folder or one per file inside it. The code handles both (D-020).

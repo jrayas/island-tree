@@ -9,6 +9,7 @@
     SvelteFlow,
     Background,
     BackgroundVariant,
+    ControlButton,
     Controls,
     type Edge,
     type Node,
@@ -20,6 +21,7 @@
   import { provideCanvasActions, provideZoom } from "./context";
   import IslandNode from "./IslandNode.svelte";
   import BranchEdge from "./BranchEdge.svelte";
+  import BoxZoom from "./BoxZoom.svelte";
   import FitController from "./FitController.svelte";
   import ZoomWatcher from "./ZoomWatcher.svelte";
   import { ZoomState } from "./zoomState.svelte";
@@ -62,8 +64,13 @@
 
   provideZoom(new ZoomState());
 
+  // "Zoom to area" mode: on from the fourth zoom button, off after a zoom or Escape.
+  let boxMode = $state(false);
+
   let paneWidth = $state(0);
   let paneHeight = $state(0);
+
+  const MIN_ZOOM = 0.2;
 
   const nodeTypes = { island: IslandNode };
   const edgeTypes = { branch: BranchEdge };
@@ -166,8 +173,9 @@
     {edgeTypes}
     fitView
     fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
-    minZoom={0.2}
+    minZoom={MIN_ZOOM}
     maxZoom={2}
+    panOnDrag={!boxMode}
     nodesDraggable={false}
     nodesConnectable={false}
     nodesFocusable={false}
@@ -184,7 +192,20 @@
         size={grid.size}
       />
     {/if}
-    <Controls showLock={false} position="top-left" />
+    <Controls showLock={false} position="top-left">
+      <ControlButton
+        class={["island-box-zoom", boxMode && "is-active"]}
+        onclick={() => (boxMode = !boxMode)}
+        title="Zoom to area (or hold Shift and drag)"
+        aria-label="Zoom to area"
+        aria-pressed={boxMode}
+      >
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+          <rect x="3.5" y="5.5" width="17" height="13" rx="1.5" />
+        </svg>
+      </ControlButton>
+    </Controls>
+    <BoxZoom active={boxMode} minZoom={MIN_ZOOM} onfinish={() => (boxMode = false)} />
     <ZoomWatcher />
     <FitController
       trigger={fitKey}

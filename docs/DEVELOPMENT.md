@@ -130,6 +130,15 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Measure in developer tools (Ctrl+Shift+I, Cmd+Option+I on Mac): with the status bar hidden, `.island-info` has 24px between its left and bottom edges and the pane (`.workspace-leaf-content`), and `.svelte-flow__controls` has 24px on the left. The view (`.view-content.island-tree-view`) has zero padding. Resize the pane taller and shorter: the button column stays centred on the same point and never goes under the toolbar or breadcrumb.
 - [ ] Status bar shown: the text sits at 24px unless the bar reaches it sideways (a narrow pane, or a long line in the bottom-right pane), in which case it rises to sit about 4px above the bar. Hide the bar and it drops back to exactly 24px. The zoom buttons never move for the bar.
 - [ ] The breadcrumb under the toolbar is in the interface font.
+
+**Zoom to area** (all three layouts once they exist)
+
+- [ ] A fourth zoom button with a dashed rectangle sits below fit view, 8px from it, and the column of four stays centred on the same point. Its tooltip says "Zoom to area (or hold Shift and drag)".
+- [ ] Click it: it turns accent-coloured and the cursor becomes a crosshair. Drag a rectangle: a faint accent outline and fill follow the pointer, and the graph does not pan. On release the camera glides to fit the area with a little space around it, and the button turns off.
+- [ ] Drag right to left and bottom to top: same result. A drag under about 20px does nothing and box mode stays on. Escape turns box mode off without moving the camera.
+- [ ] A very small area does not zoom in absurdly far (zoom stops at 1.5).
+- [ ] Hold Shift (without the button) and drag: the same rectangle and zoom, with the button staying off. Typing capital letters in the search box does not trigger it. Ctrl and Cmd are not used.
+- [ ] The other zoom buttons still work while box mode is on, and the details text is not blocked by the layer.
 - [ ] With nothing selected nothing shows at the bottom left.
 
 ## Project conventions

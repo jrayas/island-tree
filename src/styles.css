@@ -36,9 +36,9 @@
   /* Where the middle of the zoom stack sits, measured down from the top of the graph. Change
      this to move the stack up or down (keep it between 0% and 100%). */
   --island-zoom-offset-y: 45%;
-  /* Half the stack's height: three 26px buttons and two 8px gaps. Add 17px per extra button
+  /* Half the stack's height: four 26px buttons and three 8px gaps. Add 17px per extra button
      (half of 26px + 8px) if a button is ever added. Used to keep the details text clear. */
-  --island-zoom-half: 47px;
+  --island-zoom-half: 64px;
 }
 
 .island-tree-view .island-canvas {
@@ -225,6 +225,40 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-s);
   box-shadow: none;
+}
+
+/* Zoom to area. The layer is invisible and ignores the pointer until box mode is on or Shift is
+   held, then it takes the drag (so the pane cannot pan) and shows a crosshair. It sits below
+   the zoom buttons and the details text. */
+.island-tree-view .island-box-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.island-tree-view .island-box-layer.is-armed {
+  pointer-events: all;
+  cursor: crosshair;
+}
+
+.island-tree-view .island-box-rect {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid var(--interactive-accent);
+  background: color-mix(in srgb, var(--interactive-accent) 12%, transparent);
+  pointer-events: none;
+}
+
+/* The button's dashed-rectangle icon (Svelte Flow fills icons, this one is an outline). */
+.island-tree-view .island-box-zoom svg {
+  fill: none;
+  stroke-dasharray: 4 3;
+}
+
+.island-tree-view .svelte-flow__controls-button.is-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
 }
 
 /* Cards */
