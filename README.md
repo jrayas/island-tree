@@ -56,6 +56,10 @@ An empty colour or a text size of 0 follows your Obsidian theme. Every setting h
 - [`docs/DECISIONS.md`](docs/DECISIONS.md): why it is built that way.
 - [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md): setup, commands and testing.
 
+## Credits
+
+The pan, zoom and canvas surface is built on [Svelte Flow](https://svelteflow.dev) by [xyflow](https://xyflow.com), used under the MIT licence. Its small on-screen credit is hidden in the dashboard, so it is credited here instead.
+
 ## Licence
 
 [MIT](LICENSE)

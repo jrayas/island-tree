@@ -23,6 +23,9 @@
   flex: 1 1 0;
   min-height: 0;
   width: 100%;
+  /* One inset for every floating element: the zoom buttons' left, the details text's right,
+     and the bottom clearance for both. Raise it if a floating status bar overlaps them. */
+  --island-edge-gap: 24px;
 }
 
 .island-tree-view .island-canvas {
@@ -63,7 +66,7 @@
   gap: var(--size-2-2);
   padding: var(--size-2-2) var(--size-4-3);
   background: var(--background-primary);
-  font-family: var(--font-monospace);
+  font-family: var(--font-interface);
   font-size: var(--font-ui-smaller);
 }
 
@@ -87,15 +90,15 @@
 }
 
 /* Selection details: plain text floating over the graph, bottom right and right-aligned. No
-   box, border or background, and it never takes clicks. It is lifted 48px to clear Obsidian's
-   status bar. The width cap keeps its left edge 64px from the pane edge, past the zoom buttons
-   (18px + 26px wide), so a narrow pane wraps the text rather than letting it collide. */
+   box, border or background, and it never takes clicks. It is anchored by its bottom edge, so
+   long text grows upward. The width cap keeps its left edge clear of the zoom buttons (one gap,
+   26px of button, one gap) plus the right inset. */
 .island-tree-view .island-info {
   position: absolute;
-  right: 16px;
-  bottom: 48px;
+  right: var(--island-edge-gap);
+  bottom: var(--island-edge-gap);
   z-index: 6;
-  max-width: min(60ch, calc(100% - 80px));
+  max-width: min(60ch, calc(100% - 3 * var(--island-edge-gap) - 26px));
   text-align: right;
   overflow-wrap: anywhere;
   font-family: var(--font-interface);
@@ -116,6 +119,16 @@
   visibility: visible;
 }
 
+/* The name and path stop at two lines each, with an ellipsis, so the block stays short. */
+.island-tree-view .island-info-title,
+.island-tree-view .island-info-path {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
 .island-tree-view .island-info-title {
   color: var(--text-normal);
   font-size: var(--font-ui-medium);
@@ -127,9 +140,11 @@
   font-size: var(--font-ui-smaller);
 }
 
+/* A tight line box puts the text's bottom edge on the same line as the fit button's. */
 .island-tree-view .island-info-line {
   color: var(--text-muted);
   font-size: var(--font-ui-smaller);
+  line-height: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -146,29 +161,17 @@
   --xy-controls-button-background-color-hover: var(--background-modifier-hover);
   --xy-controls-button-color: var(--text-normal);
   --xy-controls-button-border-color: var(--background-modifier-border);
-  --xy-attribution-background-color: transparent;
   background: var(--background-primary);
   font-family: var(--font-interface);
 }
 
-/* Bottom left, from the bottom up: the "Svelte Flow" credit, a clear strip, then the zoom
-   buttons. Both are Svelte Flow panels placed with fixed offsets from the bottom edge, so
-   they cannot overlap at any pane size (the credit is one line of 10px text). */
-.island-tree-view .svelte-flow__attribution {
-  margin: 0 0 8px 18px;
-  color: var(--text-faint);
-}
-
-/* Svelte Flow's stylesheet hard-codes the link colour; follow the theme instead. */
-.island-tree-view .svelte-flow__attribution a {
-  color: inherit;
-}
-
+/* Zoom buttons: bottom left, 8px apart, inset by the shared edge gap. Svelte Flow's panel adds a
+   15px margin of its own, replaced here so the bottom edge of the fit button sits on the same
+   line as the bottom of the details text. */
 .island-tree-view .svelte-flow__controls {
   z-index: 7;
   pointer-events: all;
-  /* 15px panel margin + 30px extra lifts the buttons clear of the credit. */
-  margin: 0 0 45px 18px;
+  margin: 0 0 var(--island-edge-gap) var(--island-edge-gap);
   gap: 8px;
   box-shadow: none;
 }

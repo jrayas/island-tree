@@ -222,6 +222,12 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 
 ## D-035: Bottom area layout (after milestone 5)
 
-**Decision:** The selection text is at the bottom right (`right: 16px; bottom: 48px`, right-aligned, width capped so its left edge stays 64px from the pane edge). The zoom buttons stay at the bottom left, 8px apart, each with its own outline, 18px from the left and 45px from the bottom. The Svelte Flow credit uses `attributionPosition="bottom-left"` (the prop exists in the installed version, with `PanelPosition` values such as `bottom-left`) and sits 8px from the bottom and 18px from the left. The link colour follows `--text-faint` instead of the stylesheet's `#999`.
+**Decision:** The selection text is at the bottom right (`right: 16px; bottom: 48px`, right-aligned, width capped so its left edge stays 64px from the pane edge). The zoom buttons stay at the bottom left, 8px apart, each with its own outline, 18px from the left and 45px from the bottom. The credit was first moved to the bottom left with `attributionPosition`; D-036 then removed it.
 
 **Why:** A requested change: the text read like a label on the fit button, and the credit and Obsidian's status bar crowded the bottom right. Both bottom-left items are Svelte Flow panels placed by fixed offsets from the bottom edge, so they cannot overlap at any pane size. The status bar's exact height depends on the theme, so 48px is an estimate to check by eye.
+
+## D-036: Evenly inset bottom area; Svelte Flow credit hidden (after milestone 5)
+
+**Decision:** `.island-stage` defines `--island-edge-gap: 24px`. The zoom buttons (left, bottom) and the details text (right, bottom) use it, so all three edges are inset equally and the last line of the text and the fit button share a bottom line. The text's name and path are clamped to two lines with an ellipsis. The on-screen Svelte Flow credit is hidden with `proOptions={{ hideAttribution: true }}` (the prop exists unchanged in the installed version) and credited in the README. The breadcrumb uses `--font-interface`.
+
+**Why:** A requested change: the bottom items did not share a baseline and the credit pushed the buttons up. Svelte Flow is MIT licensed, so hiding the label is allowed; its typings ask users who hide it to consider a Pro subscription, which is the owner's call. Obsidian normally ends the pane above the status bar, so 24px is enough in the standard layout; a theme that floats the status bar over the pane may need a larger value, which is why it is one variable. The path is clamped at its end, so a very long path loses its tail, not its start; showing the end instead would need a direction trick that breaks right alignment.

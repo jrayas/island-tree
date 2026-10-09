@@ -32,7 +32,7 @@ Last updated: milestone 5 (settings).
 
 **UI change after milestone 5: one continuous surface** (D-034)
 
-- The graph fills the view below the toolbar and breadcrumb in the same colour as Obsidian Canvas (`--background-primary`), with faint Canvas-like dots. The selection details are floating text instead of a strip (now bottom right; the zoom buttons are bottom left, 8px apart, with the Svelte Flow credit beneath, D-035). The camera frames the tree as soon as the view has a size. The toolbar, cards, connectors and accent colour were not touched.
+- The graph fills the view below the toolbar and breadcrumb in the same colour as Obsidian Canvas (`--background-primary`), with faint Canvas-like dots. The selection details are floating text instead of a strip (bottom right; the zoom buttons are bottom left, 8px apart, both inset 24px from the edges, D-035). The on-screen Svelte Flow credit is hidden and credited in the README (D-036). The camera frames the tree as soon as the view has a size. The toolbar, cards, connectors and accent colour were not touched.
 
 ## Open issues
 
@@ -43,7 +43,7 @@ Last updated: milestone 5 (settings).
 - **Author name is a placeholder** ("Your name") in `manifest.json` and `LICENSE`.
 - **Lint warning accepted:** no `getSettingDefinitions()`, so the settings are not in Obsidian 1.13's global settings search (D-026).
 - **`npm audit`:** 3 moderate findings via the `obsidian` typings (D-008). Development only.
-- **Svelte Flow attribution** (a small "Svelte Flow" link, bottom left under the zoom buttons) is kept on. Say if you want it hidden.
+- **Svelte Flow attribution** is hidden on screen and credited in the README (D-036). Svelte Flow's typings ask people who hide it to consider a Pro subscription; this is a request, not a licence condition (MIT).
 - **Spec differences:** command names (D-006), JavaScript easing instead of CSS transitions (D-010), click behaviour (D-013), search as an overlay (D-015), full rebuild instead of incremental or lazy updates (D-020), one card size and one ring radius setting instead of many (D-029). `SPEC.md` still describes the original wording.
 - Removed cards vanish instead of fading out (polish, milestone 7).
 - Branches use the target layout's centre, so they look slightly off for a moment while switching layouts (D-019).

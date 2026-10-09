@@ -12,6 +12,8 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 - The bottom area is less crowded: the selection text moved to the bottom right (right-aligned, lifted clear of Obsidian's status bar, wrapping in narrow panes), the zoom buttons are spaced 8px apart with their own outlines, and the "Svelte Flow" credit moved to the bottom left beneath them.
 
+- The bottom area now uses one spacing value (24px) for the zoom buttons' left and bottom inset and the details text's right and bottom inset, with the last line of the text level with the bottom of the fit button. Long names and paths stop at two lines with an ellipsis and grow upward. The "Svelte Flow" label on screen is removed and credited in the README. The breadcrumb now uses the interface font.
+
 ### Added
 
 - Milestone 5, settings: a full settings page with a live preview, a horizontal tab strip (Cards, Lines and grid, Layout, Presets) and a reset button on every setting. Cards: size, corner radius, border, padding, text size, which details show, and the status property name. Lines and grid: curve style (curved, step, straight), thickness, dash pattern, flow speed, highlight colour, and the grid (dots, lines or none) with size, spacing, opacity and colour. Layout: default layout, spacing, ring distances, the "+N more" limit, and whether Expand folders and Expand files start on. Presets: Compact, Comfortable and Large, saved presets you can rename and delete, reset one tab or everything, and export or import settings as JSON by file or clipboard, with a summary before anything changes. Changes apply to an open dashboard straight away. Defaults follow your Obsidian theme.

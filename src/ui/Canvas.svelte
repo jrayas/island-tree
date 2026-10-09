@@ -1,5 +1,7 @@
 <script lang="ts">
-  // The pan and zoom surface. Receives where every card should be and glides the
+  // The pan and zoom surface, built on Svelte Flow (xyflow, MIT licence, https://svelteflow.dev).
+  // Its on-screen credit is hidden to keep the view clean; the credit is in README.md instead.
+  // Receives where every card should be and glides the
   // cards there frame by frame, rebuilding the nodes each frame so the branches
   // stay attached (see layout/animate.ts for why this is not a CSS transition).
   import { onDestroy, untrack } from "svelte";
@@ -172,7 +174,7 @@
     edgesFocusable={false}
     elementsSelectable={false}
     zoomOnDoubleClick={false}
-    attributionPosition="bottom-left"
+    proOptions={{ hideAttribution: true }}
     onnodeclick={({ node }) => onnodeclick(node.id)}
   >
     {#if grid.type !== "none"}
