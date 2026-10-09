@@ -9,7 +9,7 @@ An Obsidian plugin that shows your vault's folders and files as an animated, can
 - Vertical and radial layouts with pan and zoom.
 - Updates by itself when files change.
 - Cards showing file type, link counts, tags, status, modified date and size, each switchable.
-- Optional editing (rename, create, delete, drag to move) behind a lock. The dashboard always starts locked.
+- Optional editing (rename, create, delete, drag to move, undo) behind a lock. The dashboard starts locked.
 - Tabbed settings with presets, import and export.
 
 ## Install
@@ -30,13 +30,14 @@ Once released, install it from **Settings → Community plugins → Browse** and
 - Turn on **Details** for bigger cards with a second row for notes: a dot for how recently it changed (green today, amber within a week, grey older), its age, size, number of links and its status. The status comes from a `status` property in the note. Zoom in to see the row; zoomed far out, cards shrink to a colour and a short name.
 - Type in **Search names** to reveal matching files and folders. Clear the box to return to your view.
 - Double click a folder to focus on it, or select one and use **Focus selected**. The breadcrumb and **Reset focus** take you back up.
+- **Editing:** click **Locked** in the toolbar to unlock (or run **Toggle lock** from the command palette). An editing bar appears with **Rename**, **New note**, **New folder** and **Delete** for the selected card, and right-clicking a card offers the same. Drag a card onto a folder to move it. Every change shows a notice with **Undo** for about seven seconds. Links update through Obsidian, and deleted notes go to Obsidian's trash. The dashboard locks again by itself after a few minutes without changes (Settings, Editing).
 - Double click a file to open it in a new tab, or hold Ctrl (Cmd on a Mac) to open it in a split.
 
 No hotkeys are set by default. Assign your own in **Settings → Hotkeys**.
 
 ## Settings
 
-Open **Settings → Island tree**. A live preview at the top shows each change as you make it, and an open dashboard follows too.
+Open **Settings → Island tree**. A live preview at the top shows each change as you make it, and an open dashboard follows too. The **Editing** tab sets whether the dashboard starts locked, when it locks again, whether dragging is allowed, when a big folder asks for confirmation, and whether deleting asks first.
 
 - **Cards:** width, height, corner radius, border width, side padding and text size. Which details show (age, size, links, tags, status), whether details start on, and the name of the status property.
 - **Lines and grid:** curve style (curved, step or straight), thickness, dash pattern, flow speed (0 stops the animation) and highlight colour. The grid behind the cards: dots, lines or none, with size, spacing, opacity and colour.

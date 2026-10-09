@@ -6,6 +6,8 @@
   // dashboard at once.
   import { untrack } from "svelte";
   import { openTarget, type OpenTarget } from "../actions/target";
+  import type { EditTarget, EditingApi, LockBridge } from "../editing/api";
+  import { relockDue } from "../editing/rules";
   import { computeLayout, type LayoutOptions } from "../layout/layout";
   import { describeItem } from "../model/display";
   import { describeSelection } from "../model/info";
@@ -22,6 +24,7 @@
     indexTree,
     UidRegistry,
     type RawEntry,
+    type TreeNode,
   } from "../model/tree";
   import { buildVisibleTree, flattenVisible } from "../model/visibility";
   import {
@@ -36,6 +39,7 @@
     setLayout,
     setQuery,
     showAllFor,
+    showFolderContents,
     toggleFilesFor,
     toggleOpen,
     type StartOptions,
@@ -43,6 +47,7 @@
   } from "../model/viewState";
   import Breadcrumb from "./Breadcrumb.svelte";
   import Canvas from "./Canvas.svelte";
+  import EditBar from "./EditBar.svelte";
   import type { CanvasItem } from "./cardData";
   import InfoPanel from "./InfoPanel.svelte";
   import Toolbar from "./Toolbar.svelte";
@@ -53,6 +58,8 @@
     watchVault,
     openFile,
     settings,
+    editing,
+    lockBridge,
   }: {
     loadTree: () => RawEntry;
     /** Details for a file, or null when they are not known. */
@@ -61,6 +68,10 @@
     watchVault: (handlers: VaultWatchHandlers) => () => void;
     openFile: (path: string, target: OpenTarget) => void;
     settings: SettingsStore;
+    /** Renaming, creating, deleting and moving, through Obsidian's file APIs. */
+    editing: EditingApi;
+    /** Lets the "Toggle lock" command reach this app. */
+    lockBridge: LockBridge;
   } = $props();
 
   // The live settings. Reading `cfg` in a derived value makes it follow changes.
@@ -160,6 +171,8 @@
           hit: search?.hits.has(item.id) ?? false,
           dim: isDimmed(item.id, search),
           compact: viewState.layoutMode === "radial",
+          draggable:
+            !locked && cfg.editing.allowDrag && item.kind !== "more" && item.id !== root.uid,
           detail: viewState.detail,
           row: meta
             ? cardRow(meta, {
@@ -190,6 +203,16 @@
     );
     root = next;
     metaVersion += 1;
+    selectPending(indexTree(next));
+  }
+
+  /** A note or folder just created from here is selected as soon as its card exists. */
+  function selectPending(known: ReadonlyMap<string, TreeNode>): void {
+    if (!pendingSelect) return;
+    const uid = registry.uidFor(pendingSelect);
+    if (!known.has(uid)) return;
+    viewState = select(viewState, uid);
+    pendingSelect = null;
   }
 
   $effect(() =>
@@ -199,6 +222,101 @@
       onRename: (oldPath, newPath) => registry.moved(oldPath, newPath),
     }),
   );
+
+  // ---- Editing. The dashboard starts locked; while locked nothing here does anything.
+  let locked = $state(untrack(() => cfg.editing.startLocked));
+  let lastEditAt = Date.now();
+  let pendingSelect: string | null = null;
+
+  function toggleLock(): void {
+    locked = !locked;
+    if (!locked) lastEditAt = Date.now();
+  }
+
+  $effect(() => {
+    lockBridge.toggle = toggleLock;
+    return () => {
+      lockBridge.toggle = null;
+    };
+  });
+
+  // Locks again after the chosen minutes without an edit (0 means never).
+  $effect(() => {
+    const minutes = cfg.editing.autoRelockMinutes;
+    if (locked || minutes <= 0) return;
+    const timer = window.setInterval(() => {
+      if (!relockDue(lastEditAt, Date.now(), minutes)) return;
+      locked = true;
+      editing.notify(`Locked again after ${minutes} ${minutes === 1 ? "minute" : "minutes"} without changes.`);
+    }, 10_000);
+    return () => window.clearInterval(timer);
+  });
+
+  function targetOf(node: TreeNode): EditTarget {
+    return { path: node.path, name: node.name, kind: node.kind };
+  }
+
+  const canEditSelected = $derived(selectedNode !== undefined && selectedNode.uid !== root.uid);
+
+  async function renameNode(node: TreeNode | undefined): Promise<void> {
+    if (locked || !node || node.uid === root.uid) return;
+    if (await editing.rename(targetOf(node))) lastEditAt = Date.now();
+  }
+
+  async function deleteNode(node: TreeNode | undefined): Promise<void> {
+    if (locked || !node || node.uid === root.uid) return;
+    if (await editing.remove(targetOf(node))) lastEditAt = Date.now();
+  }
+
+  /** New items go in the selected folder, beside the selected file, or in the vault root. */
+  async function createIn(node: TreeNode | undefined, kind: "file" | "folder"): Promise<void> {
+    if (locked) return;
+    const folder = !node ? root : node.kind === "folder" ? node : (node.parent ?? root);
+    const path = kind === "file" ? await editing.createNote(folder.path) : await editing.createFolder(folder.path);
+    if (!path) return;
+    lastEditAt = Date.now();
+    pendingSelect = path;
+    // Open the folder and its "+N more" list too, so the new card is not hidden in the overflow.
+    viewState = showAllFor(showFolderContents(viewState, folder.uid), folder.uid);
+    // The vault's own event usually arrives first; if it already has, the card is there now.
+    selectPending(index);
+  }
+
+  function dropRefusal(sourceId: string, targetId: string): string | null {
+    const source = index.get(sourceId);
+    const destination = index.get(targetId);
+    if (!source || source.uid === root.uid) return "That cannot be moved.";
+    if (!destination || destination.kind !== "folder") return "Drop it onto a folder to move it.";
+    return editing.moveRefusal(targetOf(source), destination.path);
+  }
+
+  async function dropOn(sourceId: string, targetId: string): Promise<void> {
+    const source = index.get(sourceId);
+    const destination = index.get(targetId);
+    if (locked || !source || !destination) return;
+    if (await editing.move(targetOf(source), destination.path)) {
+      lastEditAt = Date.now();
+      viewState = showAllFor(showFolderContents(viewState, destination.uid), destination.uid);
+    }
+  }
+
+  /** Right-click selects the card. Locked, the menu only says so; unlocked, it offers the edits. */
+  function openMenu(id: string, event: MouseEvent): void {
+    const node = index.get(id);
+    if (!node) return;
+    viewState = select(viewState, id);
+    if (locked) {
+      editing.menu(event, [{ label: "Locked: unlock to edit", icon: "lock", disabled: true }]);
+      return;
+    }
+    const isRoot = node.uid === root.uid;
+    editing.menu(event, [
+      { label: "Rename", icon: "pencil", disabled: isRoot, run: () => void renameNode(node) },
+      { label: "New note here", icon: "file-plus", run: () => void createIn(node, "file") },
+      { label: "New folder here", icon: "folder-plus", run: () => void createIn(node, "folder") },
+      { label: "Delete", icon: "trash", disabled: isRoot, run: () => void deleteNode(node) },
+    ]);
+  }
 
   function refit(): void {
     fitKey += 1;
@@ -286,8 +404,21 @@
       viewState = resetFocus(viewState, root.uid);
       refit();
     }}
+    {locked}
+    onlock={toggleLock}
   />
   <Breadcrumb {crumbs} onselect={focusCrumb} />
+  {#if !locked}
+    <EditBar
+      target={selectedNode?.name ?? null}
+      canRename={canEditSelected}
+      canDelete={canEditSelected}
+      onrename={() => void renameNode(selectedNode)}
+      onnote={() => void createIn(selectedNode, "file")}
+      onfolder={() => void createIn(selectedNode, "folder")}
+      ondelete={() => void deleteNode(selectedNode)}
+    />
+  {/if}
   <div class="island-stage">
   <Canvas
     {items}
@@ -303,6 +434,10 @@
     onnodeclick={activate}
     onbadge={(id) => (viewState = toggleFilesFor(viewState, id))}
     onopen={openCard}
+    ondrop={(sourceId, targetId) => void dropOn(sourceId, targetId)}
+    droprefusal={dropRefusal}
+    onrefuse={(message) => editing.notify(message)}
+    oncontext={openMenu}
   />
   <InfoPanel
     info={describeSelection(selectedNode ?? null, metaFor(selectedNode), {

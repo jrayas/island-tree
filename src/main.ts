@@ -40,6 +40,18 @@ export default class IslandTreePlugin extends Plugin {
       callback: () => void this.activateView("sidebar"),
     });
 
+    // Only offered while the dashboard is the active view, since the lock belongs to it.
+    this.addCommand({
+      id: "toggle-lock",
+      name: "Toggle lock",
+      checkCallback: (checking) => {
+        const view = this.app.workspace.getActiveViewOfType(IslandTreeView);
+        if (!view) return false;
+        if (!checking) view.toggleLock();
+        return true;
+      },
+    });
+
     this.addSettingTab(new IslandTreeSettingTab(this.app, this));
   }
 

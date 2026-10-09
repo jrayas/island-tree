@@ -18,6 +18,8 @@ export type CardData = {
   compact: boolean;
   /** The Details toggle is on, so close-up cards show a second row. */
   detail: boolean;
+  /** The card can be dragged onto a folder: the dashboard is unlocked and dragging is allowed. */
+  draggable: boolean;
   /** The detail row for a file, following the Show settings, or null when there is nothing to show. */
   row: CardRow | null;
 };

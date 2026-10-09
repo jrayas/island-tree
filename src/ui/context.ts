@@ -14,6 +14,10 @@ export interface CanvasActions {
   onbadge: (id: string) => void;
   /** A card was double-clicked: focus a folder, or open a file. */
   onopen: (id: string, modifiers: { ctrlKey: boolean; metaKey: boolean }) => void;
+  /** The pointer went down on a card that can be dragged. */
+  ondragstart: (id: string, event: PointerEvent) => void;
+  /** A card was right-clicked. */
+  oncontext: (id: string, event: MouseEvent) => void;
 }
 
 const ACTIONS_KEY = Symbol("island-tree-canvas-actions");

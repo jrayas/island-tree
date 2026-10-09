@@ -12,6 +12,7 @@
     query,
     canFocus,
     isFocused,
+    locked,
     onlayout,
     onmindmap,
     onfolders,
@@ -21,6 +22,7 @@
     onquery,
     onfocus,
     onunfocus,
+    onlock,
   }: {
     layoutMode: LayoutMode;
     /** Which mind map view is chosen, shown on the Mind map button while that layout is on. */
@@ -33,6 +35,8 @@
     canFocus: boolean;
     /** The view is focused on a folder other than the vault root. */
     isFocused: boolean;
+    /** Editing is locked. The button shows the state and flips it. */
+    locked: boolean;
     onlayout: (mode: "vertical" | "radial") => void;
     /** Selects the mind map layout, or, when it is already on, switches between its two views. */
     onmindmap: () => void;
@@ -43,6 +47,7 @@
     onquery: (text: string) => void;
     onfocus: () => void;
     onunfocus: () => void;
+    onlock: () => void;
   } = $props();
 </script>
 
@@ -100,5 +105,15 @@
   <div class="island-toolbar-group">
     <button type="button" disabled={!canFocus} onclick={onfocus}>Focus selected</button>
     <button type="button" disabled={!isFocused} onclick={onunfocus}>Reset focus</button>
+  </div>
+
+  <div class="island-toolbar-group">
+    <button
+      type="button"
+      class:is-active={!locked}
+      aria-pressed={!locked}
+      title={locked ? "Locked. Click to unlock editing." : "Unlocked. Click to lock again."}
+      onclick={onlock}>{locked ? "Locked" : "Unlocked"}</button
+    >
   </div>
 </div>

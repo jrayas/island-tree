@@ -20,6 +20,9 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 ### Added
 
+- Milestone 6, editing: a **Locked** or **Unlocked** button in the toolbar and a **Toggle lock** command. The dashboard opens locked and locks again after the minutes set in the new **Editing** settings tab. While unlocked an editing bar offers **Rename**, **New note**, **New folder** and **Delete** for the selected card, right-clicking a card offers the same, and a card can be dragged onto a folder to move it (folders light green when the move is allowed, red with a reason when not). Everything goes through Obsidian's file APIs, so links update and the trash setting is respected. Big folders ask for confirmation. Every change shows a notice with **Undo** for about seven seconds.
+- The editing rules (names, moves, confirmations, auto-lock) and the undo list as pure modules with unit tests.
+
 - Mind map layout: a third layout beside Vertical and Radial, with two views that one toolbar button cycles (the label shows which). Balanced puts the vault in the middle and splits its branches between the right and left so both sides are close in height; one-sided puts the vault at the far left and grows everything to the right in columns. Branches are S-curves (rounded elbows with the Step curve style) from card edge to card edge, with the same flowing dashed line as the other layouts. Expand, Focus, Reset and search work as in the other layouts. The view you choose is remembered, and Settings gains "Mind map view" and a Mind map option for the default layout.
 - Mind map layout and branch shapes as pure modules with unit tests.
 

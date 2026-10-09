@@ -41,6 +41,10 @@
     onnodeclick,
     onbadge,
     onopen,
+    ondrop,
+    droprefusal,
+    onrefuse,
+    oncontext,
   }: {
     items: CanvasItem[];
     /** Card centres by id. */
@@ -62,12 +66,107 @@
     onnodeclick: (id: string) => void;
     onbadge: (id: string) => void;
     onopen: (id: string, modifiers: { ctrlKey: boolean; metaKey: boolean }) => void;
+    /** A card was dropped on another card, and the drop is allowed. */
+    ondrop: (sourceId: string, targetId: string) => void;
+    /** Why dropping the first card on the second is not allowed, or null when it is. */
+    droprefusal: (sourceId: string, targetId: string) => string | null;
+    /** A drop was refused; show why. */
+    onrefuse: (message: string) => void;
+    oncontext: (id: string, event: MouseEvent) => void;
   } = $props();
 
   provideCanvasActions({
     onbadge: (id) => onbadge(id),
     onopen: (id, modifiers) => onopen(id, modifiers),
+    ondragstart: (id, event) => pressCard(id, event),
+    oncontext: (id, event) => oncontext(id, event),
   });
+
+  // Dragging a card onto a folder. The card itself stays where the layout put it; a small
+  // ghost follows the pointer and the card under it lights up as the target (green if the move
+  // is allowed, red if not). Nothing starts until the pointer has moved a few pixels, so a
+  // plain click still selects or opens as before.
+  const DRAG_START_DISTANCE = 6;
+  let canvasEl = $state<HTMLDivElement>();
+  let drag = $state<{ label: string; x: number; y: number } | null>(null);
+  let pressed: { id: string; x: number; y: number } | null = null;
+  let over: { id: string; refusal: string | null } | null = null;
+  let marked: Element | null = null;
+  let cancelled = false;
+  let suppressClick = false;
+  let dragWindow: Window | null = null;
+
+  function pressCard(id: string, event: PointerEvent): void {
+    if (event.button !== 0 || !canvasEl) return;
+    stopListening();
+    pressed = { id, x: event.clientX, y: event.clientY };
+    dragWindow = canvasEl.ownerDocument.defaultView ?? window;
+    dragWindow.addEventListener("pointermove", moveDrag);
+    dragWindow.addEventListener("pointerup", endDrag);
+    dragWindow.addEventListener("keydown", keyDrag);
+  }
+
+  function stopListening(): void {
+    dragWindow?.removeEventListener("pointermove", moveDrag);
+    dragWindow?.removeEventListener("pointerup", endDrag);
+    dragWindow?.removeEventListener("keydown", keyDrag);
+    dragWindow = null;
+  }
+
+  function unmark(): void {
+    marked?.classList.remove("island-card-drop", "island-card-drop-no");
+    marked = null;
+  }
+
+  function moveDrag(event: PointerEvent): void {
+    if (!pressed || !canvasEl || cancelled) return;
+    if (!drag) {
+      if (Math.hypot(event.clientX - pressed.x, event.clientY - pressed.y) < DRAG_START_DISTANCE) return;
+      const label = items.find((item) => item.id === pressed?.id)?.data.display.label ?? "";
+      drag = { label, x: 0, y: 0 };
+    }
+    const box = canvasEl.getBoundingClientRect();
+    drag = { label: drag.label, x: event.clientX - box.left, y: event.clientY - box.top };
+    const node = canvasEl.ownerDocument.elementFromPoint(event.clientX, event.clientY)?.closest(".svelte-flow__node");
+    const targetId = node?.getAttribute("data-id") ?? null;
+    if (targetId === pressed.id) return;
+    if ((over?.id ?? null) === targetId) return;
+    unmark();
+    over = null;
+    if (!targetId || !node) return;
+    const refusal = droprefusal(pressed.id, targetId);
+    over = { id: targetId, refusal };
+    marked = node.querySelector(".island-card");
+    marked?.classList.add(refusal ? "island-card-drop-no" : "island-card-drop");
+  }
+
+  function endDrag(): void {
+    const source = pressed?.id ?? null;
+    const dragged = drag !== null;
+    const target = over;
+    stopListening();
+    unmark();
+    pressed = null;
+    drag = null;
+    over = null;
+    if (!dragged && !cancelled) return;
+    cancelled = false;
+    // The click that follows a drag must not also select or open the card it ended on.
+    suppressClick = true;
+    window.setTimeout(() => (suppressClick = false), 0);
+    if (!dragged || !target || !source) return;
+    if (target.refusal) onrefuse(target.refusal);
+    else ondrop(source, target.id);
+  }
+
+  function keyDrag(event: KeyboardEvent): void {
+    if (event.key !== "Escape" || !drag) return;
+    event.preventDefault();
+    unmark();
+    drag = null;
+    over = null;
+    cancelled = true;
+  }
 
   provideZoom(new ZoomState());
 
@@ -183,10 +282,17 @@
 
   onDestroy(() => {
     if (frame) cancelAnimationFrame(frame);
+    stopListening();
   });
 </script>
 
-<div class="island-canvas" bind:clientWidth={paneWidth} bind:clientHeight={paneHeight}>
+<div
+  class="island-canvas"
+  class:is-dragging={drag !== null}
+  bind:this={canvasEl}
+  bind:clientWidth={paneWidth}
+  bind:clientHeight={paneHeight}
+>
   <SvelteFlow
     {nodes}
     {edges}
@@ -204,7 +310,9 @@
     elementsSelectable={false}
     zoomOnDoubleClick={false}
     proOptions={{ hideAttribution: true }}
-    onnodeclick={({ node }) => onnodeclick(node.id)}
+    onnodeclick={({ node }) => {
+      if (!suppressClick) onnodeclick(node.id);
+    }}
   >
     {#if grid.type !== "none"}
       <Background
@@ -238,4 +346,7 @@
       height={paneHeight}
     />
   </SvelteFlow>
+  {#if drag}
+    <div class="island-drag-ghost" style:left="{drag.x}px" style:top="{drag.y}px">{drag.label}</div>
+  {/if}
 </div>

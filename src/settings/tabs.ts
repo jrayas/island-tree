@@ -22,7 +22,7 @@ import { FIELDS, TABS, type TabId } from "./schema";
 import type { SettingsStore } from "./store";
 
 /** The tabs whose settings can be reset on their own. */
-const RESETTABLE: readonly TabId[] = ["cards", "lines", "layout"];
+const RESETTABLE: readonly TabId[] = ["cards", "lines", "layout", "editing"];
 
 /** Fills a tab made of settings, with a heading for each section. */
 export function renderFieldTab(

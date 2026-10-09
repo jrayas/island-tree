@@ -11,10 +11,10 @@ This file describes what is actually built, not the plan. For the plan see `SPEC
 | 3 | Radial layout, focus, search, overflow pills, toggles, breadcrumb, info panel | Done (not yet tried in Obsidian; the overflow pill came with milestone 2) |
 | 4 | Live updates and metadata | Done (not yet tried in Obsidian) |
 | 5 | Settings tabs, presets, import and export | Done (not yet tried in Obsidian). The Editing tab arrives with editing in milestone 6 |
-| 6 | Editing, lock, undo | Not started |
+| 6 | Editing, lock, undo | Done (not yet tried in Obsidian; the file operations are thin calls to Obsidian's APIs and were checked against its typings, with the rules and the UI exercised in a browser against a stand-in vault) |
 | 7 | Polish, release workflow, submission | Not started |
 
-## How the pieces fit (after milestone 5)
+## How the pieces fit (after milestone 6)
 
 ```
 Obsidian loads main.js + styles.css
@@ -93,6 +93,11 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | `src/layout/layout.ts` | `computeLayout(mode, root, detail, options)` picks the engine. `cardSizeFor` derives the four card sizes from the one configured width and height using the mockup's ratios (at 116×40: 168×58, 88×30, 132×48). `ringRadii` scales the rings from the first ring's radius (125: 125, 235, 335, 425). Detailed radial rings spread by 1.3. | The mind map uses the plain vertical card size, `gap` as the row gap and twice `levelGap` as the column gap.
 | `src/layout/boxZoom.ts` | The rules for Zoom to area: the rectangle between two corners, the 20px minimum, converting a pane rectangle to canvas units, and the camera that fits it with 8% padding and a zoom cap of 1.5. Pure. |
 | `src/layout/statusBar.ts` | `statusBarClearance`: how far the details text must rise to clear a status bar that reaches it sideways, or 0. Pure geometry. |
+| `src/editing/rules.ts` | The editing rules as pure functions: `validateName` (empty, forbidden characters, leading or trailing dots, length, clashes ignoring case), `renamedPath` (keeps a file's extension), `uniqueName`, `checkMove` (same parent, itself, own descendant, clash), `needsConfirmation`, `relockDue` and `countFiles`. |
+| `src/editing/undo.ts` | `UndoOperation`, `UndoEntry` and `UndoStack`: what reverses an action, and a short list that lets each entry be used once. |
+| `src/editing/api.ts` | `EditingApi`, the only thing the UI knows about editing, plus `EditTarget`, `MenuEntry` and `LockBridge`. No Obsidian types. |
+| `src/editing/controller.ts` | `EditingController`, the real `EditingApi`: renames and moves with `fileManager.renameFile`, deletes with `fileManager.trashFile`, creates with `vault.create` and `vault.createFolder`, asks with the shared dialogs, shows the right-click `Menu`, and reverses actions on request. Never throws; checks first and reports with a notice. |
+| `src/editing/toast.ts` | The notice with an Undo button that lasts about seven seconds. |
 | `src/layout/zoomLevel.ts` | `zoomLevel`: below 0.45 minimal, from 0.7 detailed, otherwise normal. |
 | `src/layout/animate.ts` | `easeFactor` (frame-rate independent), `seedPositions` (new cards start at their parent), `stepPositions`. |
 | `src/layout/bounds.ts` | `boundsOfCards`: the box around target positions, for fitting the camera. |
@@ -110,8 +115,9 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | File | Purpose |
 |---|---|
 | `src/ui/App.svelte` | Root. Takes the `SettingsStore`, keeps the latest settings in `cfg`, builds the tree, holds `viewState`, derives visible items, layout and `CanvasItem[]`. The "start with" settings decide the first view and what Reset returns to. Changes to card size or spacing bump `fitKey` so the camera re-frames; a new status property name makes cards re-read their details. Click rules: a folder click opens or closes it and selects it; a file click selects; a pill click expands the parent's overflow; a badge click toggles that folder's files; a double click focuses a folder or opens a file. |
-| `src/ui/Toolbar.svelte` | Layout switch (Vertical, Radial, and Mind map, whose label shows the active view and which cycles it when clicked again), Expand folders, Expand files, Details, Reset, search box, Focus selected, Reset focus. Stateless. |
+| `src/ui/Toolbar.svelte` | Layout switch (Vertical, Radial, and Mind map, whose label shows the active view and which cycles it when clicked again), Expand folders, Expand files, Details, Reset, search box, Focus selected, Reset focus, and a Lock button that reads Locked or Unlocked. Stateless. |
 | `src/ui/Breadcrumb.svelte` | Path from the vault root to the focus; ancestors are buttons that move the focus up. |
+| `src/ui/EditBar.svelte` | The editing bar under the breadcrumb, shown only while unlocked: the selected card's name and Rename, New note, New folder and Delete. Stateless. |
 | `src/ui/InfoPanel.svelte` | Details of the selected card as plain text floating bottom left over the graph, left-aligned: name, path, and one quiet line of details. No box, never takes clicks, fades in and out, and keeps its last text while fading. Sits in `.island-stage` with the canvas, `--island-edge-gap` (24px) from the left and bottom, with its height capped so it stops a gap short of the zoom stack. The zoom buttons are a column on the left edge centred on `--island-zoom-offset-y` (45%); see D-038. |
 | `src/ui/Canvas.svelte` | Wraps Svelte Flow (pan, zoom, the grid `Background` as dots or lines or nothing, `Controls`). Runs the animation loop: each frame it steps positions and rebuilds `nodes` so branches follow the cards. Passes the curve style to the branches. Respects `prefers-reduced-motion` by jumping straight to the target. |
 | `src/ui/ZoomWatcher.svelte` | Lives inside `<SvelteFlow>`; copies the camera zoom into the shared `ZoomState` (`zoomState.svelte.ts`). The level changes only when a threshold is crossed. |
@@ -163,7 +169,7 @@ Everything here is pure and unit tested unless marked Obsidian.
 
 - Every create, delete or move rebuilds the whole tree (with stable ids); it is not patched and collapsed folders are not built lazily. The 10,000-file test in milestone 7 decides whether that needs to change (D-020).
 - Folders show no file details beyond their counts and, in Details mode, their item count.
-- The Editing tab and its behaviour arrive in milestone 6. Its settings are already in the schema, validated, exported and imported.
+- Undoing a deleted note recreates it from its saved content, so it comes back as a new file (a new modified date, and the trash copy is left in the trash). A deleted folder is not restored by Undo; it says to use the trash. Undo is kept for the session only.
 - The settings page uses the classic API, so its settings are not in Obsidian's own settings search on 1.13 and later (D-026).
 - Presets store the current values, not a link to the defaults, so a preset made today keeps today's look even if a default changes later.
 - Removed cards disappear at once instead of fading out (polish, milestone 7).

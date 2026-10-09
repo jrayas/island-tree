@@ -37,8 +37,17 @@
   class:island-card-dim={data.dim}
   class:island-card-compact={data.compact}
   class:island-card-minimal={minimal}
+  class:island-card-draggable={data.draggable}
+  class:nopan={data.draggable}
   title={display.tooltip}
   ondblclick={open}
+  onpointerdown={(event) => {
+    if (data.draggable) actions.ondragstart(id, event);
+  }}
+  oncontextmenu={(event) => {
+    event.preventDefault();
+    actions.oncontext(id, event);
+  }}
   role="presentation"
 >
   <!-- Handles sit at the card centre and are invisible: branches are drawn between centres. -->

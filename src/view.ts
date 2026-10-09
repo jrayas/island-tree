@@ -8,6 +8,8 @@
 import { ItemView, type WorkspaceLeaf } from "obsidian";
 import { mount, unmount } from "svelte";
 import { openFile } from "./actions/open";
+import { EditingController } from "./editing/controller";
+import type { LockBridge } from "./editing/api";
 import type { OpenTarget } from "./actions/target";
 import type IslandTreePlugin from "./main";
 import { MetaReader } from "./model/metaSource";
@@ -23,6 +25,8 @@ export class IslandTreeView extends ItemView {
   private component: ReturnType<typeof mount> | null = null;
   private stopStyling: (() => void) | null = null;
   private stopMeasuring: (() => void) | null = null;
+  /** Lets the "Toggle lock" command reach the app, which owns the lock. */
+  private readonly lockBridge: LockBridge = { toggle: null };
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -41,6 +45,11 @@ export class IslandTreeView extends ItemView {
 
   getIcon(): string {
     return "network";
+  }
+
+  /** Locks or unlocks editing, for the "Toggle lock" command. */
+  toggleLock(): void {
+    this.lockBridge.toggle?.();
   }
 
   async onOpen(): Promise<void> {
@@ -71,6 +80,8 @@ export class IslandTreeView extends ItemView {
           }),
         openFile: (path: string, target: OpenTarget) => void openFile(this.app, path, target),
         settings: this.plugin.store,
+        editing: new EditingController(this.app, () => this.plugin.store.get().editing),
+        lockBridge: this.lockBridge,
       },
     });
     this.stopMeasuring = this.watchStatusBar();

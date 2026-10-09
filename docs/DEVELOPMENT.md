@@ -114,6 +114,19 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Settings made in an earlier version (a vault that used the plugin before milestone 5) still load: the default layout and status property are kept.
 - [ ] No errors in the developer console (Ctrl+Shift+I) while using any of the above.
 
+**Milestone 6** (try it in a scratch vault first; in all three layouts)
+
+- [ ] The dashboard opens locked: the toolbar button says **Locked**, there is no editing bar, cards cannot be dragged, and right-clicking a card selects it and offers only a disabled "Locked: unlock to edit".
+- [ ] Click **Locked**: it becomes **Unlocked** (accent-coloured), the editing bar appears under the breadcrumb, and cards show a grab cursor. The vault card cannot be dragged, renamed or deleted. The command palette entry **Toggle lock** (only listed while the dashboard is the active view) does the same.
+- [ ] **Rename:** the dialog shows the name without its extension. A name that is empty, has a forbidden character (`\ / : * ? " < > |`), starts with a dot, ends with a dot or space, or already exists next to it, shows a message and is refused. A good name renames the file, keeps `.md`, updates links in other notes (check a note that links to it), and the card keeps its place. A notice offers Undo for about seven seconds, and Undo renames it back.
+- [ ] **New note** and **New folder** create inside the selected folder, beside a selected note, or in the vault root, with an unused "Untitled" or "New folder" suggested. The new card appears selected, even in a folder with a "+N more" list. Undo removes it, but only while it is still empty; after you type in the note it says so and leaves it.
+- [ ] **Delete** asks first (or not, with Settings, Editing, Delete behaviour set to straight away), moves the note to Obsidian's trash (check your trash setting), and Undo brings a single note back with its content. A folder with more files than the threshold asks again, naming how many files it holds, and Undo for a folder says to use the trash.
+- [ ] **Drag a card onto a folder:** a small ghost with the name follows the pointer and the folder under it lights green. Dropping moves it, updates links, and the folder opens to show it. Red means refused: onto the folder it is already in, onto itself or its own subfolder, onto a note, or into a folder that already has that name; a notice says why. Escape during a drag cancels it. A drag never also selects or opens the card it ended on. A short click still selects as before.
+- [ ] Moving a folder with more files than the threshold asks first. Turning off "Allow drag to move" stops the drag but leaves the editing bar working.
+- [ ] After the minutes set in Settings, Editing, "Lock again after" with no edits, the dashboard locks and says so (set it to 1 minute to try). 0 means never.
+- [ ] The **Editing** tab in settings lists the five settings, each with a reset button, and Reset tab restores them.
+- [ ] Changes made in Obsidian's file explorer while the dashboard is open still appear, and a rename made here shows in the explorer.
+
 **Full-surface graph** (compare side by side with a Canvas tab, in a light and a dark theme)
 
 - [ ] The graph fills the whole view below the toolbar and breadcrumb, to the bottom and both sides: no bordered box and no strip at the bottom.

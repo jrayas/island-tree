@@ -1,6 +1,6 @@
 # Progress
 
-Last updated: milestone 5 (settings).
+Last updated: milestone 6 (editing).
 
 ## Done
 
@@ -30,6 +30,11 @@ Last updated: milestone 5 (settings).
 - Checks: `svelte-check` 0 errors and 0 warnings, 267 unit tests passing, lint 0 errors (one accepted warning, D-026).
 - Throwaway jsdom smoke tests (kept outside the project): the settings page was driven end to end against a stand-in for Obsidian's `Setting`, `Modal` and `Notice`, covering every tab, the arrow keys, sliders, toggles, dropdowns, text, reset, all preset actions, export, a hostile import with its summary, reset tab and reset all, the delayed save, and unsubscribing on hide, with no errors. The dashboard was driven against live setting changes: card size, list limit, grid type, details switches, status property and tag switches, and the start-with options.
 
+**Milestone 6: editing** (D-041)
+
+- A Lock button and a Toggle lock command; the dashboard opens locked and locks again after a chosen idle time. While unlocked an editing bar offers Rename, New note, New folder and Delete, the right-click menu offers the same, and a card can be dragged onto a folder to move it. Everything goes through Obsidian's own file APIs (links update, the trash setting is respected). Every change shows a notice with Undo for about seven seconds; the rules and the undo list are pure and unit tested. A new Editing settings tab holds the five settings that were already in the schema.
+- Checks: build clean, 349 unit tests, lint 0 errors (one accepted warning). The UI was driven in headless Chrome with real mouse and key events against Obsidian's stylesheet and a stand-in vault: lock and unlock, the menus, a drag with its ghost and green or red highlight, every refusal, Escape, the click after a drag being ignored, new note selected after it appears, rename, delete, the lock command and the automatic lock. The calls into Obsidian itself (`renameFile`, `trashFile`, `create`, `createFolder`, `createBinary`) were checked against its typings but have not been run.
+
 **UI change after milestone 5: one continuous surface** (D-034)
 
 - The graph fills the view below the toolbar and breadcrumb in the same colour as Obsidian Canvas (`--background-primary`), with faint Canvas-like dots. The selection details are floating text instead of a strip (bottom left, 24px from the edges; the zoom buttons are a column on the left edge near the middle, 8px apart, D-035, D-038). The extra bottom gap was Obsidian's own view padding, now overridden (D-037), and the text rises only while the floating status bar actually reaches it. The on-screen Svelte Flow credit is hidden and credited in the README (D-036). The camera frames the tree as soon as the view has a size. The toolbar, cards, connectors and accent colour were not touched.
@@ -44,7 +49,7 @@ Last updated: milestone 5 (settings).
 
 ## Open issues
 
-- **Milestones 2 to 5 have not been tried in a real Obsidian vault.** Since the bottom-spacing work they have been driven in headless Chrome with real input events and Obsidian's own stylesheet, outside the project: **branches draw**, the camera frames the tree on load, cards and the zoom controls lay out as intended, and Zoom to area works (D-039). That is still not Obsidian itself, and the radial layout, the settings page and the preview have not been looked at. Please run the milestone 2 to 5 checklists in `docs/DEVELOPMENT.md` and tell me what you see.
+- **Milestones 2 to 6 have not been tried in a real Obsidian vault.** Editing is the one to try carefully, in a scratch vault, because it changes real files. Since the bottom-spacing work they have been driven in headless Chrome with real input events and Obsidian's own stylesheet, outside the project: **branches draw**, the camera frames the tree on load, cards and the zoom controls lay out as intended, and Zoom to area works (D-039). That is still not Obsidian itself, and the radial layout, the settings page and the preview have not been looked at. Please run the milestone 2 to 5 checklists in `docs/DEVELOPMENT.md` and tell me what you see.
 - **Canvas colour match** is by variable, not by sight: compare with a Canvas tab as the checklist in `docs/DEVELOPMENT.md` says, and change two lines if your theme gives Canvas its own colour (D-034).
 - **Settings page layout** is the part most likely to need visual fixes: the preview's scaling, the tab strip, the row spacing and the slider value labels are written but unseen.
 - **Folder renames:** I am not certain whether Obsidian sends one `rename` event for a folder or one per file inside it. The code handles both (D-020).
@@ -60,4 +65,4 @@ Last updated: milestone 5 (settings).
 
 ## Next step
 
-Milestone 6: editing (lock, rename, create, trash, drag to move, undo, auto-relock) and the Editing settings tab. A plan listing the files will be shown for approval first.
+Milestone 7: polish and release. A performance test with a 10,000-file vault, accessibility (keyboard navigation, focus rings, reduced motion), README screenshots, the GitHub release workflow, the community-guidelines check and submission notes. A plan listing the files will be shown for approval first.

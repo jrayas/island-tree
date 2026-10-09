@@ -61,6 +61,19 @@ export function toggleFilesFor(state: ViewState, uid: string): ViewState {
   };
 }
 
+/**
+ * Opens a folder and shows its files, without toggling: used after something lands in it
+ * (a new note, a moved card), so the person sees where it went. Unlike the toggle, doing
+ * this twice changes nothing.
+ */
+export function showFolderContents(state: ViewState, uid: string): ViewState {
+  return {
+    ...state,
+    open: new Set(state.open).add(uid),
+    filesFor: new Set(state.filesFor).add(uid),
+  };
+}
+
 /** Expands a folder's "+N more" pill so all of its children show. */
 export function showAllFor(state: ViewState, uid: string): ViewState {
   return { ...state, showAll: new Set(state.showAll).add(uid) };

@@ -12,6 +12,7 @@ import {
   setLayout,
   setQuery,
   showAllFor,
+  showFolderContents,
   toggleFilesFor,
   toggleOpen,
 } from "./viewState";
@@ -192,5 +193,26 @@ describe("restartView", () => {
     expect(reset.query).toBe("");
     expect(reset.selected).toBeNull();
     expect([...reset.open].sort()).toEqual(["a", "root"]);
+  });
+});
+
+describe("showFolderContents", () => {
+  it("opens the folder and shows its files", () => {
+    const s = showFolderContents(start(), "a");
+    expect(s.open.has("a")).toBe(true);
+    expect(s.filesFor.has("a")).toBe(true);
+  });
+
+  it("does nothing the second time, unlike a toggle", () => {
+    const once = showFolderContents(start(), "a");
+    const twice = showFolderContents(once, "a");
+    expect(twice.open).toEqual(once.open);
+    expect(twice.filesFor).toEqual(once.filesFor);
+  });
+
+  it("leaves everything else alone", () => {
+    const s = showFolderContents(start(), "a");
+    expect(s.selected).toBe(start().selected);
+    expect(s.layoutMode).toBe(start().layoutMode);
   });
 });

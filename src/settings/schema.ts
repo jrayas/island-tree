@@ -386,7 +386,7 @@ export const FIELDS: readonly Field[] = [
     def: bool(false),
   },
 
-  // Editing (the tab arrives with editing itself)
+  // Editing
   {
     group: "editing", key: "startLocked", tab: "editing", section: "Editing", inPreset: false,
     label: "Start locked",
@@ -431,6 +431,7 @@ export const TABS: readonly { id: TabId; label: string }[] = [
   { id: "cards", label: "Cards" },
   { id: "lines", label: "Lines and grid" },
   { id: "layout", label: "Layout" },
+  { id: "editing", label: "Editing" },
   { id: "presets", label: "Presets" },
 ];
 
