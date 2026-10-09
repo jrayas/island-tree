@@ -7,8 +7,9 @@
  * mockup. Radial cards are smaller because they sit on rings with less room
  * between neighbours; detailed cards are bigger because they carry a second row.
  */
+import { layoutMindMap } from "./mindmap";
 import { layoutRadial } from "./radial";
-import type { LayoutMode, LayoutNode, LayoutResult } from "./types";
+import type { LayoutMode, LayoutNode, LayoutResult, MindMapView } from "./types";
 import { layoutVertical } from "./vertical";
 
 export interface CardSize {
@@ -20,6 +21,8 @@ export interface CardSize {
 const SIZE_RATIOS: Readonly<Record<LayoutMode, { normal: [number, number]; detailed: [number, number] }>> = {
   vertical: { normal: [1, 1], detailed: [1.45, 1.45] },
   radial: { normal: [0.76, 0.75], detailed: [1.14, 1.2] },
+  // The mind map keeps the plain card size; only positions and branches differ.
+  mindmap: { normal: [1, 1], detailed: [1.45, 1.45] },
 };
 
 /** Rings after the first sit at these multiples of its radius (the mockup's 125, 235, 335, 425). */
@@ -41,7 +44,12 @@ export interface LayoutOptions {
   ringRadius: number;
   /** Extra distance for each ring beyond the configured ones. */
   ringStep: number;
+  /** Which mind map view to draw; only the mind map layout reads it. Defaults to balanced. */
+  mindMapView?: MindMapView;
 }
+
+/** The mind map's columns are this many times the level spacing apart, so branches have room to curve. */
+export const MIND_MAP_COLUMN_FACTOR = 2;
 
 export function cardSizeFor(
   mode: LayoutMode,
@@ -69,19 +77,29 @@ export function computeLayout(
   options: LayoutOptions,
 ): PlacedLayout {
   const cardSize = cardSizeFor(mode, detail, options.cardWidth, options.cardHeight);
-  const result =
-    mode === "radial"
-      ? layoutRadial(root, {
-          cardWidth: cardSize.width,
-          radii: ringRadii(options.ringRadius),
-          ringStep: options.ringStep,
-          scale: detail ? DETAILED_RING_SCALE : 1,
-        })
-      : layoutVertical(root, {
-          cardWidth: cardSize.width,
-          cardHeight: cardSize.height,
-          gap: options.gap,
-          levelGap: options.levelGap,
-        });
+  let result: LayoutResult;
+  if (mode === "radial") {
+    result = layoutRadial(root, {
+      cardWidth: cardSize.width,
+      radii: ringRadii(options.ringRadius),
+      ringStep: options.ringStep,
+      scale: detail ? DETAILED_RING_SCALE : 1,
+    });
+  } else if (mode === "mindmap") {
+    result = layoutMindMap(root, {
+      cardWidth: cardSize.width,
+      cardHeight: cardSize.height,
+      rowGap: options.gap,
+      columnGap: options.levelGap * MIND_MAP_COLUMN_FACTOR,
+      view: options.mindMapView ?? "balanced",
+    });
+  } else {
+    result = layoutVertical(root, {
+      cardWidth: cardSize.width,
+      cardHeight: cardSize.height,
+      gap: options.gap,
+      levelGap: options.levelGap,
+    });
+  }
   return { ...result, cardSize };
 }

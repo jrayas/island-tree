@@ -6,7 +6,7 @@
  * adding one entry here (SPEC.md section 9). The typed interfaces below give the
  * rest of the plugin a normal, checked shape to read.
  */
-import type { CurveStyle, LayoutMode } from "../layout/types";
+import type { CurveStyle, LayoutMode, MindMapView } from "../layout/types";
 
 export type { CurveStyle };
 
@@ -57,6 +57,8 @@ export interface CanvasSettings {
 
 export interface LayoutSettings {
   defaultLayout: LayoutMode;
+  /** Which mind map view to draw. The toolbar's Mind map button changes it, so it is remembered. */
+  mindMapView: MindMapView;
   gap: number;
   levelGap: number;
   ringRadius: number;
@@ -324,6 +326,20 @@ export const FIELDS: readonly Field[] = [
       options: [
         { value: "vertical", label: "Vertical" },
         { value: "radial", label: "Radial" },
+        { value: "mindmap", label: "Mind map" },
+      ],
+    },
+  },
+  {
+    group: "layout", key: "mindMapView", tab: "layout", section: "Layout", inPreset: false,
+    label: "Mind map view",
+    description: "Balanced spreads the branches to both sides of the vault. One-sided grows everything to the right. The Mind map button in the toolbar switches between them.",
+    def: {
+      kind: "enum",
+      default: "balanced",
+      options: [
+        { value: "balanced", label: "Balanced" },
+        { value: "oneSided", label: "One-sided" },
       ],
     },
   },

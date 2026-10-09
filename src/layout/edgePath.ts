@@ -3,7 +3,7 @@
  *
  * Pure string building so the curve shape can be tested without a browser.
  */
-import type { CurveStyle } from "./types";
+import type { CurveStyle, MindSide } from "./types";
 
 /**
  * A cubic curve that leaves the parent downwards and enters the child from
@@ -94,4 +94,66 @@ export function branchPath(
     return centre ? radialStepPath(centre, sx, sy, tx, ty) : verticalStepPath(sx, sy, tx, ty);
   }
   return centre ? radialBranchPath(centre, sx, sy, tx, ty) : verticalBranchPath(sx, sy, tx, ty);
+}
+
+/** Corner radius of the mind map's elbow branches, in canvas units. */
+export const MIND_MAP_ELBOW_RADIUS = 10;
+
+/**
+ * A smooth S-curve that leaves a card horizontally and arrives horizontally, with both
+ * control points on the middle column line. Both ends are given as edge points.
+ */
+export function mindMapCurvePath(sx: number, sy: number, tx: number, ty: number): string {
+  const midX = (sx + tx) / 2;
+  return `M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}`;
+}
+
+/**
+ * Across, up or down, across, with rounded corners: the elbow branch of the mind map. The
+ * corner radius shrinks when the cards are close, and a level connection is a plain line.
+ */
+export function mindMapElbowPath(
+  sx: number,
+  sy: number,
+  tx: number,
+  ty: number,
+  radius: number = MIND_MAP_ELBOW_RADIUS,
+): string {
+  const dy = ty - sy;
+  if (Math.abs(dy) < 1) return `M ${sx} ${sy} L ${tx} ${ty}`;
+  const midX = (sx + tx) / 2;
+  const across = tx >= sx ? 1 : -1;
+  const down = dy > 0 ? 1 : -1;
+  const r = Math.min(radius, Math.abs(dy) / 2, Math.abs(tx - sx) / 2);
+  return [
+    `M ${sx} ${sy}`,
+    `L ${midX - across * r} ${sy}`,
+    `Q ${midX} ${sy}, ${midX} ${sy + down * r}`,
+    `L ${midX} ${ty - down * r}`,
+    `Q ${midX} ${ty}, ${midX + across * r} ${ty}`,
+    `L ${tx} ${ty}`,
+  ].join(" ");
+}
+
+/**
+ * The mind map branch between two card centres: from the edge of the parent nearest the child
+ * to the edge of the child nearest the parent. `side` is the child's side of the root, so on
+ * the right the branch runs right edge to left edge and on the left, left edge to right
+ * edge. "Step" gives rounded elbows; "curved" and "straight" both give the S-curve, because
+ * a straight line would be a diagonal.
+ */
+export function mindMapPath(
+  style: CurveStyle,
+  side: MindSide,
+  cardWidth: number,
+  sx: number,
+  sy: number,
+  tx: number,
+  ty: number,
+): string {
+  const half = cardWidth / 2;
+  const direction = side === "right" ? 1 : -1;
+  const startX = sx + direction * half;
+  const endX = tx - direction * half;
+  return style === "step" ? mindMapElbowPath(startX, sy, endX, ty) : mindMapCurvePath(startX, sy, endX, ty);
 }

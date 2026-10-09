@@ -34,6 +34,10 @@ Last updated: milestone 5 (settings).
 
 - The graph fills the view below the toolbar and breadcrumb in the same colour as Obsidian Canvas (`--background-primary`), with faint Canvas-like dots. The selection details are floating text instead of a strip (bottom left, 24px from the edges; the zoom buttons are a column on the left edge near the middle, 8px apart, D-035, D-038). The extra bottom gap was Obsidian's own view padding, now overridden (D-037), and the text rises only while the floating status bar actually reaches it. The on-screen Svelte Flow credit is hidden and credited in the README (D-036). The camera frames the tree as soon as the view has a size. The toolbar, cards, connectors and accent colour were not touched.
 
+**Mind map layout** (D-040)
+
+- A third layout with a balanced and a one-sided view, chosen with one toolbar button that cycles them and remembers the choice (a new Layout setting). Solid card-edge to card-edge branches, framed with the root in the middle. Checked in headless Chrome with Obsidian's stylesheet: no overlaps, every branch starts and ends on a card edge, all existing controls re-lay it out.
+
 **Zoom to area** (D-039)
 
 - A fourth zoom button (dashed rectangle) and Shift-drag draw a rectangle and glide the camera to fit it, with a minimum size, a zoom cap, Escape to cancel, and no panning while drawing.

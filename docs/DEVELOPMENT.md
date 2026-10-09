@@ -131,6 +131,15 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Status bar shown: the text sits at 24px unless the bar reaches it sideways (a narrow pane, or a long line in the bottom-right pane), in which case it rises to sit about 4px above the bar. Hide the bar and it drops back to exactly 24px. The zoom buttons never move for the bar.
 - [ ] The breadcrumb under the toolbar is in the interface font.
 
+**Mind map layout**
+
+- [ ] A **Mind map** button sits after Radial in the toolbar. Click it: the layout changes, the button turns accent-coloured and reads "Mind map: balanced". Click again: "Mind map: one-sided". Click again: back to balanced. Reopen the dashboard (or restart Obsidian) with Mind map as the layout: the last view is still chosen. Settings, Layout, shows "Mind map view", and "Default layout" has a Mind map option.
+- [ ] Balanced: the vault card is in the middle of the view. The main branches are split between the right and left, not alternated: both sides are close in height, and the left side continues the order upwards (clockwise). Deeper levels go further right on the right side and further left on the left side, in neat columns, each parent level with the middle of its children.
+- [ ] One-sided: the vault card is at the far left, level with the middle of the whole tree, and each level is a column to its right.
+- [ ] Branches are solid smooth S-curves from the edge of the parent nearest the child to the edge of the child nearest the parent (right edge to left edge on the right side, left edge to right edge on the left side). With the curve style set to Step they are rounded elbows. There are no dashed lines and no diagonals, whatever the dash setting says. Vertical and Radial still have dashed lines.
+- [ ] Expand folders, Expand files, Focus selected, Reset focus, Reset and search all re-lay out the mind map. "+N more" sits in the column of its siblings and works. Cards never overlap, even with a folder of many files. Switching layout or view glides the cards and frames the whole tree with a little space around it.
+- [ ] The toolbar may wrap onto a second row in a narrow pane; that is expected.
+
 **Zoom to area** (all three layouts once they exist)
 
 - [ ] A fourth zoom button with a dashed rectangle sits below fit view, 8px from it, and the column of four stays centred on the same point. Its tooltip says "Zoom to area (or hold Shift and drag)".

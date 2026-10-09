@@ -11,6 +11,7 @@
   import { describeSelection } from "../model/info";
   import { cardRow, describeMeta, type FileMeta, type MetaDisplay } from "../model/meta";
   import { isDimmed, searchTree, withSearchReveal } from "../model/search";
+  import { findField, withFieldValue } from "../settings/schema";
   import type { SettingsStore } from "../settings/store";
   import { reconcileViewState } from "../model/sync";
   import type { VaultWatchHandlers } from "../model/watch";
@@ -103,6 +104,7 @@
     levelGap: cfg.layout.levelGap,
     ringRadius: cfg.layout.ringRadius,
     ringStep: cfg.layout.ringStep,
+    mindMapView: cfg.layout.mindMapView,
   });
   const layoutKey = $derived(JSON.stringify(layoutOptions));
   let lastLayoutKey = untrack(() => layoutKey);
@@ -202,6 +204,21 @@
     fitKey += 1;
   }
 
+  /** The Mind map button: pick the layout, and on later clicks switch its balanced and one-sided views. */
+  function chooseMindMap(): void {
+    if (viewState.layoutMode !== "mindmap") {
+      viewState = setLayout(viewState, "mindmap");
+      refit();
+      return;
+    }
+    const field = findField("layout.mindMapView");
+    if (!field) return;
+    const next = cfg.layout.mindMapView === "balanced" ? "oneSided" : "balanced";
+    // The setting is the one source of truth, so the choice is remembered between sessions.
+    // Changing it changes the layout options, which re-lays out and re-frames the view.
+    settings.update((current) => withFieldValue(current, field, next));
+  }
+
   function activate(id: string): void {
     const item = visible.find((candidate) => candidate.id === id);
     if (!item) return;
@@ -240,6 +257,7 @@
 <div class="island-app">
   <Toolbar
     layoutMode={viewState.layoutMode}
+    mindMapView={cfg.layout.mindMapView}
     foldersOn={viewState.foldersOn}
     filesOn={viewState.filesOn}
     detailOn={viewState.detail}
@@ -250,6 +268,7 @@
       viewState = setLayout(viewState, mode);
       refit();
     }}
+    onmindmap={chooseMindMap}
     onfolders={() =>
       (viewState = setFoldersOn(viewState, !viewState.foldersOn, allFolders, root.uid))}
     onfiles={() => (viewState = setFilesOn(viewState, !viewState.filesOn))}
@@ -276,9 +295,11 @@
     cardWidth={placed.cardSize.width}
     cardHeight={placed.cardSize.height}
     radialCentre={placed.centre}
+    sides={placed.sides ?? null}
     curve={cfg.lines.curve}
     grid={{ type: cfg.canvas.grid, size: cfg.canvas.gridSize, spacing: cfg.canvas.gridSpacing }}
     {fitKey}
+    frameBox={placed.frame ?? null}
     onnodeclick={activate}
     onbadge={(id) => (viewState = toggleFilesFor(viewState, id))}
     onopen={openCard}

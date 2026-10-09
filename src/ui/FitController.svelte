@@ -4,7 +4,7 @@
   // Must sit inside <SvelteFlow> so it can reach the viewport.
   import { untrack } from "svelte";
   import { getViewportForBounds, useSvelteFlow } from "@xyflow/svelte";
-  import { boundsOfCards } from "../layout/bounds";
+  import { boundsOfCards, type Box } from "../layout/bounds";
   import type { Point } from "../layout/types";
 
   let {
@@ -12,6 +12,7 @@
     targets,
     cardWidth,
     cardHeight,
+    frameBox,
     width,
     height,
   }: {
@@ -19,6 +20,8 @@
     targets: Map<string, Point>;
     cardWidth: number;
     cardHeight: number;
+    /** A box to frame instead of the box around the cards, or null. */
+    frameBox: Box | null;
     width: number;
     height: number;
   } = $props();
@@ -30,7 +33,7 @@
 
   /** Frames the target positions. Returns false when there is nothing to frame yet. */
   function frame(duration: number): boolean {
-    const box = boundsOfCards(targets.values(), cardWidth, cardHeight);
+    const box = frameBox ?? boundsOfCards(targets.values(), cardWidth, cardHeight);
     if (!box || width === 0 || height === 0) return false;
     void setViewport(getViewportForBounds(box, width, height, 0.2, 1, 0.2), { duration });
     return true;

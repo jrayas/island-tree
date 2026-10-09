@@ -467,6 +467,13 @@
   animation: var(--island-line-animation-highlight, island-flow 0.7s linear infinite);
 }
 
+/* The mind map's branches are solid and still, whatever the dash and flow settings say. */
+.island-tree-view .island-edge.island-edge-solid {
+  stroke-dasharray: none;
+  stroke-linecap: butt;
+  animation: none;
+}
+
 @keyframes island-flow {
   to {
     stroke-dashoffset: -20;

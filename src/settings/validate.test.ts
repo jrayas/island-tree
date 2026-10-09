@@ -102,6 +102,15 @@ describe("sanitiseSettings", () => {
     expect(report.applied).toBe(2);
   });
 
+  it("accepts the mind map layout and view, and falls back to balanced for an unknown view", () => {
+    const good = sanitiseSettings({ layout: { defaultLayout: "mindmap", mindMapView: "oneSided" } });
+    expect(good.settings.layout.defaultLayout).toBe("mindmap");
+    expect(good.settings.layout.mindMapView).toBe("oneSided");
+    const bad = sanitiseSettings({ layout: { mindMapView: "spiral" } });
+    expect(bad.settings.layout.mindMapView).toBe("balanced");
+    expect(DEFAULT_SETTINGS.layout.mindMapView).toBe("balanced");
+  });
+
   it("limits out-of-range numbers and rejects wrong types, with readable messages", () => {
     const { settings, report } = sanitiseSettings({
       cards: { width: 5000, height: "tall" },

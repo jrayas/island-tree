@@ -15,8 +15,9 @@
     type Node,
   } from "@xyflow/svelte";
   import { easeFactor, seedPositions, stepPositions } from "../layout/animate";
-  import type { CurveStyle, Point } from "../layout/types";
+  import type { CurveStyle, MindSide, Point } from "../layout/types";
   import type { GridType } from "../settings/schema";
+  import type { Box } from "../layout/bounds";
   import type { CanvasItem } from "./cardData";
   import { provideCanvasActions, provideZoom } from "./context";
   import IslandNode from "./IslandNode.svelte";
@@ -32,6 +33,8 @@
     cardWidth,
     cardHeight,
     radialCentre,
+    sides,
+    frameBox,
     curve,
     grid,
     fitKey,
@@ -46,6 +49,10 @@
     cardHeight: number;
     /** The middle of a radial layout, or null for vertical. */
     radialCentre: Point | null;
+    /** Mind map only: the side of the root each card is on, or null for the other layouts. */
+    sides: Map<string, MindSide> | null;
+    /** A box to frame instead of the box around the cards, or null. */
+    frameBox: Box | null;
     /** How branches are drawn. */
     curve: CurveStyle;
     /** The pattern behind the cards. */
@@ -102,7 +109,13 @@
     });
   }
 
-  function buildEdges(list: CanvasItem[], centre: Point | null, style: CurveStyle): Edge[] {
+  function buildEdges(
+    list: CanvasItem[],
+    centre: Point | null,
+    style: CurveStyle,
+    sideOf: Map<string, MindSide> | null,
+    width: number,
+  ): Edge[] {
     return list
       .filter((item) => item.parentId !== null)
       .map((item) => ({
@@ -110,7 +123,13 @@
         source: item.parentId as string,
         target: item.id,
         type: "branch",
-        data: { highlight: item.highlight, centre, curve: style },
+        data: {
+          highlight: item.highlight,
+          centre,
+          curve: style,
+          side: sideOf?.get(item.id) ?? null,
+          cardWidth: width,
+        },
         selectable: false,
         focusable: false,
         deletable: false,
@@ -137,7 +156,7 @@
   untrack(() => {
     current = new Map(targets);
     nodes = buildNodes(items, targets);
-    edges = buildEdges(items, radialCentre, curve);
+    edges = buildEdges(items, radialCentre, curve, sides, cardWidth);
   });
 
   let first = true;
@@ -146,6 +165,8 @@
     const goal = targets;
     const centre = radialCentre;
     const style = curve;
+    const sideOf = sides;
+    const width = cardWidth;
     if (first) {
       first = false;
       return;
@@ -156,7 +177,7 @@
       list.map(({ id, parentId }) => ({ id, parentId })),
     );
     nodes = buildNodes(list, goal);
-    edges = buildEdges(list, centre, style);
+    edges = buildEdges(list, centre, style, sideOf, width);
     kick();
   });
 
@@ -212,6 +233,7 @@
       {targets}
       {cardWidth}
       {cardHeight}
+      {frameBox}
       width={paneWidth}
       height={paneHeight}
     />

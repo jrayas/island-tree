@@ -1,10 +1,11 @@
 <script lang="ts">
   // The controls above the canvas. Holds no state of its own: it shows what App
   // tells it and reports clicks back, so the view state stays in one place.
-  import type { LayoutMode } from "../layout/types";
+  import type { LayoutMode, MindMapView } from "../layout/types";
 
   let {
     layoutMode,
+    mindMapView,
     foldersOn,
     filesOn,
     detailOn,
@@ -12,6 +13,7 @@
     canFocus,
     isFocused,
     onlayout,
+    onmindmap,
     onfolders,
     onfiles,
     ondetail,
@@ -21,6 +23,8 @@
     onunfocus,
   }: {
     layoutMode: LayoutMode;
+    /** Which mind map view is chosen, shown on the Mind map button while that layout is on. */
+    mindMapView: MindMapView;
     foldersOn: boolean;
     filesOn: boolean;
     detailOn: boolean;
@@ -29,7 +33,9 @@
     canFocus: boolean;
     /** The view is focused on a folder other than the vault root. */
     isFocused: boolean;
-    onlayout: (mode: LayoutMode) => void;
+    onlayout: (mode: "vertical" | "radial") => void;
+    /** Selects the mind map layout, or, when it is already on, switches between its two views. */
+    onmindmap: () => void;
     onfolders: () => void;
     onfiles: () => void;
     ondetail: () => void;
@@ -53,6 +59,18 @@
       class:is-active={layoutMode === "radial"}
       aria-pressed={layoutMode === "radial"}
       onclick={() => onlayout("radial")}>Radial</button
+    >
+    <button
+      type="button"
+      class:is-active={layoutMode === "mindmap"}
+      aria-pressed={layoutMode === "mindmap"}
+      title="Click again to switch between the balanced and one-sided views"
+      onclick={onmindmap}
+      >{layoutMode === "mindmap"
+        ? mindMapView === "balanced"
+          ? "Mind map: balanced"
+          : "Mind map: one-sided"
+        : "Mind map"}</button
     >
   </div>
 

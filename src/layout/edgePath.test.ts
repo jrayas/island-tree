@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   branchPath,
+  mindMapCurvePath,
+  mindMapElbowPath,
+  mindMapPath,
   radialBranchPath,
   radialStepPath,
   straightPath,
@@ -92,5 +95,54 @@ describe("branchPath", () => {
   it("draws a plain line for the straight style in either layout", () => {
     expect(branchPath("straight", null, 1, 2, 3, 4)).toBe("M 1 2 L 3 4");
     expect(branchPath("straight", centre, 1, 2, 3, 4)).toBe("M 1 2 L 3 4");
+  });
+});
+
+describe("mind map branches", () => {
+  it("leaves and arrives horizontally, with the control points on the middle column line", () => {
+    const [sx, sy, c1x, c1y, c2x, c2y, tx, ty] = numbersOf(mindMapCurvePath(0, 0, 100, 40));
+    expect([sx, sy, tx, ty]).toEqual([0, 0, 100, 40]);
+    expect([c1x, c1y]).toEqual([50, 0]);
+    expect([c2x, c2y]).toEqual([50, 40]);
+  });
+
+  it("runs the S-curve backwards for the left side", () => {
+    const [sx, , c1x, , c2x, , tx] = numbersOf(mindMapCurvePath(0, 0, -100, 40));
+    expect(sx).toBe(0);
+    expect(c1x).toBe(-50);
+    expect(c2x).toBe(-50);
+    expect(tx).toBe(-100);
+  });
+
+  it("makes an elbow with rounded corners and no diagonals", () => {
+    const path = mindMapElbowPath(0, 0, 100, 60, 10);
+    expect(path).toBe("M 0 0 L 40 0 Q 50 0, 50 10 L 50 50 Q 50 60, 60 60 L 100 60");
+  });
+
+  it("makes an upward elbow, and shrinks the corner when the cards are close", () => {
+    expect(mindMapElbowPath(0, 60, 100, 0, 10)).toBe("M 0 60 L 40 60 Q 50 60, 50 50 L 50 10 Q 50 0, 60 0 L 100 0");
+    expect(mindMapElbowPath(0, 0, 100, 6, 10)).toContain("Q 50 0, 50 3");
+  });
+
+  it("is a plain line when the cards are level", () => {
+    expect(mindMapElbowPath(0, 20, 100, 20)).toBe("M 0 20 L 100 20");
+  });
+
+  it("goes from the parent's right edge to the child's left edge on the right side", () => {
+    // Cards 100 wide, centres 160 apart: the edges are at 50 and 110.
+    const [sx, , , , , , tx] = numbersOf(mindMapPath("curved", "right", 100, 0, 0, 160, 40));
+    expect(sx).toBe(50);
+    expect(tx).toBe(110);
+  });
+
+  it("goes from the parent's left edge to the child's right edge on the left side", () => {
+    const [sx, , , , , , tx] = numbersOf(mindMapPath("curved", "left", 100, 0, 0, -160, 40));
+    expect(sx).toBe(-50);
+    expect(tx).toBe(-110);
+  });
+
+  it("uses elbows for step, and the S-curve for curved and straight", () => {
+    expect(mindMapPath("step", "right", 100, 0, 0, 160, 40)).toContain("Q");
+    expect(mindMapPath("straight", "right", 100, 0, 0, 160, 40)).toBe(mindMapPath("curved", "right", 100, 0, 0, 160, 40));
   });
 });

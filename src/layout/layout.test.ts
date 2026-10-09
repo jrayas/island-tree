@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DETAILED_RING_SCALE, cardSizeFor, computeLayout, ringRadii, type LayoutOptions } from "./layout";
+import { DETAILED_RING_SCALE, MIND_MAP_COLUMN_FACTOR, cardSizeFor, computeLayout, ringRadii, type LayoutOptions } from "./layout";
 import type { LayoutNode } from "./types";
 
 const options: LayoutOptions = {
@@ -41,6 +41,32 @@ describe("ringRadii", () => {
 
   it("scales all rings from the first one", () => {
     expect(ringRadii(100)).toEqual([0, 100, 188, 268, 340]);
+  });
+});
+
+describe("computeLayout, mind map", () => {
+  it("uses the plain card size and reports the side of every card", () => {
+    const placed = computeLayout("mindmap", tree, false, options);
+    expect(placed.cardSize).toEqual({ width: 116, height: 40 });
+    expect(placed.sides?.get("a")).toBe("right");
+    expect(placed.sides?.get("b")).toBe("left");
+  });
+
+  it("follows the chosen view and spaces the columns from the level spacing", () => {
+    const oneSided = computeLayout("mindmap", tree, false, { ...options, mindMapView: "oneSided" });
+    const root = oneSided.positions.get("r")!;
+    const child = oneSided.positions.get("a")!;
+    expect(child.x - root.x).toBe(116 + 44 * MIND_MAP_COLUMN_FACTOR);
+    expect(oneSided.sides?.get("b")).toBe("right");
+  });
+
+  it("makes the cards bigger when detailed, like the vertical layout", () => {
+    expect(cardSizeFor("mindmap", true, 116, 40)).toEqual(cardSizeFor("vertical", true, 116, 40));
+  });
+
+  it("leaves the other layouts without sides", () => {
+    expect(computeLayout("vertical", tree, false, options).sides).toBeUndefined();
+    expect(computeLayout("radial", tree, false, options).sides).toBeUndefined();
   });
 });
 
