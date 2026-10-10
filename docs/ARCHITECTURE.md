@@ -114,7 +114,7 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | `src/model/synthetic.ts` | Made-up vaults (`balancedVault`, `flatVault`, `deepVault`) as a `RawEntry`, for the performance test. Deterministic. |
 | `src/model/perf.test.ts` | Times the pure steps on 10,000 notes and checks the card limits hold, with generous ceilings so it only fails on a real slowdown. |
 | `src/model/keyNav.ts` | `navigate`: what an arrow, Home, End or Enter key does through the visible cards (tree-view rules). Pure and tested. F is handled in `App.svelte`. |
-| `src/ui/FollowSelection.svelte` | Glides the camera to put the selected card in view when the keyboard moves it off screen. |
+| `src/ui/FollowSelection.svelte` | Glides the camera to put a card in view: the selected card when the keyboard moves it off screen, and the first search match when a search reveals one. Cards already in view are left alone. |
 | `src/model/savedView.ts` | `SavedView`, `saveView`, `parseSavedView` and `restoreView`: how the dashboard was left, stored by path (ids change each session), read back defensively and applied only to paths that still exist. |
 | `src/ui/stateBridge.ts` | The link between the app and its Obsidian view for saving and restoring the saved view: `snapshot`, `restore` and `changed`. |
 | `scripts/synthetic-vault.mjs` | Writes a made-up vault of real files into an empty folder, to open in Obsidian. |

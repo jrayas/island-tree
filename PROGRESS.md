@@ -4,6 +4,10 @@ Last updated: milestone 6 (editing).
 
 ## Done
 
+**Milestone 7, performance layer, step 4: search and focus** (D-051)
+
+- Search glides the view to the first match, Enter selects it and moves to the dashboard, and clearing the search re-frames the tree. Checked in Chrome on a note at position 7,500 of a 10,000-note folder and a folder at position 77 of 100, in all three layouts. 469 unit tests.
+
 **Milestone 7, performance layer, step 3: counts cache and vault events** (D-050)
 
 - Counts are cached by path, built in slices after the first draw and updated only above each change (both parents of a move); vault events arrive as one update naming every path, registered through the view; totals show in tooltips and the screen reader wording. Checked in Chrome through create, move, rename, delete and a 300-note paste. 465 unit tests. The heat-map tint was not built (there is none today). Not run in Obsidian.

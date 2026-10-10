@@ -1,10 +1,11 @@
 /**
  * Writes a made-up vault of real files, to open in Obsidian and try the dashboard on a big vault.
  *
- *   node scripts/synthetic-vault.mjs <empty folder> [balanced|flat|deep]
+ *   node scripts/synthetic-vault.mjs <empty folder> [balanced|flat|deep] [notes in the flat folder]
  *
  * balanced: 100 areas, each with 5 topics of 20 notes (10,000 notes), the usual shape.
- * flat:     one folder holding 10,000 notes, the worst case for a single folder.
+ * flat:     one folder holding 10,000 notes (or the number given, for example 20000), the worst
+ *           case for a single folder.
  * deep:     a chain of 60 folders with 5 notes at each level.
  *
  * It only ever writes into a folder that is missing or empty, and never anywhere else, so it
@@ -14,10 +15,11 @@
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
-const [, , target, shape = "balanced"] = process.argv;
+const [, , target, shape = "balanced", flatCount = "10000"] = process.argv;
+const flatNotes = Number(flatCount);
 
-if (!target || !["balanced", "flat", "deep"].includes(shape)) {
-  console.error("Usage: node scripts/synthetic-vault.mjs <empty folder> [balanced|flat|deep]");
+if (!target || !["balanced", "flat", "deep"].includes(shape) || !Number.isInteger(flatNotes) || flatNotes < 1 || flatNotes > 200000) {
+  console.error("Usage: node scripts/synthetic-vault.mjs <empty folder> [balanced|flat|deep] [notes in the flat folder, 1 to 200000]");
   process.exit(1);
 }
 
@@ -45,7 +47,7 @@ if (shape === "balanced") {
     }
   }
 } else if (shape === "flat") {
-  for (let n = 0; n < 10_000; n++) note(join(root, "Everything"), n);
+  for (let n = 0; n < flatNotes; n++) note(join(root, "Everything"), n);
 } else {
   let dir = root;
   for (let level = 0; level <= 60; level++) {

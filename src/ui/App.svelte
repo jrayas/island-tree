@@ -4,7 +4,7 @@
   // below are the only places the view state changes. Settings arrive through a
   // store, so changing one in the settings page restyles and re-lays out an open
   // dashboard at once.
-  import { onDestroy, untrack } from "svelte";
+  import { onDestroy, tick, untrack } from "svelte";
   import { openTarget, type OpenTarget } from "../actions/target";
   import { parseSavedView, restoreView, saveView, type SavedView } from "../model/savedView";
   import type { EditTarget, EditingApi, LockBridge } from "../editing/api";
@@ -16,7 +16,7 @@
   import { NAV_KEYS, navigate, type NavItem } from "../model/keyNav";
   import { describeSelection } from "../model/info";
   import { cardRow, describeMeta, type FileMeta, type MetaDisplay } from "../model/meta";
-  import { isDimmed, searchTree, withSearchReveal } from "../model/search";
+  import { firstVisibleHit, isDimmed, searchTree, withSearchReveal } from "../model/search";
   import { withDensity } from "../settings/density";
   import { findField, withFieldValue } from "../settings/schema";
   import type { SettingsStore } from "../settings/store";
@@ -254,6 +254,36 @@
   const highlighted = $derived(
     new Set(selectedNode ? ancestry(selectedNode).map((n) => n.uid) : []),
   );
+
+  // Where the camera goes when a search reveals something: the first match on screen.
+  const searchFocus = $derived(firstVisibleHit(visible, search));
+
+  // Clearing a search puts the cards back where they were, which can be far from where the camera
+  // followed a match, so the view frames the tree again instead of showing empty space.
+  let wasSearching = untrack(() => search !== null);
+  $effect(() => {
+    const searching = search !== null;
+    if (wasSearching && !searching) untrack(() => (fitKey += 1));
+    wasSearching = searching;
+  });
+
+  /**
+   * Enter in the search box: select the first match (it is on screen, since the search revealed it),
+   * so Focus selected, the editing bar and the keyboard all work on it, and move to the dashboard.
+   */
+  let appEl = $state<HTMLDivElement>();
+  async function selectFirstMatch(): Promise<void> {
+    // The search runs a moment after typing stops; Enter should not have to wait for it.
+    window.clearTimeout(searchTimer);
+    searchTimer = 0;
+    if (viewState.query !== typed) viewState = setQuery(viewState, typed, root.uid);
+    await tick();
+    const id = searchFocus;
+    if (id === null) return;
+    viewState = select(viewState, id);
+    await tick();
+    appEl?.querySelector<HTMLElement>(".island-canvas")?.focus();
+  }
 
   /** File details worded for display. Reading `metaVersion` makes it refresh after changes. */
   function metaFor(node: { kind: string; path: string } | null | undefined): MetaDisplay | null {
@@ -586,7 +616,7 @@
   }
 </script>
 
-<div class="island-app">
+<div class="island-app" bind:this={appEl}>
   <Toolbar
     layoutMode={viewState.layoutMode}
     mindMapView={cfg.layout.mindMapView}
@@ -616,6 +646,7 @@
       refit();
     }}
     onquery={typeQuery}
+    onsearchenter={() => void selectFirstMatch()}
     onfocus={focusSelected}
     onunfocus={() => {
       viewState = resetFocus(viewState, root.uid);
@@ -649,6 +680,7 @@
     {fitKey}
     wheel={cfg.canvas.wheel}
     activeId={viewState.selected}
+    searchId={searchFocus}
     onkey={navigateKey}
     onfit={refit}
     frameBox={placed.frame ?? null}

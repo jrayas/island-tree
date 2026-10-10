@@ -24,6 +24,7 @@
     ondetail,
     onreset,
     onquery,
+    onsearchenter,
     onfocus,
     onunfocus,
     onlock,
@@ -57,6 +58,8 @@
     ondetail: () => void;
     onreset: () => void;
     onquery: (text: string) => void;
+    /** Enter was pressed in the search box: select the first match. */
+    onsearchenter: () => void;
     onfocus: () => void;
     onunfocus: () => void;
     onlock: () => void;
@@ -127,6 +130,12 @@
     spellcheck="false"
     value={query}
     oninput={(event) => onquery(event.currentTarget.value)}
+    onkeydown={(event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        onsearchenter();
+      }
+    }}
   />
   {#if matches !== null}
     <span class="island-search-count" aria-live="polite"

@@ -102,6 +102,15 @@ export function withSearchReveal(
 }
 
 /**
+ * The first match that is on screen, in reading order: where the camera goes when a search reveals
+ * something, and what Enter in the search box selects. `visible` lists the cards parents first.
+ */
+export function firstVisibleHit(visible: readonly { id: string }[], result: SearchResult | null): string | null {
+  if (!result) return null;
+  return visible.find((item) => result.hits.has(item.id))?.id ?? null;
+}
+
+/**
  * Whether a card should fade while a search is active: anything that is neither
  * a match nor on the way to one. Pills are never matches, so they fade.
  */

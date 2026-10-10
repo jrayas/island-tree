@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isDimmed, normaliseQuery, searchTree, withSearchReveal } from "./search";
+import { firstVisibleHit, isDimmed, normaliseQuery, searchTree, withSearchReveal } from "./search";
 import { UidRegistry, buildTree, indexTree, type TreeNode } from "./tree";
 import { FOLDER_CEILING } from "./limits";
 import { buildVisibleTree, flattenVisible, type VisibilityState } from "./visibility";
@@ -70,6 +70,30 @@ describe("searchTree", () => {
     const result = searchTree(root, "zzz");
     expect(result?.hits.size).toBe(0);
     expect(result?.ancestors.size).toBe(0);
+  });
+});
+
+describe("firstVisibleHit", () => {
+  it("is the first match on screen, in reading order", () => {
+    const result = searchTree(root, "roadmap");
+    const visible = flattenVisible(buildVisibleTree(root, withSearchReveal(base(), result)));
+    const id = firstVisibleHit(visible, result);
+    expect(visible.find((n) => n.id === id)?.node?.name).toBe("Roadmap.md");
+  });
+
+  it("skips matches that have no card, and is null when none is shown", () => {
+    const result = searchTree(root, "roadmap");
+    // The vault alone is open: the match is somewhere below, with no card.
+    const visible = flattenVisible(buildVisibleTree(root, base()));
+    expect(firstVisibleHit(visible, result)).toBeNull();
+  });
+
+  it("is null when nothing is being searched for", () => {
+    expect(firstVisibleHit([{ id: "a" }], null)).toBeNull();
+  });
+
+  it("takes the earliest in the list when several match", () => {
+    expect(firstVisibleHit([{ id: "x" }, { id: "b" }, { id: "a" }], { hits: new Set(["a", "b"]), ancestors: new Set(), parents: new Set(), batches: new Map() })).toBe("b");
   });
 });
 

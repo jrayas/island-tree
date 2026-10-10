@@ -107,7 +107,7 @@ describe("a vault of 10,000 files", () => {
 });
 
 describe("laying out many cards", () => {
-  const tree = buildTree(flatVault(), new UidRegistry());
+  const tree = buildTree(flatVault(20_000), new UidRegistry());
   const folder = tree.children[0];
   if (!folder) throw new Error("The made-up vault has no folder.");
 

@@ -12,6 +12,9 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 ### Added
 
+- Search glides the view to the first match, wherever the layout has put it, reveals only the batch of cards that holds it, and Enter in the search box selects that match and moves to the dashboard, so **Focus selected**, the editing bar and the keyboard work on a result that was hidden. Clearing the search re-frames the tree instead of leaving the view where the match was.
+- `scripts/synthetic-vault.mjs` takes the number of notes for the flat shape (for example 20000).
+
 - **"+N more" reveals a batch.** A folder lists its first 40 children (the **List limit** setting, now 2 to 200 with a default of 40), and "+N more" reveals the next 40 each time, up to 1,000 in one folder, then says how many are "not shown". A search reveals only the batch that holds a match. New and moved cards reveal their own batch. Which batches are open is remembered with the rest of the view. The limits live in `src/model/limits.ts`, the overall budget is 1,500 cards, and only the cards on screen are drawn.
 
 - Keyboard and screen reader support. The dashboard is one tab stop with a visible focus ring. Arrow keys move through the cards, Right and Left open and close folders and step in and out, Home and End jump, Enter opens a note or focuses a folder or expands a "+N more" card, and F shows or hides a folder's files. The view follows the selection. Cards are announced with their name, kind, open or closed state and contents (tree and treeitem roles). The folder count badges are no longer tab stops, and with reduced motion switched on nothing animates.

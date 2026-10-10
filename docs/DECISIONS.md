@@ -329,3 +329,11 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 **Why:** Measured, the tree and counts for 10,000 notes cost milliseconds (the whole count about 1 ms), so the cache is not what makes a big vault fast; it exists so that nothing is recounted while zooming or hovering, and so recursive totals are available. The tree itself is still rebuilt in full on each (debounced) change, because patching it incrementally is a larger and riskier change than the measured cost justifies; how long Obsidian's own vault walk takes on 10,000 files has not been measured.
 
 **Cost:** until the whole-vault count has reached a folder (a moment after opening), its totals read as unknown and its tooltip leaves them out.
+
+## D-051: Search moves the view, and Enter selects the first match
+
+**Decision:** `firstVisibleHit` (pure, in `model/search.ts`) names the first match that has a card. `FollowSelection` glides the camera to it (only when it is off screen, as for the keyboard) whenever it changes, and `App.svelte` selects it when Enter is pressed in the search box (applying the typed text first, so Enter does not wait for the search delay) and moves focus to the dashboard. Clearing a search bumps `fitKey`, so the camera frames the tree again. Search itself needed no change to look at the whole vault: it already walks the full in-memory tree built from the vault's file list, not the drawn cards, and since D-048 it reveals only the batch that holds a match.
+
+**Why:** A match can sit far from the camera, in a batch the layout has just added, and a search that reveals a card the person cannot see feels like "not found". Selecting the match is also the way to use **Focus selected** on something that was hidden, since a card must exist to be selected. Measured in Chrome on a 10,000-note folder: a note at position 7,500 is found in 15 ms, highlighted and in view, with 1 match counted; a folder in position 77 of 100 can be selected with Enter and focused.
+
+**Cost:** with many matches the camera goes to the first one only. Typing keeps moving the camera as the first match changes, which is the point but can feel busy on a very broad query.

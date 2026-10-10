@@ -114,6 +114,18 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Settings made in an earlier version (a vault that used the plugin before milestone 5) still load: the default layout and status property are kept.
 - [ ] No errors in the developer console (Ctrl+Shift+I) while using any of the above.
 
+**Performance layer: the full test pass** (make two throwaway vaults and open each as a vault: `node scripts/synthetic-vault.mjs <empty folder> balanced` for about 10,000 notes in nested folders, and `node scripts/synthetic-vault.mjs <another empty folder> flat 20000` for one folder holding 20,000 files)
+
+- [ ] **Startup:** open the dashboard in each vault. It appears at once (a first view of about 40 cards) and nothing freezes. Note roughly how long from the command to a drawn dashboard.
+- [ ] **Opening folders, Expand folders and Expand files:** each Expand folders press opens one more level and, once everything shown is open, becomes Collapse folders. Expand files lists files in the open folders, a screenful at a time. Neither ever freezes.
+- [ ] **"+N more":** in the 20,000-file folder, click "+N more" again and again. Each click adds the next 40 and the number goes down. After about 25 clicks it says "N not shown" and does nothing. It stays smooth the whole way.
+- [ ] **Search inside a capped folder:** search for a note near the end of the 20,000-file folder (for example "note 17500"). Only the batch around it appears, it is highlighted, the view glides to it, and the count beside the box says 1 match. Enter selects it.
+- [ ] **Focus selected on a hidden node:** search for a folder far down a long list (for example "Area 77" in the nested vault), press Enter, then Focus selected. The breadcrumb shows the folder. Reset focus returns.
+- [ ] **Changes while the view is open** (in Obsidian's file explorer): create, delete, rename and move files and folders. Badges and totals update about a quarter of a second later, for both parents of a move, and the selection, open folders and zoom stay.
+- [ ] **A bulk paste:** paste several hundred notes into a folder at once. One update, no freeze.
+- [ ] **Disable and re-enable the plugin** a few times, then change a file: one update per change, no errors in the developer console (Ctrl+Shift+I).
+- [ ] **All three layouts**, **zooming out and in** (cards shrink to a colour and a short name when far out, and the "+N more" card stays readable), the **Zoom to area** tool, and **light and dark themes**, in both vaults.
+
 **Counts and vault changes** (with a few hundred notes in nested folders)
 
 - [ ] Hover a folder card: the tooltip gives its folders and files and, after a moment, the totals in all. A screen reader also says the total.
