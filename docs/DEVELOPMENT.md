@@ -114,6 +114,14 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Settings made in an earlier version (a vault that used the plugin before milestone 5) still load: the default layout and status property are kept.
 - [ ] No errors in the developer console (Ctrl+Shift+I) while using any of the above.
 
+**Mouse, as in Canvas** (compare with an open Canvas beside it)
+
+- [ ] Scroll pans up and down; Shift and scroll pans sideways; Ctrl (or Cmd) and scroll zooms toward the pointer; a trackpad pinch zooms. Holding Space and scrolling zooms too.
+- [ ] Dragging the background pans with the left, middle or right button. Right-clicking a card still opens its menu, and a right-drag on a card does not leave a menu behind.
+- [ ] Unlock editing, hold Space and drag from a card: the view pans and the card does not move. Release Space: dragging a card moves it again. Space typed in the search box or a rename box does nothing to the view.
+- [ ] The fit button (corner brackets) and Shift and 1 frame the tree the same way the dashboard does when it opens, and a small tree is never enlarged past 100%.
+- [ ] Settings, Layout, **Mouse wheel** set to Zoom: scroll zooms, and Ctrl (or Cmd) is no longer needed; Space and scroll pans.
+
 **Compact button** (toolbar, after Details)
 
 - [ ] Click **Compact**: cards and spacing shrink, the button is highlighted, and the view re-frames. Click it again: your own sizes return exactly (try it after setting a custom card width in Settings, Cards).

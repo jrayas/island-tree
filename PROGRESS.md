@@ -4,6 +4,10 @@ Last updated: milestone 6 (editing).
 
 ## Done
 
+**After milestone 6: mouse like Canvas** (D-044)
+
+- Scroll pans, Shift and scroll pans sideways, Ctrl or Cmd (or Space) and scroll zooms, right and middle drags pan, Space and drag pans from a card, Shift and 1 fits, and a Mouse wheel setting swaps pan and zoom. The Fit button is now our own and frames exactly as the automatic fit (it zoomed a small tree to 200% before). 367 unit tests; every action checked in headless Chrome with real wheel, mouse and key events.
+
 **After milestone 6: Compact toggle** (D-043)
 
 - A Compact button in the toolbar and a Density setting. It draws the Compact preset's sizes without changing the saved ones, so switching off restores them exactly. 356 unit tests, build and lint clean; the button was checked in headless Chrome (130 to 100 and back to 130, with the saved width unchanged).

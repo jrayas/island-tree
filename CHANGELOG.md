@@ -6,9 +6,13 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 ### Added
 
+- The mouse now behaves like Obsidian's Canvas: scroll pans, Shift and scroll pans sideways, Ctrl or Cmd (or Space) and scroll zooms, right and middle button drags pan as well as the left, Space and drag pans even from a card (cards let the pointer through while Space is held), and Shift and 1 fits the view. A new **Mouse wheel** setting (Settings, Layout) switches the wheel between pan (the default, as in Canvas) and zoom.
+
 - A **Compact** button in the toolbar that switches between compact and comfortable density. Compact draws the sizes of the built-in Compact preset (smaller cards, text and spacing) as an overlay: it never changes your saved sizes, never makes a size larger than you chose, and switching it off restores them exactly. The view re-frames itself when it changes, and the choice is remembered (also **Density** in Settings, Layout).
 
 ### Fixed
+
+- The Fit button zoomed a small tree in to 200% while the automatic fit stopped at 100%. The button now frames the cards exactly as the automatic fit does (same padding, the 100% cap, the same glide, and the balanced mind map's symmetric frame).
 
 - The settings page showed only the header and part of the preview in Obsidian, with no tab strip or settings. The preview drew its highlighted line with a class string containing a space, which Obsidian's `createSvg` rejects, and the error stopped the rest of the page being built. It now passes a list of classes.
 
