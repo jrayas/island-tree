@@ -389,6 +389,13 @@
   opacity: 0.3;
 }
 
+/* The count of search matches sits beside the search box. */
+.island-tree-view .island-search-count {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  white-space: nowrap;
+}
+
 /* The radial layout packs cards closer, so they are smaller. */
 .island-tree-view .island-card-compact {
   padding: 0 calc(var(--island-card-padding-x, 12px) * 0.75);

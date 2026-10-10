@@ -116,6 +116,22 @@ describe("describeItem", () => {
     expect(describeItem(pill, s).tooltip).toBe("Show 2 more items");
   });
 
+  it("describes a capped pill as an inert note about what is left out", () => {
+    const pill = {
+      id: "more:x",
+      kind: "more" as const,
+      node: null,
+      hidden: 120,
+      capped: true,
+      parentId: "x",
+      children: [],
+    };
+    const shown = describeItem(pill, state([]));
+    expect(shown.label).toBe("120 not shown");
+    expect(shown.tooltip).toContain("Search to find them");
+    expect(shown.tooltip).toContain("at most 500");
+  });
+
   it("uses the singular for one hidden item", () => {
     const many = buildTree(
       {

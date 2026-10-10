@@ -58,6 +58,7 @@ export function withSearchReveal(
     ...state,
     open: new Set([...state.open, ...result.ancestors]),
     showAll: new Set([...state.showAll, ...result.ancestors]),
+    prefer: new Set([...result.hits, ...result.ancestors]),
     filesFor: new Set([...state.filesFor, ...result.parents]),
   };
 }

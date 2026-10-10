@@ -4,7 +4,7 @@
   // below are the only places the view state changes. Settings arrive through a
   // store, so changing one in the settings page restyles and re-lays out an open
   // dashboard at once.
-  import { untrack } from "svelte";
+  import { onDestroy, untrack } from "svelte";
   import { openTarget, type OpenTarget } from "../actions/target";
   import { parseSavedView, restoreView, saveView, type SavedView } from "../model/savedView";
   import type { EditTarget, EditingApi, LockBridge } from "../editing/api";
@@ -181,6 +181,29 @@
     lastStatusProperty = cfg.cards.statusProperty;
     metaVersion += 1;
   });
+
+  // What is typed shows at once; the search itself runs a moment after typing stops, so a broad first
+  // letter in a big vault does not rebuild the whole dashboard on every keystroke.
+  const SEARCH_DELAY_MS = 180;
+  let typed = $state(untrack(() => viewState.query));
+  let searchTimer = 0;
+  function typeQuery(text: string): void {
+    typed = text;
+    window.clearTimeout(searchTimer);
+    const apply = (): void => {
+      searchTimer = 0;
+      viewState = setQuery(viewState, text, root.uid);
+    };
+    // Clearing the box is cheap and should feel instant.
+    if (text.trim() === "") apply();
+    else searchTimer = window.setTimeout(apply, SEARCH_DELAY_MS);
+  }
+  // A state handed back (Back, restore) or a reset changes the query from outside the box.
+  $effect(() => {
+    const query = viewState.query;
+    if (!searchTimer) untrack(() => (typed = query));
+  });
+  onDestroy(() => window.clearTimeout(searchTimer));
 
   const search = $derived(searchTree(root, viewState.query));
   // The search reveals matches without touching the saved state, so clearing it restores the view.
@@ -399,8 +422,9 @@
     const item = visible.find((candidate) => candidate.id === id);
     if (!item) return;
     if (item.kind === "more") {
-      // The pill expands its parent's overflow; it is never selected.
-      if (item.parentId) viewState = showAllFor(viewState, item.parentId);
+      // The pill expands its parent's overflow; it is never selected. Once the folder is as
+      // expanded as it can be, the pill only reports what is left out.
+      if (item.parentId && !item.capped) viewState = showAllFor(viewState, item.parentId);
       return;
     }
     // A folder click opens or closes it and selects it; a file click only selects.
@@ -439,7 +463,8 @@
     foldersOn={viewState.foldersOn}
     filesOn={viewState.filesOn}
     detailOn={viewState.detail}
-    query={viewState.query}
+    query={typed}
+    matches={search ? search.hits.size : null}
     canFocus={selectedNode?.kind === "folder"}
     isFocused={viewState.focusRoot !== root.uid}
     onlayout={(mode) => {
@@ -458,7 +483,7 @@
       viewState = restartView(viewState, initialViewState(root.uid, allFolders, startOptions()));
       refit();
     }}
-    onquery={(text) => (viewState = setQuery(viewState, text, root.uid))}
+    onquery={typeQuery}
     onfocus={focusSelected}
     onunfocus={() => {
       viewState = resetFocus(viewState, root.uid);

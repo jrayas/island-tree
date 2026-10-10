@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isDimmed, normaliseQuery, searchTree, withSearchReveal } from "./search";
 import { UidRegistry, buildTree, indexTree, type TreeNode } from "./tree";
-import { buildVisibleTree, flattenVisible, type VisibilityState } from "./visibility";
+import { EXPANDED_CAP, buildVisibleTree, flattenVisible, type VisibilityState } from "./visibility";
 
 const root = buildTree(
   {
@@ -84,6 +84,26 @@ describe("withSearchReveal", () => {
     expect(visible).toContain("Plugin");
     expect(visible).toContain("Roadmap.md");
     expect(visible).not.toContain("today.md");
+  });
+
+  it("never hides a match in a folder too big to show in full", () => {
+    const names = Array.from({ length: EXPANDED_CAP + 200 }, (_, i) => `note ${i + 1}.md`);
+    const huge = buildTree(
+      {
+        name: "Vault",
+        path: "/",
+        children: [{ name: "Big", path: "/Big", children: names.map((name) => ({ name, path: `/Big/${name}` })) }],
+      },
+      new UidRegistry(),
+    );
+    // The last note sorts well past the cap, but it is the one being searched for.
+    const target = `note ${EXPANDED_CAP + 200}.md`;
+    const state = withSearchReveal(
+      { open: new Set([huge.uid]), showAll: new Set(), filesFor: new Set(), filesOn: true },
+      searchTree(huge, target),
+    );
+    const visible = flattenVisible(buildVisibleTree(huge, state)).map((n) => n.node?.name);
+    expect(visible).toContain(target);
   });
 
   it("does not change the original state", () => {

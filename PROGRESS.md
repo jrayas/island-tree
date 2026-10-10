@@ -4,6 +4,10 @@ Last updated: milestone 6 (editing).
 
 ## Done
 
+**Milestone 7, part 1: performance** (D-046)
+
+- Measured a made-up 10,000-note vault and found two freezes (a 10,000-note folder expanded, and a broad search), then fixed them with a card limit per folder (500) and overall (1,000), a delayed search and a match count. Now 0.19 s and 60 frames per second for the folder and 0.9 s for the search. A script writes a real 10,000-note vault to try in Obsidian. Numbers are in `docs/PERFORMANCE.md`; they are from headless Chrome, not Obsidian.
+
 **After milestone 6: Back to the dashboard, and the search fade** (D-045)
 
 - A new Open notes in setting (New tab by default, This tab, Split); This tab lets Obsidian's Back return to the dashboard, which now remembers how it was left (also across a restart). A Dim cards that don't match setting turns the search fade off, with matches always yellow. 382 unit tests; checked in headless Chrome (typing a search, the setting both ways, saving a state and starting a new app from it, a restore after mounting, and ignoring garbage). The real Back navigation in Obsidian has not been run.

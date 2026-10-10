@@ -289,3 +289,11 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 **Why:** A note opened in a new tab starts with no history, so Back was greyed out and the way back was to find the dashboard's tab. Defaulting to New tab keeps today's behaviour and never replaces the dashboard unexpectedly. Paths, not ids, because ids are handed out afresh each session. This also answers the open question in `SPEC.md` about remembering the view between sessions.
 
 **Not verified:** the order in which Obsidian calls `onOpen` and `setState` on Back is not documented, so both orders are handled and tested in a browser through the same bridge, but the real navigation has not been run in Obsidian.
+
+## D-046: Card limits for big vaults
+
+**Decision:** One folder shows at most `EXPANDED_CAP` (500) cards even when expanded, and `buildVisibleTree` stops at `MAX_CARDS` (1,000) cards in total. It fills the tree level by level (breadth first), so the top always shows and only the deepest levels are cut. Wherever children are left out a pill says how many (`capped`, which does nothing when clicked). Pills do not count towards the limit, so the count of pills is bounded by the number of cards drawn. A folder that is too big to show in full shows search matches and the folders leading to them first (`prefer`). Search runs 180 ms after typing stops, and the count of matches shows beside the box. `onlyRenderVisibleElements` was tried and left out.
+
+**Why:** Measured on a made-up vault of 10,000 notes (`docs/PERFORMANCE.md`): the pure steps take under 50 ms, but drawing and gliding thousands of cards freezes the dashboard (10,000 cards: 5.6 s to appear, 8 frames per second; searching "note": 10,601 cards, 8.3 s). The glide rebuilds every card each frame, so the number of cards is what costs, not how many are on screen. 500 in one folder and 1,000 overall measured at 60 frames per second. A limit per folder alone was not enough, because a broad search opens many folders at once.
+
+**Cost:** a folder with more than 500 notes cannot be browsed past the first 500 on the dashboard; searching reaches the rest. Raising the limits is a one-line change in `visibility.ts`.

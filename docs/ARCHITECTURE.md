@@ -109,8 +109,11 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | File | Purpose |
 |---|---|
 | `src/actions/target.ts` | `openTarget`: Ctrl or Cmd means a split, otherwise the Open notes in setting (new tab, this tab or split). `resolveTarget`: this tab becomes a new tab in a sidebar. Pure and tested. |
+| `src/model/synthetic.ts` | Made-up vaults (`balancedVault`, `flatVault`, `deepVault`) as a `RawEntry`, for the performance test. Deterministic. |
+| `src/model/perf.test.ts` | Times the pure steps on 10,000 notes and checks the card limits hold, with generous ceilings so it only fails on a real slowdown. |
 | `src/model/savedView.ts` | `SavedView`, `saveView`, `parseSavedView` and `restoreView`: how the dashboard was left, stored by path (ids change each session), read back defensively and applied only to paths that still exist. |
 | `src/ui/stateBridge.ts` | The link between the app and its Obsidian view for saving and restoring the saved view: `snapshot`, `restore` and `changed`. |
+| `scripts/synthetic-vault.mjs` | Writes a made-up vault of real files into an empty folder, to open in Obsidian. |
 | `src/actions/open.ts` | `openFile`: resolves the path with `vault.getFileByPath` and opens it with `workspace.getLeaf` and `leaf.openFile`, or in the dashboard's own leaf for This tab (not in a sidebar or a pinned tab). Shows a notice if the file has gone. Not unit tested (needs Obsidian). |
 
 ### UI (Svelte 5)

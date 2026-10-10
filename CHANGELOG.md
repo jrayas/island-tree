@@ -6,6 +6,9 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 ### Added
 
+- Big vaults stay smooth. A folder shows at most 500 cards at once and the whole dashboard at most 1,000, filled level by level, with an inert pill ("N not shown") where children are left out; a search finds what is not shown, and shows its matches first. Search now waits about 0.2 s after you stop typing, and the number of matches shows beside the box. Measured on a made-up vault of 10,000 notes: opening a 10,000-note folder went from 5.6 s and 8 frames per second to 0.19 s and 60, and searching "note" from 8.3 s to 0.9 s. See `docs/PERFORMANCE.md`.
+- `scripts/synthetic-vault.mjs` writes a made-up vault of real files (balanced, flat or deep) to try on a big vault in Obsidian.
+
 - **Open notes in** (Settings, Layout): New tab (the default), This tab, or Split. This tab opens the note in the dashboard's own tab, so Obsidian's Back returns to the dashboard. In a sidebar, or in a pinned tab, a new tab is used instead. Ctrl or Cmd with double click still opens a split.
 - The dashboard now remembers how it was left (layout, open folders and files, focused folder, selected card, search text and the Details toggle), by path. Obsidian hands it back when you press Back and when it restarts. Anything unreadable or no longer in the vault is ignored.
 - **Dim cards that don't match** (Settings, Layout): turn the search fade off and every card stays at full strength. Matches keep their yellow ring either way.

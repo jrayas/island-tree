@@ -11,6 +11,7 @@
     filesOn,
     detailOn,
     query,
+    matches,
     canFocus,
     isFocused,
     locked,
@@ -35,6 +36,8 @@
     filesOn: boolean;
     detailOn: boolean;
     query: string;
+    /** How many names match the search, or null when nothing is being searched for. */
+    matches: number | null;
     /** A folder is selected, so Focus selected can act. */
     canFocus: boolean;
     /** The view is focused on a folder other than the vault root. */
@@ -116,6 +119,11 @@
     value={query}
     oninput={(event) => onquery(event.currentTarget.value)}
   />
+  {#if matches !== null}
+    <span class="island-search-count" aria-live="polite"
+      >{matches === 0 ? "No matches" : matches === 1 ? "1 match" : `${matches.toLocaleString()} matches`}</span
+    >
+  {/if}
 
   <div class="island-toolbar-group">
     <button type="button" disabled={!canFocus} onclick={onfocus}>Focus selected</button>

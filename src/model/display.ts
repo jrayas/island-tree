@@ -6,7 +6,7 @@
  */
 import { CATEGORY_STYLES, fileCategory } from "./fileType";
 import type { MetaDisplay } from "./meta";
-import { filesVisible, type VisibilityState, type VisibleNode } from "./visibility";
+import { EXPANDED_CAP, filesVisible, type VisibilityState, type VisibleNode } from "./visibility";
 
 export interface CardDisplay {
   kind: VisibleNode["kind"];
@@ -44,7 +44,7 @@ export function describeItem(
   if (item.kind === "more" || !item.node) {
     return {
       kind: "more",
-      label: `+${item.hidden} more`,
+      label: item.capped ? `${item.hidden} not shown` : `+${item.hidden} more`,
       icon: null,
       colour: null,
       subfolders: 0,
@@ -52,7 +52,9 @@ export function describeItem(
       items: 0,
       isOpen: false,
       filesShown: false,
-      tooltip: `Show ${plural(item.hidden, "more item", "more items")}`,
+      tooltip: item.capped
+        ? `${plural(item.hidden, "more item", "more items")} not shown, because a folder shows at most ${EXPANDED_CAP} at once. Search to find them.`
+        : `Show ${plural(item.hidden, "more item", "more items")}`,
     };
   }
 
