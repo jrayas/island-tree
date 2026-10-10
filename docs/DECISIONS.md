@@ -269,3 +269,9 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 **Why:** The first real run of the plugin (Obsidian 1.14.4) showed the settings page with a header and a half-drawn preview and nothing else. `createSvg` passes a string class straight to `classList.add`, which throws `InvalidCharacterError` on a space, so the preview threw part-way and `display()` never reached the tab strip. The jsdom and Chrome stand-ins used `setAttribute("class", …)`, which accepts spaces, so milestone 5 passed every check it had. Reproduced with the faithful stand-in, which gave one line, no cards and no tabs before the fix and the full page after it.
 
 **Not done:** the preview is not wrapped in a try/catch. A failure there would still blank the page, but it would also hide a real bug; the console error is more useful.
+
+## D-043: Compact density toggle
+
+**Decision:** The toolbar has a Compact button that flips the saved setting `layout.density` (comfortable or compact). It is an overlay: `withDensity` lowers the nine size and spacing settings that the built-in Compact preset sets, and `App.svelte` and `view.ts` read the settings through it. A size is never raised (so a square corner or a small card the person chose stays), and a text size of 0 (the theme's) becomes the Compact size. Not part of presets. The Hand tool that was discussed alongside it was dropped, because dragging the background already pans.
+
+**Why:** Applying the Compact preset would reset the whole look (colours, lines, grid) and could not be undone. An overlay keeps the person's own sizes, so one more click is always an exact way back. In a measured wide tree, Compact raised the fit zoom from 0.48 to 0.63, with text about 20% larger on screen; cards stay about the same width on screen because the tree is width-bound, so the gain is mostly readability, not bigger cards.

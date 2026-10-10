@@ -13,6 +13,7 @@
   import { describeSelection } from "../model/info";
   import { cardRow, describeMeta, type FileMeta, type MetaDisplay } from "../model/meta";
   import { isDimmed, searchTree, withSearchReveal } from "../model/search";
+  import { withDensity } from "../settings/density";
   import { findField, withFieldValue } from "../settings/schema";
   import type { SettingsStore } from "../settings/store";
   import { reconcileViewState } from "../model/sync";
@@ -108,14 +109,17 @@
   // view does not jump while browsing.
   let fitKey = $state(0);
 
+  // What is drawn: the settings, with the sizes lowered when Compact is on. The saved settings stay
+  // as they are, so turning Compact off restores them exactly.
+  const drawn = $derived(withDensity(cfg));
   const layoutOptions = $derived<LayoutOptions>({
-    cardWidth: cfg.cards.width,
-    cardHeight: cfg.cards.height,
-    gap: cfg.layout.gap,
-    levelGap: cfg.layout.levelGap,
-    ringRadius: cfg.layout.ringRadius,
-    ringStep: cfg.layout.ringStep,
-    mindMapView: cfg.layout.mindMapView,
+    cardWidth: drawn.cards.width,
+    cardHeight: drawn.cards.height,
+    gap: drawn.layout.gap,
+    levelGap: drawn.layout.levelGap,
+    ringRadius: drawn.layout.ringRadius,
+    ringStep: drawn.layout.ringStep,
+    mindMapView: drawn.layout.mindMapView,
   });
   const layoutKey = $derived(JSON.stringify(layoutOptions));
   let lastLayoutKey = untrack(() => layoutKey);
@@ -337,6 +341,15 @@
     settings.update((current) => withFieldValue(current, field, next));
   }
 
+  /** The Compact button: an on and off switch for the saved `layout.density`, so it is remembered. */
+  function toggleCompact(): void {
+    const field = findField("layout.density");
+    if (!field) return;
+    const next = cfg.layout.density === "compact" ? "comfortable" : "compact";
+    // Changing it changes the layout options, which re-lays out and re-frames the view.
+    settings.update((current) => withFieldValue(current, field, next));
+  }
+
   function activate(id: string): void {
     const item = visible.find((candidate) => candidate.id === id);
     if (!item) return;
@@ -376,6 +389,8 @@
   <Toolbar
     layoutMode={viewState.layoutMode}
     mindMapView={cfg.layout.mindMapView}
+    compact={cfg.layout.density === "compact"}
+    ondensity={toggleCompact}
     foldersOn={viewState.foldersOn}
     filesOn={viewState.filesOn}
     detailOn={viewState.detail}

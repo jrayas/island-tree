@@ -114,6 +114,12 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Settings made in an earlier version (a vault that used the plugin before milestone 5) still load: the default layout and status property are kept.
 - [ ] No errors in the developer console (Ctrl+Shift+I) while using any of the above.
 
+**Compact button** (toolbar, after Details)
+
+- [ ] Click **Compact**: cards and spacing shrink, the button is highlighted, and the view re-frames. Click it again: your own sizes return exactly (try it after setting a custom card width in Settings, Cards).
+- [ ] Settings, Layout, **Density** shows the same state as the button, and changing either updates the other. Compact never makes a card larger than your own setting.
+- [ ] Close and reopen the dashboard: the choice is remembered. Compact works in Vertical, Radial and Mind map.
+
 **Milestone 6** (try it in a scratch vault first; in all three layouts)
 
 - [ ] The dashboard opens locked: the toolbar button says **Locked**, there is no editing bar, cards cannot be dragged, and right-clicking a card selects it and offers only a disabled "Locked: unlock to edit".

@@ -24,6 +24,7 @@ Once released, install it from **Settings → Community plugins → Browse** and
 - Run **Open dashboard in sidebar** to open it in the right sidebar.
 - Click a folder to open or close it. Click the small badge on a folder to show or hide its files. Click "+N more" to show everything in a long list.
 - Drag the background to pan and scroll to zoom. The fourth zoom button (a dashed rectangle) lets you drag a rectangle over any part of the graph and zoom to it; holding Shift while dragging does the same. Escape cancels.
+- **Compact** in the toolbar is an on and off switch: it draws smaller cards with tighter spacing, to fit more on screen and keep text readable when **Fit** zooms out on a big vault. Your own sizes are never changed, so switching it off puts them back exactly. It is remembered, and also appears as **Density** in Settings, Layout.
 - Use **Vertical**, **Radial** and **Mind map** to change the layout. Click **Mind map** again to switch between its balanced view (branches on both sides of the vault) and its one-sided view (everything grows to the right); your choice is remembered.
 - Use **Expand folders** and **Expand files** to open everything, and **Reset** to go back to the start.
 - The dashboard follows your vault: new, renamed, moved and deleted notes appear without reloading.

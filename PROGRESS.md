@@ -4,6 +4,11 @@ Last updated: milestone 6 (editing).
 
 ## Done
 
+**After milestone 6: Compact toggle** (D-043)
+
+- A Compact button in the toolbar and a Density setting. It draws the Compact preset's sizes without changing the saved ones, so switching off restores them exactly. 356 unit tests, build and lint clean; the button was checked in headless Chrome (130 to 100 and back to 130, with the saved width unchanged).
+- **Settings page fix** (D-042): the preview's highlighted line used a class string with a space, which Obsidian's `createSvg` rejects, so the page showed only its header. Found from your first real Obsidian screenshot.
+
 **Milestone 1: scaffold** (commit 49d8629)
 
 - Build, plugin shell, empty settings tab, typed settings, release files, lint, Vitest, project docs.

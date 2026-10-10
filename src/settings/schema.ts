@@ -55,10 +55,15 @@ export interface CanvasSettings {
   gridColour: string;
 }
 
+/** How tightly the dashboard is drawn. Compact is an overlay: it never changes the saved sizes. */
+export type Density = "comfortable" | "compact";
+
 export interface LayoutSettings {
   defaultLayout: LayoutMode;
   /** Which mind map view to draw. The toolbar's Mind map button changes it, so it is remembered. */
   mindMapView: MindMapView;
+  /** The toolbar's Compact button switches it, so it is remembered. */
+  density: Density;
   gap: number;
   levelGap: number;
   ringRadius: number;
@@ -340,6 +345,19 @@ export const FIELDS: readonly Field[] = [
       options: [
         { value: "balanced", label: "Balanced" },
         { value: "oneSided", label: "One-sided" },
+      ],
+    },
+  },
+  {
+    group: "layout", key: "density", tab: "layout", section: "Layout", inPreset: false,
+    label: "Density",
+    description: "Compact draws smaller cards with tighter spacing and leaves your own sizes untouched, so switching back restores them exactly. The Compact button in the toolbar switches it.",
+    def: {
+      kind: "enum",
+      default: "comfortable",
+      options: [
+        { value: "comfortable", label: "Comfortable" },
+        { value: "compact", label: "Compact" },
       ],
     },
   },

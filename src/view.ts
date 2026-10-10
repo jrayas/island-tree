@@ -16,6 +16,7 @@ import { MetaReader } from "./model/metaSource";
 import { readVault } from "./model/vault";
 import { statusBarClearance } from "./layout/statusBar";
 import { settingsToCssVars } from "./settings/cssVars";
+import { withDensity } from "./settings/density";
 import { watchVault, type VaultWatchHandlers } from "./model/watch";
 import App from "./ui/App.svelte";
 
@@ -57,7 +58,7 @@ export class IslandTreeView extends ItemView {
     this.contentEl.addClass("island-tree-view");
     // Every visual setting is a CSS variable on the view, so a change restyles it at once.
     this.stopStyling = this.plugin.store.subscribe((settings) => {
-      this.contentEl.setCssProps(settingsToCssVars(settings));
+      this.contentEl.setCssProps(settingsToCssVars(withDensity(settings)));
     });
     const reader = new MetaReader(this.app, () => this.plugin.store.get().cards.statusProperty);
     this.component = mount(App, {

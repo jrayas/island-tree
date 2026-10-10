@@ -109,6 +109,10 @@ describe("sanitiseSettings", () => {
     const bad = sanitiseSettings({ layout: { mindMapView: "spiral" } });
     expect(bad.settings.layout.mindMapView).toBe("balanced");
     expect(DEFAULT_SETTINGS.layout.mindMapView).toBe("balanced");
+    const density = sanitiseSettings({ layout: { density: "compact" } });
+    expect(density.settings.layout.density).toBe("compact");
+    expect(sanitiseSettings({ layout: { density: "tiny" } }).settings.layout.density).toBe("comfortable");
+    expect(DEFAULT_SETTINGS.layout.density).toBe("comfortable");
   });
 
   it("limits out-of-range numbers and rejects wrong types, with readable messages", () => {

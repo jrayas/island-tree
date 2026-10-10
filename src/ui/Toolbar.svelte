@@ -6,6 +6,7 @@
   let {
     layoutMode,
     mindMapView,
+    compact,
     foldersOn,
     filesOn,
     detailOn,
@@ -15,6 +16,7 @@
     locked,
     onlayout,
     onmindmap,
+    ondensity,
     onfolders,
     onfiles,
     ondetail,
@@ -27,6 +29,8 @@
     layoutMode: LayoutMode;
     /** Which mind map view is chosen, shown on the Mind map button while that layout is on. */
     mindMapView: MindMapView;
+    /** Compact density is on: smaller cards and tighter spacing. */
+    compact: boolean;
     foldersOn: boolean;
     filesOn: boolean;
     detailOn: boolean;
@@ -40,6 +44,8 @@
     onlayout: (mode: "vertical" | "radial") => void;
     /** Selects the mind map layout, or, when it is already on, switches between its two views. */
     onmindmap: () => void;
+    /** Switches Compact on or off. */
+    ondensity: () => void;
     onfolders: () => void;
     onfiles: () => void;
     ondetail: () => void;
@@ -88,6 +94,15 @@
     >
     <button type="button" class:is-active={detailOn} aria-pressed={detailOn} onclick={ondetail}
       >Details</button
+    >
+    <button
+      type="button"
+      class:is-active={compact}
+      aria-pressed={compact}
+      title={compact
+        ? "Compact is on. Click to go back to your own card sizes."
+        : "Draw smaller cards with tighter spacing, to fit more on screen."}
+      onclick={ondensity}>Compact</button
     >
     <button type="button" onclick={onreset}>Reset</button>
   </div>

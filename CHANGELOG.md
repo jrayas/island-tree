@@ -4,6 +4,10 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 ## Unreleased
 
+### Added
+
+- A **Compact** button in the toolbar that switches between compact and comfortable density. Compact draws the sizes of the built-in Compact preset (smaller cards, text and spacing) as an overlay: it never changes your saved sizes, never makes a size larger than you chose, and switching it off restores them exactly. The view re-frames itself when it changes, and the choice is remembered (also **Density** in Settings, Layout).
+
 ### Fixed
 
 - The settings page showed only the header and part of the preview in Obsidian, with no tab strip or settings. The preview drew its highlighted line with a class string containing a space, which Obsidian's `createSvg` rejects, and the error stopped the rest of the page being built. It now passes a list of classes.
