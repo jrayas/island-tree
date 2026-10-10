@@ -379,11 +379,10 @@
   box-shadow: 0 0 0 2px var(--island-highlight-colour, var(--interactive-accent));
 }
 
-/* Search: matches get a yellow ring and a yellow tint, so they stand out with or without the fade.
-   Everything else fades only when "Dim cards that don't match" is on. */
+/* Search: matches get a yellow ring. Everything else fades only when "Dim cards that don't match"
+   is on. */
 .island-tree-view .island-card-hit {
   box-shadow: 0 0 0 2px var(--color-yellow);
-  background: color-mix(in srgb, var(--color-yellow) 28%, var(--background-primary));
 }
 
 .island-tree-view .island-card-dim {

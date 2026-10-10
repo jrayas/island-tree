@@ -8,7 +8,7 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 - **Open notes in** (Settings, Layout): New tab (the default), This tab, or Split. This tab opens the note in the dashboard's own tab, so Obsidian's Back returns to the dashboard. In a sidebar, or in a pinned tab, a new tab is used instead. Ctrl or Cmd with double click still opens a split.
 - The dashboard now remembers how it was left (layout, open folders and files, focused folder, selected card, search text and the Details toggle), by path. Obsidian hands it back when you press Back and when it restarts. Anything unreadable or no longer in the vault is ignored.
-- **Dim cards that don't match** (Settings, Layout): turn the search fade off and every card stays at full strength. Matches now get a yellow tint as well as the yellow ring, so they stand out either way.
+- **Dim cards that don't match** (Settings, Layout): turn the search fade off and every card stays at full strength. Matches keep their yellow ring either way.
 
 - The mouse now behaves like Obsidian's Canvas: scroll pans, Shift and scroll pans sideways, Ctrl or Cmd (or Space) and scroll zooms, right and middle button drags pan as well as the left, Space and drag pans even from a card (cards let the pointer through while Space is held), and Shift and 1 fits the view. A new **Mouse wheel** setting (Settings, Layout) switches the wheel between pan (the default, as in Canvas) and zoom.
 
