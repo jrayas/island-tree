@@ -9,7 +9,8 @@
   import { parseSavedView, restoreView, saveView, type SavedView } from "../model/savedView";
   import type { EditTarget, EditingApi, LockBridge } from "../editing/api";
   import { joinPath, relockDue } from "../editing/rules";
-  import { SEARCH_DELAY_MS } from "../model/limits";
+  import { CountCache, indexByPath } from "../model/counts";
+  import { COUNT_CHUNK, SEARCH_DELAY_MS } from "../model/limits";
   import { computeLayout, type LayoutOptions } from "../layout/layout";
   import { describeForReader, describeItem } from "../model/display";
   import { NAV_KEYS, navigate, type NavItem } from "../model/keyNav";
@@ -99,6 +100,30 @@
   const index = $derived(indexTree(root));
   // Bumped when details may have changed, so cards re-read them.
   let metaVersion = $state(0);
+
+  // Folder and file counts, kept by path. They are never worked out again while you zoom, hover or
+  // click: the whole-vault count runs in slices after the first draw, and a change updates only the
+  // folders above it.
+  const counts = new CountCache();
+  let countsVersion = $state(0);
+  let countsRun = 0;
+  async function countVault(tree: TreeNode): Promise<void> {
+    const run = ++countsRun;
+    const finished = await counts.build(tree, {
+      chunk: COUNT_CHUNK,
+      yieldNow: () => new Promise<void>((resolve) => window.setTimeout(resolve, 0)),
+      shouldStop: () => run !== countsRun,
+    });
+    if (finished && run === countsRun) countsVersion += 1;
+  }
+  // The first draw does not wait for it. Closing the dashboard abandons it.
+  $effect(() => {
+    const handle = window.setTimeout(() => void countVault(untrack(() => root)), 0);
+    return () => {
+      window.clearTimeout(handle);
+      countsRun += 1;
+    };
+  });
 
   /** What the dashboard should start with, from the "start with" settings. */
   /** The folders directly in the vault, which "start with the first level open" opens. */
@@ -246,7 +271,14 @@
       const meta = metaFor(item.node);
       const level = item.parentId === null ? 1 : (levels.get(item.parentId) ?? 0) + 1;
       levels.set(item.id, level);
-      const display = describeItem(item, effective, meta, { tags: cfg.cards.showTags });
+      void countsVersion;
+      const display = describeItem(
+        item,
+        effective,
+        meta,
+        { tags: cfg.cards.showTags },
+        item.node?.kind === "folder" ? counts.countsFor(item.node) : undefined,
+      );
       return {
         id: item.id,
         parentId: item.parentId,
@@ -280,9 +312,16 @@
 
   // The tree is rebuilt whenever files are created, deleted or moved. The view
   // state is then tidied so it never points at cards that have gone.
-  function refreshStructure(): void {
+  function refreshStructure(changed: readonly string[]): void {
     const next = buildTree(loadTree(), registry);
     viewState = reconcileViewState(viewState, new Set(indexTree(next).keys()), next.uid);
+    // Update the counts above each change; if the first whole-vault count has not finished, redo it.
+    if (counts.ready) {
+      counts.applyChanges(indexByPath(next), changed);
+      countsVersion += 1;
+    } else {
+      void countVault(next);
+    }
     root = next;
     metaVersion += 1;
     const known = indexTree(next);

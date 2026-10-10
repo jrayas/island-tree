@@ -70,6 +70,7 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | File | Purpose |
 |---|---|
 | `src/model/tree.ts` | `RawEntry` (plain vault description), `TreeNode`, `UidRegistry` (stable ids per path), `compareEntries` (folders first, natural name order), `buildTree`, `indexTree`, `folderUids`, `ancestry`. `UidRegistry.moved` keeps an id when a file or folder is renamed or moved. |
+| `src/model/counts.ts` | `CountCache`: folder and file counts by path, direct and total. `countsFor` counts a missing folder once; `build` counts the whole vault in slices that yield to the browser; `applyChanges` recounts only the folders above each changed path (old and new). Pure and tested. |
 | `src/model/limits.ts` | Every number that keeps a big vault smooth, in one place: the list limit and its maximum, the per-folder ceiling, the overall card budget and the search delay. |
 | `src/model/visibility.ts` | SPEC section 4 rules 1 to 3. `visibleChildren`, `buildVisibleTree`, `flattenVisible`, `filesVisible`. A "+N more" pill is a `VisibleNode` of kind `more` with id `more:<folder uid>`. |
 | `src/model/viewState.ts` | `ViewState` (open, showAll, filesFor, filesOn, foldersOn, selected, focusRoot, query, layoutMode) and pure transitions: `toggleOpen`, `toggleFilesFor`, `showAllFor`, `select`, `setFoldersOn`, `setFilesOn` (rules 4 and 5), `focusOn`, `resetFocus`, `setQuery`, `setLayout`, `setDetail`, `resetView`. |
@@ -81,7 +82,7 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | `src/model/info.ts` | `describeSelection` and `pathLabel`: the info panel's text. |
 | `src/model/vault.ts` | `readVault`: reads `vault.getRoot()` into a `RawEntry`. Not unit tested (needs Obsidian). |
 | `src/model/metaSource.ts` | `MetaReader`: reads modified time and size from the file, links from the cached link index, tags with `getAllTags`, and the status property from the frontmatter. Reads only for cards on screen. Not unit tested. |
-| `src/model/watch.ts` | `watchVault`: listens to vault `create`, `delete`, `rename`, `modify` and metadata `changed`, `resolved`. Notifications wait for 150 ms of quiet and arrive once; renames are reported at once. Returns an unsubscribe function. Not unit tested. |
+| `src/model/watch.ts` | `watchVault`: listens to vault `create`, `delete`, `rename`, `modify` and metadata `changed`, `resolved`. Notifications wait for 250 ms of quiet (`CHANGE_DELAY_MS`) and arrive once; a burst of structure changes arrives as one update listing every path involved (both paths of a move); renames are reported at once. Every listener is also handed to the view's `registerEvent`. Returns an unsubscribe function. Not unit tested. |
 
 ### Layout (pure, unit tested)
 

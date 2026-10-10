@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { computeLayout, type LayoutOptions } from "../layout/layout";
+import { CountCache, indexByPath } from "./counts";
 import { searchTree, withSearchReveal } from "./search";
 import { balancedVault, countRawFiles, deepVault, flatVault } from "./synthetic";
 import { buildTree, folderUids, indexTree, UidRegistry } from "./tree";
@@ -56,6 +57,25 @@ describe("a vault of 10,000 files", () => {
     expect(built.ms).toBeLessThan(1500);
     expect(indexed.ms).toBeLessThan(500);
     expect(search.ms).toBeLessThan(500);
+  });
+
+  it("counts the whole vault in slices, then updates one folder's chain without recounting it", async () => {
+    const tree = buildTree(raw, new UidRegistry());
+    const cache = new CountCache();
+    const started = performance.now();
+    await cache.build(tree, { chunk: 250, yieldNow: async () => {} });
+    const built = performance.now() - started;
+    expect(cache.get("/")?.total).toEqual({ folders: 600, files: 10_000 });
+    expect(built).toBeLessThan(1500);
+
+    // One note added to one topic: only the chain above it is touched.
+    const topic = tree.children[0]?.children[0];
+    if (!topic) throw new Error("The made-up vault has no topic.");
+    topic.children.push({ uid: "new", kind: "file", name: "added.md", path: `${topic.path}/added.md`, parent: topic, children: [] });
+    const update = time(() => cache.applyChanges(indexByPath(tree), [`${topic.path}/added.md`]));
+    expect(cache.get("/")?.total?.files).toBe(10_001);
+    expect(cache.get(topic.path)?.files).toBe(21);
+    expect(update.ms).toBeLessThan(500);
   });
 
   it("keeps the visible tree small, whatever the vault size", () => {

@@ -44,6 +44,24 @@ describe("describeItem", () => {
     expect(card.tooltip).toBe("Notes: 1 folder, 1 file (files hidden)");
   });
 
+  it("takes a folder's counts from the cache when given, and adds the totals to the tooltip", () => {
+    const tree = buildVisibleTree(root, state([root.uid]));
+    const card = describeItem(tree.children[0], state([root.uid]), null, { tags: true }, {
+      folders: 4,
+      files: 7,
+      total: { folders: 9, files: 120 },
+    });
+    expect(card).toMatchObject({ subfolders: 4, files: 7, total: { folders: 9, files: 120 } });
+    expect(card.tooltip).toBe("Notes: 4 folders, 7 files (files hidden); 120 files and 9 folders in all");
+  });
+
+  it("leaves the totals out until the whole-vault count has reached the folder", () => {
+    const tree = buildVisibleTree(root, state([root.uid]));
+    const card = describeItem(tree.children[0], state([root.uid]), null, { tags: true }, { folders: 1, files: 1, total: null });
+    expect(card.total).toBeNull();
+    expect(card.tooltip).toBe("Notes: 1 folder, 1 file (files hidden)");
+  });
+
   it("uses the open icon and reports shown files for an open folder", () => {
     const s = state([root.uid, notes.uid], true);
     const tree = buildVisibleTree(root, s);
@@ -143,6 +161,13 @@ describe("describeItem", () => {
     ).toBe("Daily, folder, closed, 0 folders and 9 files");
     expect(describeForReader({ ...base, kind: "file", label: "roadmap.md", subfolders: 0, files: 0, isOpen: false })).toBe(
       "roadmap.md, file",
+    );
+  });
+
+  it("adds the total to a folder's reading once it is known", () => {
+    const base = { icon: null, colour: null, items: 0, filesShown: false, tooltip: "", kind: "folder" as const, label: "Projects", subfolders: 2, files: 1, isOpen: false };
+    expect(describeForReader({ ...base, total: { folders: 5, files: 340 } })).toBe(
+      "Projects, folder, closed, 2 folders and 1 file, 340 files in all",
     );
   });
 

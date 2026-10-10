@@ -6,6 +6,7 @@
  */
 import { CATEGORY_STYLES, fileCategory } from "./fileType";
 import type { MetaDisplay } from "./meta";
+import type { FolderCounts } from "./counts";
 import { FOLDER_CEILING } from "./limits";
 import { filesVisible, type VisibilityState, type VisibleNode } from "./visibility";
 
@@ -27,6 +28,8 @@ export interface CardDisplay {
   tooltip: string;
   /** Pills only: nothing more can be shown here, so the card does nothing when clicked. */
   capped?: boolean;
+  /** Folders only: everything beneath, once the whole-vault count has reached this folder. */
+  total?: { folders: number; files: number } | null;
 }
 
 /**
@@ -41,7 +44,8 @@ export function describeForReader(display: CardDisplay): string {
   }
   if (display.kind === "folder") {
     const holds = `${plural(display.subfolders, "folder", "folders")} and ${plural(display.files, "file", "files")}`;
-    return `${display.label}, folder, ${display.isOpen ? "open" : "closed"}, ${holds}`;
+    const inAll = display.total ? `, ${plural(display.total.files, "file", "files")} in all` : "";
+    return `${display.label}, folder, ${display.isOpen ? "open" : "closed"}, ${holds}${inAll}`;
   }
   return `${display.label}, file`;
 }
@@ -60,6 +64,7 @@ export function describeItem(
   state: VisibilityState,
   meta: MetaDisplay | null = null,
   options: { tags: boolean } = { tags: true },
+  counts?: FolderCounts,
 ): CardDisplay {
   if (item.kind === "more" || !item.node) {
     return {
@@ -81,8 +86,10 @@ export function describeItem(
 
   const { node } = item;
   if (node.kind === "folder") {
-    const subfolders = node.children.filter((c) => c.kind === "folder").length;
-    const files = node.children.length - subfolders;
+    // From the cache when there is one, so a redraw never recounts; otherwise from the children.
+    const subfolders = counts ? counts.folders : node.children.filter((c) => c.kind === "folder").length;
+    const files = counts ? counts.files : node.children.length - subfolders;
+    const total = counts?.total ?? null;
     const isOpen = state.open.has(node.uid);
     const filesShown = filesVisible(state, node.uid);
     return {
@@ -95,7 +102,10 @@ export function describeItem(
       items: node.children.length,
       isOpen,
       filesShown,
-      tooltip: `${node.name}: ${plural(subfolders, "folder", "folders")}, ${plural(files, "file", "files")} (files ${filesShown ? "shown" : "hidden"})`,
+      total,
+      tooltip:
+        `${node.name}: ${plural(subfolders, "folder", "folders")}, ${plural(files, "file", "files")} (files ${filesShown ? "shown" : "hidden"})` +
+        (total ? `; ${plural(total.files, "file", "files")} and ${plural(total.folders, "folder", "folders")} in all` : ""),
     };
   }
 

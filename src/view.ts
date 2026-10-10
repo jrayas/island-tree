@@ -94,17 +94,22 @@ export class IslandTreeView extends ItemView {
         readMeta: (path: string) => reader.read(path),
         // The link index goes stale on any change, so drop it before the app re-reads details.
         watchVault: (handlers: VaultWatchHandlers) =>
-          watchVault(this.app, {
-            ...handlers,
-            onStructure: () => {
-              reader.invalidate();
-              handlers.onStructure();
+          watchVault(
+            this.app,
+            {
+              ...handlers,
+              onStructure: (changed) => {
+                reader.invalidate();
+                handlers.onStructure(changed);
+              },
+              onMetadata: () => {
+                reader.invalidate();
+                handlers.onMetadata();
+              },
             },
-            onMetadata: () => {
-              reader.invalidate();
-              handlers.onMetadata();
-            },
-          }),
+            // Registered with the view too, so Obsidian removes the listeners if the view goes away.
+            (ref) => this.registerEvent(ref),
+          ),
         openFile: (path: string, target: OpenTarget) => void openFile(this.app, path, target, this.leaf),
         settings: this.plugin.store,
         editing: new EditingController(this.app, () => this.plugin.store.get().editing),

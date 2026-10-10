@@ -4,6 +4,10 @@ Last updated: milestone 6 (editing).
 
 ## Done
 
+**Milestone 7, performance layer, step 3: counts cache and vault events** (D-050)
+
+- Counts are cached by path, built in slices after the first draw and updated only above each change (both parents of a move); vault events arrive as one update naming every path, registered through the view; totals show in tooltips and the screen reader wording. Checked in Chrome through create, move, rename, delete and a 300-note paste. 465 unit tests. The heat-map tint was not built (there is none today). Not run in Obsidian.
+
 **Milestone 7, performance layer, step 2: Expand folders one level at a time** (D-049)
 
 - Each press opens the folders on screen; when all are open it becomes Collapse folders. New folders stay closed. The start setting opens the first level only. 443 unit tests; checked in Chrome on the small and the 10,000-note vault.

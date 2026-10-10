@@ -114,6 +114,13 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Settings made in an earlier version (a vault that used the plugin before milestone 5) still load: the default layout and status property are kept.
 - [ ] No errors in the developer console (Ctrl+Shift+I) while using any of the above.
 
+**Counts and vault changes** (with a few hundred notes in nested folders)
+
+- [ ] Hover a folder card: the tooltip gives its folders and files and, after a moment, the totals in all. A screen reader also says the total.
+- [ ] Create, delete, rename and move notes and folders in Obsidian's file explorer while the dashboard is open: the badges and tooltips update about a quarter of a second after you stop, for both the old and the new parent of a move. The selection, open folders and zoom stay as they were.
+- [ ] Paste or sync many files at once: one update, no freeze.
+- [ ] Disable and re-enable the plugin (Settings, Community plugins) a few times, then change files: the dashboard updates once per change, not several times, and there are no errors in the developer console (Ctrl+Shift+I).
+
 **Batches ("+N more")** (use a big folder: `node scripts/synthetic-vault.mjs <empty folder> flat`, or a real folder with a few hundred notes)
 
 - [ ] Open a big folder with Expand files on: it lists its first 40 notes and a "+N more" card. Each click reveals 40 more and the number goes down. Nothing freezes.

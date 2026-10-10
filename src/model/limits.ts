@@ -20,3 +20,12 @@ export const MAX_CARDS = 1500;
 
 /** How long search waits after the last key press before it runs. */
 export const SEARCH_DELAY_MS = 180;
+
+/**
+ * How long the vault must be quiet before the dashboard updates its tree and counts. A burst of
+ * changes (a sync, a pasted folder) is gathered into one update and one redraw.
+ */
+export const CHANGE_DELAY_MS = 250;
+
+/** How many folders the whole-vault count handles before giving the browser a turn. */
+export const COUNT_CHUNK = 250;
