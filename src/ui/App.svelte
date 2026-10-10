@@ -6,6 +6,7 @@
   // dashboard at once.
   import { untrack } from "svelte";
   import { openTarget, type OpenTarget } from "../actions/target";
+  import { parseSavedView, restoreView, saveView, type SavedView } from "../model/savedView";
   import type { EditTarget, EditingApi, LockBridge } from "../editing/api";
   import { relockDue } from "../editing/rules";
   import { computeLayout, type LayoutOptions } from "../layout/layout";
@@ -51,6 +52,7 @@
   import EditBar from "./EditBar.svelte";
   import type { CanvasItem } from "./cardData";
   import InfoPanel from "./InfoPanel.svelte";
+  import type { StateBridge } from "./stateBridge";
   import Toolbar from "./Toolbar.svelte";
 
   const {
@@ -61,6 +63,8 @@
     settings,
     editing,
     lockBridge,
+    stateBridge,
+    initialView = null,
   }: {
     loadTree: () => RawEntry;
     /** Details for a file, or null when they are not known. */
@@ -73,6 +77,10 @@
     editing: EditingApi;
     /** Lets the "Toggle lock" command reach this app. */
     lockBridge: LockBridge;
+    /** Lets the view save and restore how the dashboard was left. */
+    stateBridge: StateBridge;
+    /** How the dashboard was left last time, if Obsidian handed it back. */
+    initialView?: SavedView | null;
   } = $props();
 
   // The live settings. Reading `cfg` in a derived value makes it follow changes.
@@ -101,13 +109,50 @@
     };
   }
 
+  /** The saved state put on top of a starting state; paths no longer in the vault are ignored. */
+  function restored(saved: SavedView, tree: TreeNode, base: ViewState): ViewState {
+    const known = indexTree(tree);
+    return restoreView(
+      saved,
+      (path) => {
+        const uid = registry.find(path);
+        return uid !== undefined && known.has(uid) ? uid : undefined;
+      },
+      base,
+      tree.uid,
+    );
+  }
+
   let viewState = $state.raw<ViewState>(
-    untrack(() => initialViewState(root.uid, folderUids(root), startOptions())),
+    untrack(() => {
+      const start = initialViewState(root.uid, folderUids(root), startOptions());
+      const saved = parseSavedView(initialView);
+      return saved ? restored(saved, root, start) : start;
+    }),
   );
   // Bumped whenever the camera should re-frame the cards: layout, focus and reset,
   // or a setting that changes card sizes or spacing, but not folder clicks, so the
   // view does not jump while browsing.
   let fitKey = $state(0);
+
+  // Remembering how the dashboard was left: Obsidian asks for a snapshot when this tab navigates
+  // to a note (so Back can return) and when it saves the layout, and hands one back afterwards.
+  $effect(() => {
+    stateBridge.snapshot = () => saveView(viewState, (uid) => index.get(uid)?.path);
+    stateBridge.restore = (saved) => {
+      viewState = restored(saved, root, initialViewState(root.uid, allFolders, startOptions()));
+      fitKey += 1;
+    };
+    return () => {
+      stateBridge.snapshot = null;
+      stateBridge.restore = null;
+    };
+  });
+  // Ask Obsidian to save the layout whenever the view changes, so a restart brings it back too.
+  $effect(() => {
+    void viewState;
+    untrack(() => stateBridge.changed?.());
+  });
 
   // What is drawn: the settings, with the sizes lowered when Compact is on. The saved settings stay
   // as they are, so turning Compact off restores them exactly.
@@ -173,7 +218,7 @@
           display: describeItem(item, effective, meta, { tags: cfg.cards.showTags }),
           selected: viewState.selected === item.id,
           hit: search?.hits.has(item.id) ?? false,
-          dim: isDimmed(item.id, search),
+          dim: cfg.layout.dimOnSearch && isDimmed(item.id, search),
           compact: viewState.layoutMode === "radial",
           draggable:
             !locked && cfg.editing.allowDrag && item.kind !== "more" && item.id !== root.uid,
@@ -369,7 +414,7 @@
       viewState = focusOn(viewState, id);
       refit();
     } else {
-      openFile(node.path, openTarget(modifiers));
+      openFile(node.path, openTarget(modifiers, cfg.layout.openNotesIn));
     }
   }
 

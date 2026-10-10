@@ -36,6 +36,11 @@ export class UidRegistry {
   private readonly byPath = new Map<string, string>();
   private next = 0;
 
+  /** The id for a path, or undefined when the path has never been seen. Never creates one. */
+  find(path: string): string | undefined {
+    return this.byPath.get(path);
+  }
+
   uidFor(path: string): string {
     let uid = this.byPath.get(path);
     if (uid === undefined) {

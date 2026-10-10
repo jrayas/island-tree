@@ -113,6 +113,14 @@ describe("sanitiseSettings", () => {
     expect(density.settings.layout.density).toBe("compact");
     expect(sanitiseSettings({ layout: { density: "tiny" } }).settings.layout.density).toBe("comfortable");
     expect(DEFAULT_SETTINGS.layout.density).toBe("comfortable");
+
+    // Opening notes and the search fade.
+    expect(DEFAULT_SETTINGS.layout.openNotesIn).toBe("tab");
+    expect(sanitiseSettings({ layout: { openNotesIn: "this" } }).settings.layout.openNotesIn).toBe("this");
+    expect(sanitiseSettings({ layout: { openNotesIn: "window" } }).settings.layout.openNotesIn).toBe("tab");
+    expect(DEFAULT_SETTINGS.layout.dimOnSearch).toBe(true);
+    expect(sanitiseSettings({ layout: { dimOnSearch: false } }).settings.layout.dimOnSearch).toBe(false);
+    expect(sanitiseSettings({ layout: { dimOnSearch: "no" } }).settings.layout.dimOnSearch).toBe(true);
   });
 
   it("limits out-of-range numbers and rejects wrong types, with readable messages", () => {

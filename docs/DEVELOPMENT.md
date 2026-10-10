@@ -114,6 +114,14 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Settings made in an earlier version (a vault that used the plugin before milestone 5) still load: the default layout and status property are kept.
 - [ ] No errors in the developer console (Ctrl+Shift+I) while using any of the above.
 
+**Open notes in, Back, and search** (the dashboard in a main tab)
+
+- [ ] Settings, Layout, **Open notes in** is New tab by default: a double click on a note opens it in a new tab and the dashboard stays.
+- [ ] Set it to **This tab**. Expand a few folders, switch to Radial, select a card, then double click a note: the note replaces the dashboard. Press Back (the arrow, Alt and Left, or the mouse's back button): the dashboard returns with the same layout, open folders and selected card. Forward goes to the note again.
+- [ ] With the dashboard in a **sidebar** and This tab chosen, a double click still opens a new tab. Ctrl or Cmd with double click opens a split whatever the setting says.
+- [ ] Close and reopen Obsidian: the dashboard comes back with how you left it (open folders, layout, selection).
+- [ ] Type a search: matches turn yellow, other cards fade. Settings, Layout, turn **Dim cards that don't match** off: no card fades, matches stay yellow. Clearing the search returns the view.
+
 **Mouse, as in Canvas** (compare with an open Canvas beside it)
 
 - [ ] Scroll pans up and down; Shift and scroll pans sideways; Ctrl (or Cmd) and scroll zooms toward the pointer; a trackpad pinch zooms. Holding Space and scrolling zooms too.

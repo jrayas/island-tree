@@ -23,6 +23,8 @@ describe("UidRegistry", () => {
     const b = registry.uidFor("/b");
     expect(a).not.toBe(b);
     expect(registry.uidFor("/a")).toBe(a);
+    expect(registry.find("/a")).toBe(a);
+    expect(registry.find("/never-seen")).toBeUndefined();
   });
 });
 

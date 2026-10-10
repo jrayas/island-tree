@@ -5,7 +5,7 @@
  * the view's content element, so all dashboard logic stays out of Obsidian
  * specific code.
  */
-import { ItemView, type WorkspaceLeaf } from "obsidian";
+import { ItemView, type ViewStateResult, type WorkspaceLeaf } from "obsidian";
 import { mount, unmount } from "svelte";
 import { openFile } from "./actions/open";
 import { EditingController } from "./editing/controller";
@@ -13,12 +13,14 @@ import type { LockBridge } from "./editing/api";
 import type { OpenTarget } from "./actions/target";
 import type IslandTreePlugin from "./main";
 import { MetaReader } from "./model/metaSource";
+import { parseSavedView, type SavedView } from "./model/savedView";
 import { readVault } from "./model/vault";
 import { statusBarClearance } from "./layout/statusBar";
 import { settingsToCssVars } from "./settings/cssVars";
 import { withDensity } from "./settings/density";
 import { watchVault, type VaultWatchHandlers } from "./model/watch";
 import App from "./ui/App.svelte";
+import { createStateBridge, type StateBridge } from "./ui/stateBridge";
 
 export const VIEW_TYPE_ISLAND_TREE = "island-tree-view";
 
@@ -28,6 +30,10 @@ export class IslandTreeView extends ItemView {
   private stopMeasuring: (() => void) | null = null;
   /** Lets the "Toggle lock" command reach the app, which owns the lock. */
   private readonly lockBridge: LockBridge = { toggle: null };
+  /** Lets the view save and restore how the dashboard was left. */
+  private readonly stateBridge: StateBridge = createStateBridge();
+  /** A state Obsidian handed back before the app was mounted, used when it mounts. */
+  private pending: SavedView | null = null;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -46,6 +52,26 @@ export class IslandTreeView extends ItemView {
 
   getIcon(): string {
     return "network";
+  }
+
+  /**
+   * What Obsidian stores for this tab: it is read when the tab navigates away (so Back can return
+   * to the dashboard as it was) and when the layout is saved. Falls back to the last state handed
+   * in, so a tab that has not mounted yet does not lose it.
+   */
+  getState(): Record<string, unknown> {
+    const island = this.stateBridge.snapshot?.() ?? this.pending;
+    return island ? { ...super.getState(), island } : super.getState();
+  }
+
+  /** Obsidian hands the state back on Back and on a restart. Anything unusable is ignored. */
+  async setState(state: unknown, result: ViewStateResult): Promise<void> {
+    const saved = parseSavedView((state as { island?: unknown } | null)?.island);
+    if (saved) {
+      this.pending = saved;
+      this.stateBridge.restore?.(saved);
+    }
+    await super.setState(state, result);
   }
 
   /** Locks or unlocks editing, for the "Toggle lock" command. */
@@ -79,12 +105,16 @@ export class IslandTreeView extends ItemView {
               handlers.onMetadata();
             },
           }),
-        openFile: (path: string, target: OpenTarget) => void openFile(this.app, path, target),
+        openFile: (path: string, target: OpenTarget) => void openFile(this.app, path, target, this.leaf),
         settings: this.plugin.store,
         editing: new EditingController(this.app, () => this.plugin.store.get().editing),
         lockBridge: this.lockBridge,
+        stateBridge: this.stateBridge,
+        initialView: this.pending,
       },
     });
+    // Ask Obsidian to save the layout when the view changes (it debounces), so a restart restores it.
+    this.stateBridge.changed = () => void this.app.workspace.requestSaveLayout();
     this.stopMeasuring = this.watchStatusBar();
   }
 
@@ -127,6 +157,7 @@ export class IslandTreeView extends ItemView {
   // Destroying the component here stops its listeners and animation frames
   // when the leaf closes, which community plugin review checks for.
   async onClose(): Promise<void> {
+    this.stateBridge.changed = null;
     this.stopStyling?.();
     this.stopStyling = null;
     this.stopMeasuring?.();

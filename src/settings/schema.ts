@@ -60,6 +60,9 @@ export interface CanvasSettings {
   gridColour: string;
 }
 
+/** Where double clicking a note opens it. "this" replaces the dashboard, so Back returns to it. */
+export type OpenNotesIn = "tab" | "this" | "split";
+
 /** How tightly the dashboard is drawn. Compact is an overlay: it never changes the saved sizes. */
 export type Density = "comfortable" | "compact";
 
@@ -69,6 +72,10 @@ export interface LayoutSettings {
   mindMapView: MindMapView;
   /** The toolbar's Compact button switches it, so it is remembered. */
   density: Density;
+  /** Where a double click opens a note. Ctrl or Cmd always opens a split. */
+  openNotesIn: OpenNotesIn;
+  /** While searching, fade the cards that do not match. Matches are highlighted either way. */
+  dimOnSearch: boolean;
   gap: number;
   levelGap: number;
   ringRadius: number;
@@ -378,6 +385,26 @@ export const FIELDS: readonly Field[] = [
         { value: "zoom", label: "Zoom" },
       ],
     },
+  },
+  {
+    group: "layout", key: "openNotesIn", tab: "layout", section: "Opening notes", inPreset: false,
+    label: "Open notes in",
+    description: "Where double clicking a note opens it. This tab replaces the dashboard, and Back (the arrow, Alt and Left, or the mouse's back button) returns to it just as you left it. In a sidebar the dashboard always opens notes in a new tab. Ctrl or Cmd with double click always opens a split.",
+    def: {
+      kind: "enum",
+      default: "tab",
+      options: [
+        { value: "tab", label: "New tab" },
+        { value: "this", label: "This tab" },
+        { value: "split", label: "Split" },
+      ],
+    },
+  },
+  {
+    group: "layout", key: "dimOnSearch", tab: "layout", section: "Search", inPreset: false,
+    label: "Dim cards that don't match",
+    description: "While you search, fade every card that is not a match. Turn it off to keep every card at full strength. Matches always get a yellow highlight.",
+    def: bool(true),
   },
   {
     group: "layout", key: "gap", tab: "layout", section: "Spacing", inPreset: true,

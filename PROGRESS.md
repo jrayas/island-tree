@@ -4,6 +4,10 @@ Last updated: milestone 6 (editing).
 
 ## Done
 
+**After milestone 6: Back to the dashboard, and the search fade** (D-045)
+
+- A new Open notes in setting (New tab by default, This tab, Split); This tab lets Obsidian's Back return to the dashboard, which now remembers how it was left (also across a restart). A Dim cards that don't match setting turns the search fade off, with matches always yellow. 382 unit tests; checked in headless Chrome (typing a search, the setting both ways, saving a state and starting a new app from it, a restore after mounting, and ignoring garbage). The real Back navigation in Obsidian has not been run.
+
 **After milestone 6: mouse like Canvas** (D-044)
 
 - Scroll pans, Shift and scroll pans sideways, Ctrl or Cmd (or Space) and scroll zooms, right and middle drags pan, Space and drag pans from a card, Shift and 1 fits, and a Mouse wheel setting swaps pan and zoom. The Fit button is now our own and frames exactly as the automatic fit (it zoomed a small tree to 200% before). 367 unit tests; every action checked in headless Chrome with real wheel, mouse and key events.

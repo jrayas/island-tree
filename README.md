@@ -29,10 +29,10 @@ Once released, install it from **Settings → Community plugins → Browse** and
 - Use **Expand folders** and **Expand files** to open everything, and **Reset** to go back to the start.
 - The dashboard follows your vault: new, renamed, moved and deleted notes appear without reloading.
 - Turn on **Details** for bigger cards with a second row for notes: a dot for how recently it changed (green today, amber within a week, grey older), its age, size, number of links and its status. The status comes from a `status` property in the note. Zoom in to see the row; zoomed far out, cards shrink to a colour and a short name.
-- Type in **Search names** to reveal matching files and folders. Clear the box to return to your view.
+- Type in **Search names** to reveal matching files and folders. Matches get a yellow highlight, and by default the other cards fade; turn that off with **Dim cards that don't match** in Settings, Layout. Clear the box to return to your view.
 - Double click a folder to focus on it, or select one and use **Focus selected**. The breadcrumb and **Reset focus** take you back up.
 - **Editing:** click **Locked** in the toolbar to unlock (or run **Toggle lock** from the command palette). An editing bar appears with **Rename**, **New note**, **New folder** and **Delete** for the selected card, and right-clicking a card offers the same. Drag a card onto a folder to move it. Every change shows a notice with **Undo** for about seven seconds. Links update through Obsidian, and deleted notes go to Obsidian's trash. The dashboard locks again by itself after a few minutes without changes (Settings, Editing).
-- Double click a file to open it in a new tab, or hold Ctrl (Cmd on a Mac) to open it in a split.
+- Double click a file to open it in a new tab (the default), or hold Ctrl (Cmd on a Mac) to open it in a split. **Open notes in** (Settings, Layout) can open it in the dashboard's own tab instead: then Obsidian's Back (the arrow, Alt and Left, or the mouse's back button) returns to the dashboard just as you left it. The dashboard also remembers how it was left across a restart.
 
 No hotkeys are set by default. Assign your own in **Settings → Hotkeys**.
 
