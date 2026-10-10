@@ -1,22 +1,32 @@
 # Island tree
 
-An Obsidian plugin that shows your vault's folders and files as an animated, canvas-style dashboard: rounded "island" cards joined by curved, flowing branches, in a vertical or radial layout on a dotted grid.
+An Obsidian plugin that shows your vault's folders and files as an animated, canvas-style dashboard: rounded "island" cards joined by curved, flowing branches, in a vertical, radial or mind map layout on a dotted grid.
 
-> **Status: early development (milestone 5 of 7).** The plugin shows a read-only, live-updating tree of your vault in a vertical or radial layout, with search, focus, file details and a full settings page. Editing and the release polish are still to come. See [`PROGRESS.md`](PROGRESS.md).
+> **Status: pre-release (0.1.0).** Everything described below is built and tested in a browser against Obsidian's own stylesheet, but it has not had a full run in a range of real vaults yet. Please try it in a copy of your vault first, especially editing. See [`PROGRESS.md`](PROGRESS.md).
 
-## Planned features
+## Features
 
-- Vertical and radial layouts with pan and zoom.
+- Three layouts: vertical, radial and mind map (balanced or one-sided), on a dotted grid, with flowing branches.
+- Pan and zoom that behave like Obsidian's Canvas, a zoom-to-area tool, and a Compact switch.
 - Updates by itself when files change.
+- Smooth on big vaults: tested with 10,000 notes, including one folder holding 10,000. See [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md).
+- Search that finds a note wherever it is and glides the view to it.
 - Cards showing file type, link counts, tags, status, modified date and size, each switchable.
+- Full keyboard use, screen reader labels and reduced motion support.
 - Optional editing (rename, create, delete, drag to move, undo) behind a lock. The dashboard starts locked.
 - Tabbed settings with presets, import and export.
 
+## Screenshots
+
+<!-- Add screenshots here once they are taken, saved in docs/images/, for example:
+![The vertical layout](docs/images/vertical.png)
+![The mind map layout](docs/images/mind-map.png)
+![The settings page](docs/images/settings.png)
+-->
+
 ## Install
 
-Not yet available in the community plugin list. To try a development build, see [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).
-
-Once released, install it from **Settings → Community plugins → Browse** and search for "Island tree", or copy `main.js`, `manifest.json` and `styles.css` from a GitHub release into `<your vault>/.obsidian/plugins/island-tree/`.
+From **Settings → Community plugins → Browse**, search for "Island tree" and install it (once it is listed). To install it by hand, download `main.js`, `manifest.json` and `styles.css` from the latest [GitHub release](../../releases) and put them in `<your vault>/.obsidian/plugins/island-tree/`, then turn the plugin on under **Settings → Community plugins**. To build it yourself, see [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).
 
 ## Use
 
@@ -51,13 +61,22 @@ An empty colour or a text size of 0 follows your Obsidian theme. Every setting h
 ## Known limits
 
 - Desktop only for version 1.
-- No network calls and no telemetry.
+- One folder shows at most 1,000 cards (40 at a time), and the whole dashboard draws at most 1,500 at once. A card says how many are "not shown"; search finds them.
+- Editing has been checked against a stand-in for the vault, not yet in many real vaults. Deleting a note can be undone (it comes back as a new file with its saved content); deleting a folder cannot, so use Obsidian's trash.
+- The dashboard rebuilds its tree when files change, with a short wait to gather bursts of changes, so a very large paste takes a moment to show.
+- Search matches file and folder names, not the text inside notes.
+
+## Privacy
+
+No network calls, no telemetry and no ads. The plugin reads your vault's file and folder names and the details Obsidian already keeps about notes (dates, sizes, links, tags and properties) to draw the cards. It changes files only when you unlock editing and rename, create, move or delete something, and it does that through Obsidian's own file functions. Its settings are stored in the plugin's own data file inside your vault. The dashboard remembers how it was left (which folders were open and so on) in Obsidian's workspace file, as every view does.
 
 ## Documentation
 
 - [`SPEC.md`](SPEC.md): agreed design and milestones.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): how it is built.
 - [`docs/DECISIONS.md`](docs/DECISIONS.md): why it is built that way.
+- [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md): what was measured on big vaults and the limits that keep it smooth.
+- [`docs/SUBMISSION.md`](docs/SUBMISSION.md): releasing and submitting the plugin (for the maintainer).
 - [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md): setup, commands and testing.
 
 ## Credits

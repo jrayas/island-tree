@@ -1,8 +1,12 @@
 # Progress
 
-Last updated: milestone 6 (editing).
+Last updated: milestone 7 (polish and release). All seven milestones are built; what is left needs you (see Next step).
 
 ## Done
+
+**Milestone 7, release polish** (D-052)
+
+- `npm run check:release`, CI and release workflows, `docs/SUBMISSION.md`, the saved publishing prompt, README install, privacy and known limits, a `SPEC.md` section on where the build differs, a cleanup-on-unload audit (nothing leaks), `normalizePath()` for edited paths, and a fade-out for removed cards. Checked: the script against deliberately bad code, the fade with and without reduced motion in Chrome. **Not run:** the workflows on GitHub, and anything in real Obsidian beyond the first look at the settings page.
 
 **Milestone 7, performance layer, step 4: search and focus** (D-051)
 
@@ -86,20 +90,32 @@ Last updated: milestone 6 (editing).
 
 ## Open issues
 
-- **Milestones 2 to 6 have not been tried in a real Obsidian vault.** Editing is the one to try carefully, in a scratch vault, because it changes real files. Since the bottom-spacing work they have been driven in headless Chrome with real input events and Obsidian's own stylesheet, outside the project: **branches draw**, the camera frames the tree on load, cards and the zoom controls lay out as intended, and Zoom to area works (D-039). That is still not Obsidian itself, and the radial layout, the settings page and the preview have not been looked at. Please run the milestone 2 to 5 checklists in `docs/DEVELOPMENT.md` and tell me what you see.
+- **Milestones 2 to 7 have had almost no run in a real Obsidian vault.** The first real look (the settings page) found a real bug, now fixed (D-042); everything else is untried there. Editing is the one to try carefully, in a scratch vault, because it changes real files. Since the bottom-spacing work they have been driven in headless Chrome with real input events and Obsidian's own stylesheet, outside the project: **branches draw**, the camera frames the tree on load, cards and the zoom controls lay out as intended, and Zoom to area works (D-039). That is still not Obsidian itself, and the radial layout, the settings page and the preview have not been looked at. Please run the milestone 2 to 5 checklists in `docs/DEVELOPMENT.md` and tell me what you see.
 - **Canvas colour match** is by variable, not by sight: compare with a Canvas tab as the checklist in `docs/DEVELOPMENT.md` says, and change two lines if your theme gives Canvas its own colour (D-034).
 - **Settings page layout** is the part most likely to need visual fixes: the preview's scaling, the tab strip, the row spacing and the slider value labels are written but unseen.
 - **Folder renames:** I am not certain whether Obsidian sends one `rename` event for a folder or one per file inside it. The code handles both (D-020).
-- **Author name is a placeholder** ("Your name") in `manifest.json` and `LICENSE`.
+- **Author name is a placeholder** ("Your name") in `manifest.json` and `LICENSE`. `npm run check:release` fails until you change it.
+- **The release and CI workflows have never run on GitHub**, and the repository does not exist yet. Expect a small fix or two on the first run.
+- **The settings page opens with a header card showing the plugin name.** The guidelines say not to put a top-level heading with the plugin name in a settings tab. It is a styled block, not a heading, and the lint rule passes, but a reviewer may ask for it to go (`src/settings/SettingsTab.ts`).
+- **`minAppVersion` 1.7.2** was checked for imports and the main member APIs from the typings, not by running on 1.7.2.
+- **The tree is rebuilt in full on every (debounced) vault change.** Counts are incremental, the tree is not; Obsidian's own vault walk on 10,000 files has not been timed (D-050).
+- **No real screen reader has been used**, only the DOM roles and labels checked (D-047).
+- **No screenshots in the README yet** (a placeholder is there).
 - **Lint warning accepted:** no `getSettingDefinitions()`, so the settings are not in Obsidian 1.13's global settings search (D-026).
 - **`npm audit`:** 3 moderate findings via the `obsidian` typings (D-008). Development only.
 - **Svelte Flow attribution** is hidden on screen and credited in the README (D-036). Svelte Flow's typings ask people who hide it to consider a Pro subscription; this is a request, not a licence condition (MIT).
-- **Spec differences:** command names (D-006), JavaScript easing instead of CSS transitions (D-010), click behaviour (D-013), search as an overlay (D-015), full rebuild instead of incremental or lazy updates (D-020), one card size and one ring radius setting instead of many (D-029). `SPEC.md` still describes the original wording.
-- Removed cards vanish instead of fading out (polish, milestone 7).
+- **Spec differences:** command names (D-006), JavaScript easing instead of CSS transitions (D-010), click behaviour (D-013), search as an overlay (D-015), full rebuild instead of incremental or lazy updates (D-020), one card size and one ring radius setting instead of many (D-029). `SPEC.md` keeps the original wording and now has a section listing where the build differs.
 - Branches use the target layout's centre, so they look slightly off for a moment while switching layouts (D-019).
 - Dates are written in British format whatever the system locale.
 - Changing the default layout or the "start with" settings affects the next time the dashboard opens (and Reset), not one already open.
 
 ## Next step
 
-Milestone 7: polish and release. A performance test with a 10,000-file vault, accessibility (keyboard navigation, focus rings, reduced motion), README screenshots, the GitHub release workflow, the community-guidelines check and submission notes. A plan listing the files will be shown for approval first.
+The code for all seven milestones is done. What is left is yours, in this order (details in `docs/SUBMISSION.md`):
+
+1. Try it in Obsidian: the checklists in `docs/DEVELOPMENT.md`, in a copy of a real vault, and the two throwaway big vaults from `scripts/synthetic-vault.mjs`. Tell me what you see.
+2. Put your real name in `manifest.json` and `LICENSE`.
+3. Create the GitHub repository and push; check CI goes green.
+4. Take the README screenshots.
+5. `npm version 1.0.0`, push the tag, and check the release has three files.
+6. Submit through the plugin directory (the live docs say how), using `docs/PUBLISH-PROMPT.md` if you want help.

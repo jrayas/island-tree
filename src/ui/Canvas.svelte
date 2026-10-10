@@ -15,6 +15,7 @@
     type Node,
   } from "@xyflow/svelte";
   import { easeFactor, seedPositions, stepPositions } from "../layout/animate";
+  import { FADE_OUT_MS, MAX_FADING_CARDS } from "../model/limits";
   import type { CurveStyle, MindSide, Point } from "../layout/types";
   import type { GridType, WheelBehaviour } from "../settings/schema";
   import type { Box } from "../layout/bounds";
@@ -250,9 +251,19 @@
   let frame = 0;
   let lastTime = 0;
 
+  // Cards that have just been removed stay where they were while they fade, then go. Plain data,
+  // like the positions: only the rebuilt `nodes` array notifies Svelte.
+  const leaving = new Map<string, { item: CanvasItem; centre: Point }>();
+  let fadeTimer = 0;
+  let previous: CanvasItem[] = [];
+
   function buildNodes(list: CanvasItem[], goal: Map<string, Point>): Node[] {
-    return list.map((item) => {
-      const centre = current.get(item.id) ?? goal.get(item.id) ?? { x: 0, y: 0 };
+    const fading = [...leaving.values()].map(({ item, centre }) => ({
+      item: { ...item, data: { ...item.data, leaving: true } },
+      centre,
+    }));
+    const placed = [...list.map((item) => ({ item, centre: current.get(item.id) ?? goal.get(item.id) ?? { x: 0, y: 0 } })), ...fading];
+    return placed.map(({ item, centre }) => {
       return {
         id: item.id,
         type: "island",
@@ -267,6 +278,24 @@
         focusable: false,
       };
     });
+  }
+
+  /** Notes which cards the new list no longer has, so they can fade out instead of vanishing. */
+  function startFades(list: CanvasItem[]): void {
+    const now = new Set(list.map((item) => item.id));
+    for (const id of [...leaving.keys()]) if (now.has(id)) leaving.delete(id);
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const gone = previous.filter((item) => !now.has(item.id) && !leaving.has(item.id));
+    if (reduce || gone.length === 0 || gone.length > MAX_FADING_CARDS) return;
+    for (const item of gone) {
+      const centre = current.get(item.id);
+      if (centre) leaving.set(item.id, { item, centre });
+    }
+    window.clearTimeout(fadeTimer);
+    fadeTimer = window.setTimeout(() => {
+      leaving.clear();
+      nodes = buildNodes(items, targets);
+    }, FADE_OUT_MS + 40);
   }
 
   function buildEdges(
@@ -317,6 +346,7 @@
     current = new Map(targets);
     nodes = buildNodes(items, targets);
     edges = buildEdges(items, radialCentre, curve, sides, cardWidth);
+    previous = items;
   });
 
   let first = true;
@@ -331,17 +361,21 @@
       first = false;
       return;
     }
+    // Before the positions are re-seeded, which drops the removed cards': note where they were.
+    startFades(list);
     current = seedPositions(
       current,
       goal,
       list.map(({ id, parentId }) => ({ id, parentId })),
     );
+    previous = list;
     nodes = buildNodes(list, goal);
     edges = buildEdges(list, centre, style, sideOf, width);
     kick();
   });
 
   onDestroy(() => {
+    window.clearTimeout(fadeTimer);
     if (frame) cancelAnimationFrame(frame);
     stopListening();
   });

@@ -10,6 +10,7 @@
     "check": "svelte-check --tsconfig tsconfig.json",
     "test": "vitest run",
     "lint": "eslint src",
+    "check:release": "node scripts/check-guidelines.mjs",
     "version": "node version-bump.mjs && git add manifest.json versions.json"
   },
   "keywords": [

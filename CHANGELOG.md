@@ -12,6 +12,14 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 ### Added
 
+- Removed cards fade out where they were instead of vanishing (not with reduced motion, and not when many go at once).
+- Release tooling: `npm run check:release` (checks the manifest, version files, tag, README, LICENSE and the source against the community rules a script can catch), a CI workflow (lint, tests, build and the check on every push), and a release workflow that builds and publishes `main.js`, `manifest.json` and `styles.css` when a version tag is pushed.
+- `docs/SUBMISSION.md` (releasing and submitting, and what only the maintainer can do), `docs/PUBLISH-PROMPT.md` (the publishing prompt, adjusted to the current process), a Privacy section and updated install steps in the README, and "Where the build differs from this spec" in `SPEC.md`.
+
+### Changed
+
+- Paths given to Obsidian when renaming, moving, creating and undoing go through `normalizePath()`.
+
 - Search glides the view to the first match, wherever the layout has put it, reveals only the batch of cards that holds it, and Enter in the search box selects that match and moves to the dashboard, so **Focus selected**, the editing bar and the keyboard work on a result that was hidden. Clearing the search re-frames the tree instead of leaving the view where the match was.
 - `scripts/synthetic-vault.mjs` takes the number of notes for the flat shape (for example 20000).
 

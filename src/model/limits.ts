@@ -27,5 +27,11 @@ export const SEARCH_DELAY_MS = 180;
  */
 export const CHANGE_DELAY_MS = 250;
 
+/** How long a card that has been removed takes to fade out, in milliseconds. */
+export const FADE_OUT_MS = 180;
+
+/** Above this many removed cards at once (a folder closed, the focus moved), they vanish at once instead of fading. */
+export const MAX_FADING_CARDS = 150;
+
 /** How many folders the whole-vault count handles before giving the browser a turn. */
 export const COUNT_CHUNK = 250;

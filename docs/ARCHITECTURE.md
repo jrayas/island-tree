@@ -12,7 +12,7 @@ This file describes what is actually built, not the plan. For the plan see `SPEC
 | 4 | Live updates and metadata | Done (not yet tried in Obsidian) |
 | 5 | Settings tabs, presets, import and export | Done (not yet tried in Obsidian). The Editing tab arrives with editing in milestone 6 |
 | 6 | Editing, lock, undo | Done (not yet tried in Obsidian; the file operations are thin calls to Obsidian's APIs and were checked against its typings, with the rules and the UI exercised in a browser against a stand-in vault) |
-| 7 | Polish, release workflow, submission | Not started |
+| 7 | Polish, release workflow, submission | Code done (performance layer, keyboard and screen reader support, release tooling, docs). Not yet run on GitHub or tried in a range of real vaults; the maintainer's steps are in `docs/SUBMISSION.md` |
 
 ## How the pieces fit (after milestone 6)
 
@@ -117,6 +117,8 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | `src/ui/FollowSelection.svelte` | Glides the camera to put a card in view: the selected card when the keyboard moves it off screen, and the first search match when a search reveals one. Cards already in view are left alone. |
 | `src/model/savedView.ts` | `SavedView`, `saveView`, `parseSavedView` and `restoreView`: how the dashboard was left, stored by path (ids change each session), read back defensively and applied only to paths that still exist. |
 | `src/ui/stateBridge.ts` | The link between the app and its Obsidian view for saving and restoring the saved view: `snapshot`, `restore` and `changed`. |
+| `scripts/check-guidelines.mjs` | Checks the manifest, version files, tag, required files and the source against the community rules a pattern can catch (unsafe HTML, network calls, global `app`, default hotkeys, console logging, placeholders, API versions against `minAppVersion`). Exits 1 on any error. `npm run check:release`. |
+| `.github/workflows/ci.yml`, `release.yml` | CI on every push and pull request (lint, tests, build, the rules check). On a bare version tag, the release workflow builds, checks the tag equals the manifest version, and attaches `main.js`, `manifest.json` and `styles.css` to a GitHub release. Not yet run on GitHub. |
 | `scripts/synthetic-vault.mjs` | Writes a made-up vault of real files into an empty folder, to open in Obsidian. |
 | `src/actions/open.ts` | `openFile`: resolves the path with `vault.getFileByPath` and opens it with `workspace.getLeaf` and `leaf.openFile`, or in the dashboard's own leaf for This tab (not in a sidebar or a pinned tab). Shows a notice if the file has gone. Not unit tested (needs Obsidian). |
 
@@ -187,3 +189,20 @@ Everything here is pure and unit tested unless marked Obsidian.
 - While a search is active, folders on the way to a match stay open; closing one by hand has no effect until the search is cleared.
 - Details wording uses British date format (for example 8 Oct 2026) whatever the system locale.
 - No keyboard navigation yet (milestone 7).
+
+## Cleanup on unload
+
+Audited on 2026-10-11: every listener, timer, observer and animation frame, and what removes it.
+
+| Where | What | Removed by |
+|---|---|---|
+| `main.ts` | view, ribbon icon, commands, settings tab | Obsidian, on unload. `onunload` flushes a pending settings save. It does not detach leaves. |
+| `view.ts` | store subscription, resize observer, window `resize`, `layout-change` | `onClose` (stop styling, stop measuring); `layout-change` through `registerEvent` |
+| `model/watch.ts` | vault and metadata listeners, two debounce timers, the pending path set | The returned function (`offref`, cancel, clear), and `registerEvent` as well |
+| `App.svelte` | settings subscription, auto-lock interval, search timer, whole-vault count timer and its slices | Effect clean-up and `onDestroy`; a run counter abandons a count in progress |
+| `Canvas.svelte` | animation frame, drag window listeners, fade-out timer, window key listeners | `onDestroy`; the `svelte:window` handlers are removed by Svelte |
+| `BoxZoom.svelte` | window key listeners | Svelte |
+| `settings/` | preview subscription, tab and row listeners, the delayed save | `hide()`; listeners die with their elements; `flush` clears the timer |
+| `editing/toast.ts`, `settings/modals.ts` | click and key listeners on a notice or dialog | They die with the element |
+
+Nothing found that leaks. Two one-shot zero-delay timers (after a drag, and to focus a dialog) are left to fire.

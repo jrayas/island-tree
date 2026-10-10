@@ -389,6 +389,13 @@
   opacity: 0.3;
 }
 
+/* A card that has just been removed fades out where it was, then is dropped (see Canvas.svelte). */
+.island-tree-view .island-card-leaving {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
 /* Keyboard: the tree is one tab stop, and a ring shows when it has focus. The card the keyboard is on
    already shows the selection ring, so the cards themselves draw no second outline. */
 .island-tree-view .island-canvas:focus-visible {

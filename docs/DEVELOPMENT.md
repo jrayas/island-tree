@@ -114,6 +114,12 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Settings made in an earlier version (a vault that used the plugin before milestone 5) still load: the default layout and status property are kept.
 - [ ] No errors in the developer console (Ctrl+Shift+I) while using any of the above.
 
+**Release tooling and the fade-out**
+
+- [ ] `npm run check:release -- --built` after a build: it should report only what is genuinely outstanding (the author name in `manifest.json` and `LICENSE` until you change them).
+- [ ] After the repository is on GitHub: the CI run on the first push is green, and a test tag (for example `0.0.1` on a throwaway fork or branch you can delete) makes the Release workflow attach three files to a release. Delete the test release and tag afterwards.
+- [ ] Close a folder or press Collapse folders: the cards that go fade out for a moment where they were. With reduced motion on, they just go.
+
 **Performance layer: the full test pass** (make two throwaway vaults and open each as a vault: `node scripts/synthetic-vault.mjs <empty folder> balanced` for about 10,000 notes in nested folders, and `node scripts/synthetic-vault.mjs <another empty folder> flat 20000` for one folder holding 20,000 files)
 
 - [ ] **Startup:** open the dashboard in each vault. It appears at once (a first view of about 40 cards) and nothing freezes. Note roughly how long from the command to a drawn dashboard.

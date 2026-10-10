@@ -1,7 +1,22 @@
 # Island tree: build spec for Claude Code
 
 Working name: **Island tree** (plugin id `island-tree`, to be confirmed).
-Status: design agreed, no code written yet. Reference mockup: `reference/mockup-island-tree.html` (open it in a browser).
+Status: built through milestone 7 (see the section "Where the build differs from this spec" below). Reference mockup: `reference/mockup-island-tree.html` (open it in a browser).
+
+## Where the build differs from this spec
+
+The sections below are the original design and are kept as written. This is what changed while building, each with its reason in `docs/DECISIONS.md`. Where the two disagree, this list and the decisions win. Last checked 2026-10-11.
+
+- **Name and commands.** The id is `island-tree`. The commands are "Open dashboard", "Open dashboard in sidebar" and "Toggle lock", because the guidelines say a command name should not repeat the plugin name. No default hotkeys.
+- **Three layouts, not two.** A mind map layout (balanced or one-sided) was added (D-036 to D-038).
+- **Mouse like Obsidian's Canvas.** Scroll pans, Ctrl or Cmd and scroll zooms, Space and drag pans, Shift and 1 fits; a "Mouse wheel" setting swaps pan and zoom. Also a zoom-to-area tool and a **Compact** density switch (D-043, D-044).
+- **"+N more" reveals a batch** of the List limit (default 40, not 6), up to 1,000 children in one folder, with at most 1,500 cards drawn at once. **Expand folders** opens one level per press. Folder counts are cached by path, and vault changes arrive as one update after 250 ms (D-046, D-048 to D-050).
+- **Search** also glides the view to the first match, reveals only the batch holding it, and Enter selects it. Matching cards can keep full strength (a setting). Search matches names only (D-051, D-045).
+- **Opening notes.** A setting chooses new tab (default), this tab (so Back returns to the dashboard) or split. The dashboard remembers how it was left, also across a restart (D-045). This answers open question 4 below.
+- **Keyboard and screen readers.** The dashboard is a tree with arrow-key navigation (D-047).
+- **Editing.** Undo for a deleted folder is not offered (it points to Obsidian's trash). A deleted note comes back as a new file from its saved content (D-041).
+- **Settings tabs.** Five tabs: Cards, Lines and grid (Lines and Canvas merged, as section 9 allows), Layout, Editing and Presets.
+- **Submission.** The docs now describe submitting through the plugin directory at community.obsidian.md, not a pull request to `obsidianmd/obsidian-releases`. See `docs/SUBMISSION.md`.
 
 ## 1. Goal
 

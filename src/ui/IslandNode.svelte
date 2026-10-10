@@ -35,6 +35,7 @@
   class:island-card-selected={data.selected}
   class:island-card-hit={data.hit}
   class:island-card-dim={data.dim}
+  class:island-card-leaving={data.leaving === true}
   class:island-card-compact={data.compact}
   class:island-card-minimal={minimal}
   class:island-card-draggable={data.draggable}

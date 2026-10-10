@@ -14,6 +14,8 @@ export type CardData = {
   reader: string;
   /** How deep the card is, the vault card being 1. */
   level: number;
+  /** The card has just been removed and is fading out where it was. */
+  leaving?: boolean;
   /** The card matches the search text. */
   hit: boolean;
   /** A search is active and this card is neither a match nor on the way to one. */

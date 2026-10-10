@@ -10,7 +10,7 @@
  * things alone. The decisions are in `rules.ts` and `undo.ts`, which are tested without
  * Obsidian; this file is the thin layer that calls the vault.
  */
-import { Menu, Notice, TFile, TFolder, type App, type TAbstractFile } from "obsidian";
+import { Menu, Notice, TFile, TFolder, normalizePath, type App, type TAbstractFile } from "obsidian";
 import { confirmAction, promptForText } from "../settings/modals";
 import type { EditingSettings } from "../settings/schema";
 import type { EditTarget, EditingApi, MenuEntry } from "./api";
@@ -83,7 +83,7 @@ export class EditingController implements EditingApi {
       if (answer === null) return false;
       const newPath = renamedPath(target.path, answer.trim(), target.kind);
       if (newPath === target.path) return false;
-      await this.app.fileManager.renameFile(file, newPath);
+      await this.app.fileManager.renameFile(file, normalizePath(newPath));
       this.announce({
         message: `Renamed to "${newPath.slice(newPath.lastIndexOf("/") + 1)}".`,
         undo: { type: "rename", from: target.path, to: newPath },
@@ -115,7 +115,7 @@ export class EditingController implements EditingApi {
         if (!ok) return false;
       }
       const newPath = joinPath(folderPath, target.name);
-      await this.app.fileManager.renameFile(file, newPath);
+      await this.app.fileManager.renameFile(file, normalizePath(newPath));
       this.announce({
         message: `Moved "${target.name}" into ${where}.`,
         undo: { type: "rename", from: target.path, to: newPath },
@@ -191,7 +191,7 @@ export class EditingController implements EditingApi {
         validate: (text) => validateName(text.trim() + extension, siblings),
       });
       if (answer === null) return null;
-      const path = joinPath(folderPath, answer.trim() + extension);
+      const path = normalizePath(joinPath(folderPath, answer.trim() + extension));
       if (kind === "file") await this.app.vault.create(path, "");
       else await this.app.vault.createFolder(path);
       this.announce({
@@ -223,7 +223,7 @@ export class EditingController implements EditingApi {
         const file = this.fileAt(step.to);
         if (!file) return void new Notice("Cannot undo: it is no longer where it was left.");
         if (this.fileAt(step.from)) return void new Notice("Cannot undo: something else now has the original name.");
-        await this.app.fileManager.renameFile(file, step.from);
+        await this.app.fileManager.renameFile(file, normalizePath(step.from));
         new Notice("Undone.");
       } else if (step.type === "trash") {
         const file = this.fileAt(step.path);
@@ -236,8 +236,8 @@ export class EditingController implements EditingApi {
       } else {
         if (this.fileAt(step.path)) return void new Notice("Cannot undo: something else now has that name.");
         const parent = step.path.includes("/") ? step.path.slice(0, step.path.lastIndexOf("/")) : ROOT_PATH;
-        if (parent !== ROOT_PATH && !this.folderAt(parent)) await this.app.vault.createFolder(parent);
-        await this.app.vault.createBinary(step.path, step.content);
+        if (parent !== ROOT_PATH && !this.folderAt(parent)) await this.app.vault.createFolder(normalizePath(parent));
+        await this.app.vault.createBinary(normalizePath(step.path), step.content);
         new Notice("Restored.");
       }
     } catch (error) {
