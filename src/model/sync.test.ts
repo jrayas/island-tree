@@ -11,7 +11,6 @@ import {
 } from "./viewState";
 
 const valid = new Set(["root", "a", "b"]);
-const none = new Set<string>();
 
 describe("reconcileViewState", () => {
   it("returns the same object when everything is still valid", () => {
