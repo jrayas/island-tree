@@ -26,6 +26,23 @@ export interface CardDisplay {
   tooltip: string;
 }
 
+/**
+ * What a screen reader says for a card: its name and kind, whether a folder is open, and what
+ * it holds. The card's own text is only a short label and badge numbers like "1·3".
+ */
+export function describeForReader(display: CardDisplay): string {
+  if (display.kind === "more") {
+    return display.tooltip.startsWith("Show")
+      ? `${display.label}. Press Enter to show them.`
+      : `${display.label}. ${display.tooltip}`;
+  }
+  if (display.kind === "folder") {
+    const holds = `${plural(display.subfolders, "folder", "folders")} and ${plural(display.files, "file", "files")}`;
+    return `${display.label}, folder, ${display.isOpen ? "open" : "closed"}, ${holds}`;
+  }
+  return `${display.label}, file`;
+}
+
 function plural(count: number, singular: string, pluralForm: string): string {
   return `${count} ${count === 1 ? singular : pluralForm}`;
 }

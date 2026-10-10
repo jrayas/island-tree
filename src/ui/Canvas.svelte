@@ -24,6 +24,7 @@
   import BranchEdge from "./BranchEdge.svelte";
   import BoxZoom from "./BoxZoom.svelte";
   import FitController from "./FitController.svelte";
+  import FollowSelection from "./FollowSelection.svelte";
   import ZoomWatcher from "./ZoomWatcher.svelte";
   import { PAN_BUTTONS, isFitShortcut, keyBelongsElsewhere, wheelOptions, zoomKeys } from "./mouse";
   import { ZoomState } from "./zoomState.svelte";
@@ -40,6 +41,8 @@
     grid,
     fitKey,
     wheel,
+    activeId,
+    onkey,
     onfit,
     onnodeclick,
     onbadge,
@@ -68,6 +71,10 @@
     fitKey: number;
     /** What the scroll wheel does: pan (as in Obsidian's Canvas) or zoom. */
     wheel: WheelBehaviour;
+    /** The selected card, which the keyboard moves and the screen reader announces. */
+    activeId: string | null;
+    /** A navigation key was pressed on the tree. Returns true when the key was handled. */
+    onkey: (event: KeyboardEvent) => boolean;
     /** The Fit button or Shift and 1: frame the cards the same way the automatic fit does. */
     onfit: () => void;
     onnodeclick: (id: string) => void;
@@ -213,6 +220,14 @@
     event.stopPropagation();
   }
 
+  // The keyboard moves the selection through the cards like a tree view. Keys meant for a button or
+  // box inside the canvas, and Alt (Obsidian's Back) or Ctrl and Cmd shortcuts, are left alone.
+  function treeKey(event: KeyboardEvent): void {
+    if (keyBelongsElsewhere(event.target as Element | null)) return;
+    if (event.altKey || ((event.ctrlKey || event.metaKey) && event.key !== "Enter")) return;
+    if (onkey(event)) event.preventDefault();
+  }
+
   // "Zoom to area" mode: on from the fourth zoom button, off after a zoom or Escape.
   let boxMode = $state(false);
 
@@ -335,7 +350,11 @@
   class="island-canvas"
   class:is-dragging={drag !== null}
   class:is-space={spaceHeld}
-  role="presentation"
+  role="tree"
+  tabindex="0"
+  aria-label="Vault tree. Use the arrow keys to move, Enter to open, and F to show or hide a folder's files."
+  aria-activedescendant={activeId ? `island-card-${activeId}` : undefined}
+  onkeydown={treeKey}
   onpointerdowncapture={rightPressed}
   oncontextmenucapture={menuRequested}
   onmouseenter={() => (hovering = true)}
@@ -399,6 +418,7 @@
     </Controls>
     <BoxZoom active={boxMode} minZoom={MIN_ZOOM} onfinish={() => (boxMode = false)} />
     <ZoomWatcher />
+    <FollowSelection {activeId} {targets} {cardWidth} {cardHeight} width={paneWidth} height={paneHeight} />
     <FitController
       trigger={fitKey}
       {targets}

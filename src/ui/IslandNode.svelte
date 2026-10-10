@@ -48,7 +48,13 @@
     event.preventDefault();
     actions.oncontext(id, event);
   }}
-  role="presentation"
+  id={`island-card-${id}`}
+  role="treeitem"
+  tabindex="-1"
+  aria-label={data.reader}
+  aria-level={data.level}
+  aria-selected={data.selected}
+  aria-expanded={display.kind === "folder" ? display.isOpen : undefined}
 >
   <!-- Handles sit at the card centre and are invisible: branches are drawn between centres. -->
   <Handle type="target" position={Position.Top} class="island-handle" isConnectable={false} />
@@ -74,6 +80,7 @@
         class="island-card-badge"
         class:island-card-badge-on={display.filesShown}
         aria-label={display.tooltip}
+        tabindex="-1"
         onclick={badgeClick}
         onpointerdown={(event) => event.stopPropagation()}
         ondblclick={(event) => event.stopPropagation()}

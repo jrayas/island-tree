@@ -10,7 +10,8 @@
   import type { EditTarget, EditingApi, LockBridge } from "../editing/api";
   import { relockDue } from "../editing/rules";
   import { computeLayout, type LayoutOptions } from "../layout/layout";
-  import { describeItem } from "../model/display";
+  import { describeForReader, describeItem } from "../model/display";
+  import { NAV_KEYS, navigate, type NavItem } from "../model/keyNav";
   import { describeSelection } from "../model/info";
   import { cardRow, describeMeta, type FileMeta, type MetaDisplay } from "../model/meta";
   import { isDimmed, searchTree, withSearchReveal } from "../model/search";
@@ -231,14 +232,22 @@
   }
 
   const items = $derived<CanvasItem[]>(
-    visible.map((item) => {
+    (() => {
+      // Parents come before children, so a card's depth is its parent's plus one.
+      const levels = new Map<string, number>();
+      return visible.map((item) => {
       const meta = metaFor(item.node);
+      const level = item.parentId === null ? 1 : (levels.get(item.parentId) ?? 0) + 1;
+      levels.set(item.id, level);
+      const display = describeItem(item, effective, meta, { tags: cfg.cards.showTags });
       return {
         id: item.id,
         parentId: item.parentId,
         highlight: highlighted.has(item.id),
         data: {
-          display: describeItem(item, effective, meta, { tags: cfg.cards.showTags }),
+          display,
+          reader: describeForReader(display),
+          level,
           selected: viewState.selected === item.id,
           hit: search?.hits.has(item.id) ?? false,
           dim: cfg.layout.dimOnSearch && isDimmed(item.id, search),
@@ -256,7 +265,8 @@
             : null,
         },
       };
-    }),
+      });
+    })(),
   );
 
   const crumbs = $derived(ancestry(focusNode).map((n) => ({ uid: n.uid, name: n.name })));
@@ -442,6 +452,38 @@
     }
   }
 
+  /** The keyboard: arrows move through the cards, Right and Left open and close, Enter opens. */
+  function navigateKey(event: KeyboardEvent): boolean {
+    // F shows or hides the files of the selected folder, as its count badge does for the mouse.
+    if (event.key === "f" || event.key === "F") {
+      if (selectedNode?.kind === "folder") viewState = toggleFilesFor(viewState, selectedNode.uid);
+      return true;
+    }
+    if (!NAV_KEYS.includes(event.key)) return false;
+    const list: NavItem[] = visible.map((item) => ({
+      id: item.id,
+      kind: item.kind,
+      parentId: item.parentId,
+      isOpen: viewState.open.has(item.id),
+    }));
+    const action = navigate(event.key, list, viewState.selected);
+    if (!action) return true;
+    if (action.type === "select") {
+      viewState = select(viewState, action.id);
+    } else if (action.type === "open" || action.type === "close") {
+      viewState = toggleOpen(viewState, action.id);
+    } else if (action.type === "activate") {
+      const item = visible.find((candidate) => candidate.id === action.id);
+      if (!item) return true;
+      if (item.kind === "more") {
+        if (item.parentId && !item.capped) viewState = showAllFor(viewState, item.parentId);
+      } else {
+        openCard(action.id, { ctrlKey: event.ctrlKey, metaKey: event.metaKey });
+      }
+    }
+    return true;
+  }
+
   function focusSelected(): void {
     if (selectedNode?.kind !== "folder") return;
     viewState = focusOn(viewState, selectedNode.uid);
@@ -516,6 +558,8 @@
     grid={{ type: cfg.canvas.grid, size: cfg.canvas.gridSize, spacing: cfg.canvas.gridSpacing }}
     {fitKey}
     wheel={cfg.canvas.wheel}
+    activeId={viewState.selected}
+    onkey={navigateKey}
     onfit={refit}
     frameBox={placed.frame ?? null}
     onnodeclick={activate}

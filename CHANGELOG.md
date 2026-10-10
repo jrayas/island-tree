@@ -6,6 +6,8 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 ### Added
 
+- Keyboard and screen reader support. The dashboard is one tab stop with a visible focus ring. Arrow keys move through the cards, Right and Left open and close folders and step in and out, Home and End jump, Enter opens a note or focuses a folder or expands a "+N more" card, and F shows or hides a folder's files. The view follows the selection. Cards are announced with their name, kind, open or closed state and contents (tree and treeitem roles). The folder count badges are no longer tab stops, and with reduced motion switched on nothing animates.
+
 - Big vaults stay smooth. A folder shows at most 500 cards at once and the whole dashboard at most 1,000, filled level by level, with an inert pill ("N not shown") where children are left out; a search finds what is not shown, and shows its matches first. Search now waits about 0.2 s after you stop typing, and the number of matches shows beside the box. Measured on a made-up vault of 10,000 notes: opening a 10,000-note folder went from 5.6 s and 8 frames per second to 0.19 s and 60, and searching "note" from 8.3 s to 0.9 s. See `docs/PERFORMANCE.md`.
 - `scripts/synthetic-vault.mjs` writes a made-up vault of real files (balanced, flat or deep) to try on a big vault in Obsidian.
 

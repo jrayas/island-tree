@@ -297,3 +297,11 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 **Why:** Measured on a made-up vault of 10,000 notes (`docs/PERFORMANCE.md`): the pure steps take under 50 ms, but drawing and gliding thousands of cards freezes the dashboard (10,000 cards: 5.6 s to appear, 8 frames per second; searching "note": 10,601 cards, 8.3 s). The glide rebuilds every card each frame, so the number of cards is what costs, not how many are on screen. 500 in one folder and 1,000 overall measured at 60 frames per second. A limit per folder alone was not enough, because a broad search opens many folders at once.
 
 **Cost:** a folder with more than 500 notes cannot be browsed past the first 500 on the dashboard; searching reaches the rest. Raising the limits is a one-line change in `visibility.ts`.
+
+## D-047: Keyboard and screen reader support
+
+**Decision:** The canvas is one tab stop (`role="tree"`, `tabindex="0"`, `aria-activedescendant` pointing at the selected card) and each card is a `treeitem` with a label, level, selected and (for folders) expanded state. Keys follow a tree view: arrows, Home, End, Enter (`model/keyNav.ts`, pure), plus F for a folder's files. Pills are navigable and Enter expands them. The camera follows a selection that leaves the screen, at the same zoom, only when it is off screen. Editing by keyboard (F2, Delete) was left out for v1. Keys are not claimed when the target is a button, box or dialog, nor with Alt, nor with Ctrl or Cmd except Enter, so Obsidian's own shortcuts (Back is Alt and Left) keep working. The count badges are `tabindex="-1"`, because a stop on every folder would make tabbing through a big tree unusable. A general reduced-motion rule sets all animation and transition durations to nothing inside the dashboard; the card glide and camera moves check the same preference in script.
+
+**Why:** The dashboard was mouse-only. The tree pattern is what screen reader users and Obsidian's file explorer already expect. Measured in Chrome with real key events: every key above, the focus ring on the canvas (it was missing until the stylesheet was rebuilt) and on toolbar buttons (Obsidian's own ring), and reduced motion turning the line animation and transitions off.
+
+**Not verified:** a real screen reader. The roles and labels are checked in the DOM, not heard.

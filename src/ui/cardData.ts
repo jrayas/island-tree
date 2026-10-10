@@ -10,6 +10,10 @@ import type { CardRow } from "../model/meta";
 export type CardData = {
   display: CardDisplay;
   selected: boolean;
+  /** What a screen reader says for the card. */
+  reader: string;
+  /** How deep the card is, the vault card being 1. */
+  level: number;
   /** The card matches the search text. */
   hit: boolean;
   /** A search is active and this card is neither a match nor on the way to one. */

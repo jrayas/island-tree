@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { describeItem } from "./display";
+import { describeForReader, describeItem } from "./display";
 import { UidRegistry, buildTree } from "./tree";
 import { buildVisibleTree, visibleChildren, type VisibilityState } from "./visibility";
 
@@ -130,6 +130,29 @@ describe("describeItem", () => {
     expect(shown.label).toBe("120 not shown");
     expect(shown.tooltip).toContain("Search to find them");
     expect(shown.tooltip).toContain("at most 500");
+  });
+
+  it("says what a screen reader needs for each kind of card", () => {
+    const base = { icon: null, colour: null, items: 0, filesShown: false, tooltip: "" };
+    expect(
+      describeForReader({ ...base, kind: "folder", label: "Projects", subfolders: 2, files: 1, isOpen: true }),
+    ).toBe("Projects, folder, open, 2 folders and 1 file");
+    expect(
+      describeForReader({ ...base, kind: "folder", label: "Daily", subfolders: 0, files: 9, isOpen: false }),
+    ).toBe("Daily, folder, closed, 0 folders and 9 files");
+    expect(describeForReader({ ...base, kind: "file", label: "roadmap.md", subfolders: 0, files: 0, isOpen: false })).toBe(
+      "roadmap.md, file",
+    );
+  });
+
+  it("tells a screen reader how to use a pill, and when it does nothing", () => {
+    const base = { icon: null, colour: null, items: 0, filesShown: false, kind: "more" as const, subfolders: 0, files: 0, isOpen: false };
+    expect(describeForReader({ ...base, label: "+3 more", tooltip: "Show 3 more items" })).toBe(
+      "+3 more. Press Enter to show them.",
+    );
+    expect(describeForReader({ ...base, label: "120 not shown", tooltip: "120 more items not shown. Search to find them." })).toBe(
+      "120 not shown. 120 more items not shown. Search to find them.",
+    );
   });
 
   it("uses the singular for one hidden item", () => {

@@ -4,6 +4,10 @@ Last updated: milestone 6 (editing).
 
 ## Done
 
+**Milestone 7, part 2: keyboard and screen reader** (D-047)
+
+- One tab stop with a focus ring, tree-view arrow keys, Enter, F, the camera following the selection, treeitem labels, badges out of the tab order and reduced motion. 424 unit tests; every key checked in headless Chrome with real key events. Not yet tried with a real screen reader.
+
 **Milestone 7, part 1: performance** (D-046)
 
 - Measured a made-up 10,000-note vault and found two freezes (a 10,000-note folder expanded, and a broad search), then fixed them with a card limit per folder (500) and overall (1,000), a delayed search and a match count. Now 0.19 s and 60 frames per second for the folder and 0.9 s for the search. A script writes a real 10,000-note vault to try in Obsidian. Numbers are in `docs/PERFORMANCE.md`; they are from headless Chrome, not Obsidian.

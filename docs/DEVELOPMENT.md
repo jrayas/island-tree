@@ -114,6 +114,16 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Settings made in an earlier version (a vault that used the plugin before milestone 5) still load: the default layout and status property are kept.
 - [ ] No errors in the developer console (Ctrl+Shift+I) while using any of the above.
 
+**Keyboard and screen reader** (use the keyboard only; a screen reader such as NVDA on Windows or VoiceOver on a Mac if you have one)
+
+- [ ] Tab reaches the toolbar buttons one by one, then the search box, then Lock, then the dashboard as a single stop with an accent-coloured ring, then the zoom buttons. The folder count badges are not stops.
+- [ ] On the dashboard: Down and Up move the selection through the cards; Right opens a closed folder, Right again steps into it; Left steps back out and then closes it; Home and End jump. The selected card keeps its ring and the details text updates.
+- [ ] Zoom in a lot, then press End: the view glides to the selected card. A click on a card already in view does not move the view.
+- [ ] Enter on a note opens it (Ctrl or Cmd and Enter in a split); Enter on a folder focuses it; Enter on a "+N more" card shows more. F shows or hides a folder's files.
+- [ ] Alt and Left still goes Back in Obsidian. Arrow keys in the search box or a rename box move the text cursor, not the selection.
+- [ ] A screen reader says something like "Projects, folder, open, 2 folders and 1 file" for a folder and "roadmap.md, file" for a note, and reads the details text when the selection changes.
+- [ ] Turn on "Reduce motion" (Windows: Settings, Accessibility, Visual effects, Animation effects off; Mac: Accessibility, Display, Reduce motion): the dashes stop flowing, cards jump instead of gliding, and the camera jumps instead of animating.
+
 **Open notes in, Back, and search** (the dashboard in a main tab)
 
 - [ ] Settings, Layout, **Open notes in** is New tab by default: a double click on a note opens it in a new tab and the dashboard stays.

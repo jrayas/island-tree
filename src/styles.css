@@ -389,6 +389,18 @@
   opacity: 0.3;
 }
 
+/* Keyboard: the tree is one tab stop, and a ring shows when it has focus. The card the keyboard is on
+   already shows the selection ring, so the cards themselves draw no second outline. */
+.island-tree-view .island-canvas:focus-visible {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: -2px;
+}
+
+.island-tree-view .island-card:focus,
+.island-tree-view .island-card:focus-visible {
+  outline: none;
+}
+
 /* The count of search matches sits beside the search box. */
 .island-tree-view .island-search-count {
   color: var(--text-muted);
@@ -664,4 +676,16 @@
   min-height: 1.5em;
   color: var(--text-error);
   font-size: var(--font-ui-small);
+}
+
+/* Reduced motion: no transitions or animation anywhere in the dashboard. The card glide and the
+   camera moves are timed in script and check the same preference. */
+@media (prefers-reduced-motion: reduce) {
+  .island-tree-view *,
+  .island-tree-view *::before,
+  .island-tree-view *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
