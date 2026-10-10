@@ -7,17 +7,25 @@
  * separate tree of visible items, so layout and rendering never need to know the
  * rules.
  */
+import { DEFAULT_LIST_LIMIT, FOLDER_CEILING, MAX_CARDS } from "./limits";
 import type { TreeNode } from "./tree";
 
 /** Default number of children shown before the rest collapse into "+N more". */
-export const DEFAULT_LIMIT = 6;
+export const DEFAULT_LIMIT = DEFAULT_LIST_LIMIT;
+
+/** For each folder, which extra batches of its children are revealed (batch 0 is always shown). */
+export type Batches = ReadonlyMap<string, ReadonlySet<number>>;
 
 /** The parts of the view state that decide visibility. */
 export interface VisibilityState {
   /** Folders whose children are shown. */
   open: ReadonlySet<string>;
-  /** Folders whose overflow ("+N more") has been expanded. */
-  showAll: ReadonlySet<string>;
+  /**
+   * Per folder, the batches of children revealed beyond the first. A folder lists `limit` children
+   * at first; "+N more" reveals the next batch of the same size, and a search reveals the batch
+   * that holds a match.
+   */
+  batches: Batches;
   /** Folders whose files are shown even when files are off globally. */
   filesFor: ReadonlySet<string>;
   /** Global "Expand files" toggle. */
@@ -28,14 +36,6 @@ export interface VisibilityState {
    */
   prefer?: ReadonlySet<string>;
 }
-
-/**
- * The most children one folder shows at once, even when expanded. Drawing and animating thousands
- * of cards at once freezes the dashboard (measured: 10,000 cards took over 5 seconds to appear and
- * panned at 8 frames per second, while 500 stays at 60), so the rest are summarised by a pill and
- * found by searching.
- */
-export const EXPANDED_CAP = 500;
 
 /**
  * Picks at most `cap` of `items`, keeping their order. Items in `prefer` are taken first, then
@@ -68,7 +68,7 @@ export interface VisibleNode {
   node: TreeNode | null;
   /** For a pill, how many children it hides. Otherwise 0. */
   hidden: number;
-  /** For a pill: the folder is already fully expanded and still has more than can be shown. */
+  /** For a pill: the folder is at its ceiling and still has more than can be shown. */
   capped?: boolean;
   parentId: string | null;
   children: VisibleNode[];
@@ -76,6 +76,23 @@ export interface VisibleNode {
 
 export function moreId(folderUid: string): string {
   return `more:${folderUid}`;
+}
+
+/**
+ * The next batch of a folder's children that "+N more" would reveal: the lowest batch not shown
+ * yet. Null when everything is shown or the folder is at its ceiling.
+ */
+export function nextBatchFor(folder: TreeNode, state: VisibilityState, limit: number = DEFAULT_LIMIT): number | null {
+  const listed = filesVisible(state, folder.uid) ? folder.children.length : folder.children.filter((c) => c.kind === "folder").length;
+  const revealed = state.batches.get(folder.uid);
+  const total = Math.ceil(listed / limit);
+  let shown = 0;
+  for (let batch = 0; batch < total; batch++) {
+    if (batch === 0 || revealed?.has(batch)) shown += Math.min(limit, listed - batch * limit);
+  }
+  if (shown >= FOLDER_CEILING) return null;
+  for (let batch = 1; batch < total; batch++) if (!revealed?.has(batch)) return batch;
+  return null;
 }
 
 /** Whether a folder's files are listed, either globally or for this folder only. */
@@ -99,12 +116,14 @@ export function visibleChildren(
     ? folder.children
     : folder.children.filter((child) => child.kind === "folder");
 
-  const expanded = state.showAll.has(folder.uid);
-  const shown = expanded
-    ? pickWithin(listed, EXPANDED_CAP, state.prefer)
-    : listed.length > limit
-      ? listed.slice(0, limit)
-      : listed;
+  const revealed = state.batches.get(folder.uid);
+  let shown: readonly TreeNode[];
+  if (listed.length <= limit) shown = listed;
+  else if (!revealed || revealed.size === 0) shown = listed.slice(0, limit);
+  else shown = listed.filter((_, position) => position < limit || revealed.has(Math.floor(position / limit)));
+  // A folder never shows more than its ceiling, whatever was asked for. What matters comes first.
+  if (shown.length > FOLDER_CEILING) shown = pickWithin(shown, FOLDER_CEILING, state.prefer);
+  const capped = shown.length >= FOLDER_CEILING && shown.length < listed.length;
   const items = shown.map<VisibleNode>((node) => ({
     id: node.uid,
     kind: node.kind,
@@ -120,20 +139,13 @@ export function visibleChildren(
       kind: "more",
       node: null,
       hidden: listed.length - shown.length,
-      capped: expanded,
+      capped,
       parentId: folder.uid,
       children: [],
     });
   }
   return items;
 }
-
-/**
- * The most cards the whole dashboard draws at once, whatever is open. A search that matches
- * thousands of names, or every folder expanded in a huge vault, would otherwise ask for tens of
- * thousands (measured: 10,600 cards froze the dashboard for 8 seconds). 1,000 stays smooth.
- */
-export const MAX_CARDS = 1000;
 
 /** How many cards one pill's worth of children stands for: a dropped pill counts its own hidden items. */
 function weight(item: VisibleNode): number {

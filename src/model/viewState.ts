@@ -26,7 +26,7 @@ export interface ViewState extends VisibilityState {
 export function createViewState(rootUid: string, layoutMode: LayoutMode = "vertical"): ViewState {
   return {
     open: new Set([rootUid]),
-    showAll: new Set(),
+    batches: new Map(),
     filesFor: new Set(),
     filesOn: false,
     selected: null,
@@ -74,9 +74,12 @@ export function showFolderContents(state: ViewState, uid: string): ViewState {
   };
 }
 
-/** Expands a folder's "+N more" pill so all of its children show. */
-export function showAllFor(state: ViewState, uid: string): ViewState {
-  return { ...state, showAll: new Set(state.showAll).add(uid) };
+/** Reveals one more batch of a folder's children, which is what its "+N more" card does. */
+export function revealBatch(state: ViewState, uid: string, batch: number): ViewState {
+  if (batch <= 0 || state.batches.get(uid)?.has(batch)) return state;
+  const next = new Map(state.batches);
+  next.set(uid, new Set(state.batches.get(uid)).add(batch));
+  return { ...state, batches: next };
 }
 
 export function select(state: ViewState, uid: string | null): ViewState {

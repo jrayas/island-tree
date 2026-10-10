@@ -15,7 +15,7 @@ const uidOf = (path: string): string | undefined => [...PATHS].find(([, p]) => p
 const left = (): ViewState => ({
   ...createViewState("n0", "radial"),
   open: new Set(["n0", "n1", "n2"]),
-  showAll: new Set(["n1"]),
+  batches: new Map([["n1", new Set([1, 3])]]),
   filesFor: new Set(["n2"]),
   filesOn: true,
   foldersOn: true,
@@ -30,7 +30,7 @@ describe("saveView", () => {
     const saved = saveView(left(), pathOf);
     expect(saved.layoutMode).toBe("radial");
     expect(saved.open).toEqual(["/", "/Projects", "/Projects/Plugin"]);
-    expect(saved.showAll).toEqual(["/Projects"]);
+    expect(saved.batches).toEqual({ "/Projects": [1, 3] });
     expect(saved.filesFor).toEqual(["/Projects/Plugin"]);
     expect(saved.selected).toBe("/Projects/Plugin");
     expect(saved.focusRoot).toBe("/Projects");
@@ -66,6 +66,15 @@ describe("parseSavedView", () => {
     expect(parseSavedView({})).toBeNull();
   });
 
+  it("ignores batches that are not whole positive numbers, and an old state without batches", () => {
+    const messy = parseSavedView({ ...good(), batches: { "/a": [1, -2, 1.5, "x", 4], "/b": "no", "/c": [] } });
+    expect(messy?.batches).toEqual({ "/a": [1, 4] });
+    const { batches: _unused, ...old } = good();
+    void _unused;
+    expect(parseSavedView({ ...old, showAll: ["/Projects"] })?.batches).toEqual({});
+    expect(parseSavedView({ ...good(), batches: [1, 2] })?.batches).toEqual({});
+  });
+
   it("rejects wrong types and unknown layouts", () => {
     expect(parseSavedView({ ...good(), layoutMode: "spiral" })).toBeNull();
     expect(parseSavedView({ ...good(), open: "/" })).toBeNull();
@@ -88,7 +97,7 @@ describe("restoreView", () => {
     const state = restoreView(saved, uidOf, createViewState("n0"), "n0");
     expect(state.layoutMode).toBe("radial");
     expect([...state.open].sort()).toEqual(["n0", "n1", "n2"]);
-    expect([...state.showAll]).toEqual(["n1"]);
+    expect([...(state.batches.get("n1") ?? [])]).toEqual([1, 3]);
     expect([...state.filesFor]).toEqual(["n2"]);
     expect(state.selected).toBe("n2");
     expect(state.focusRoot).toBe("n1");
@@ -96,6 +105,12 @@ describe("restoreView", () => {
     expect(state.detail).toBe(true);
     expect(state.filesOn).toBe(true);
     expect(state.foldersOn).toBe(true);
+  });
+
+  it("ignores revealed batches of folders that are no longer in the vault", () => {
+    const saved: SavedView = { ...saveView(left(), pathOf), batches: { "/Gone": [1], "/Projects": [2] } };
+    const state = restoreView(saved, uidOf, createViewState("n0"), "n0");
+    expect([...state.batches.keys()]).toEqual(["n1"]);
   });
 
   it("ignores paths that are no longer in the vault", () => {

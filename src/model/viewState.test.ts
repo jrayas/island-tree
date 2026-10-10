@@ -11,7 +11,7 @@ import {
   setFoldersOn,
   setLayout,
   setQuery,
-  showAllFor,
+  revealBatch,
   showFolderContents,
   toggleFilesFor,
   toggleOpen,
@@ -61,9 +61,27 @@ describe("toggleFilesFor", () => {
   });
 });
 
-describe("showAllFor", () => {
-  it("marks the folder's overflow as expanded", () => {
-    expect(showAllFor(start(), "a").showAll.has("a")).toBe(true);
+describe("revealBatch", () => {
+  it("records a revealed batch for the folder", () => {
+    expect(revealBatch(start(), "a", 2).batches.get("a")?.has(2)).toBe(true);
+  });
+
+  it("keeps earlier batches when another is revealed", () => {
+    const s = revealBatch(revealBatch(start(), "a", 1), "a", 3);
+    expect([...(s.batches.get("a") ?? [])].sort()).toEqual([1, 3]);
+  });
+
+  it("changes nothing for batch 0, which is always shown, or one already revealed", () => {
+    const s = start();
+    expect(revealBatch(s, "a", 0)).toBe(s);
+    const once = revealBatch(s, "a", 1);
+    expect(revealBatch(once, "a", 1)).toBe(once);
+  });
+
+  it("does not change the state it was given", () => {
+    const s = start();
+    revealBatch(s, "a", 1);
+    expect(s.batches.size).toBe(0);
   });
 });
 

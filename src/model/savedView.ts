@@ -18,8 +18,8 @@ export interface SavedView {
   filesOn: boolean;
   /** Folders that are open. */
   open: string[];
-  /** Folders whose "+N more" list is expanded. */
-  showAll: string[];
+  /** Per folder, the extra batches of children revealed by "+N more". */
+  batches: Record<string, number[]>;
   /** Folders whose files show whatever the Expand files toggle says. */
   filesFor: string[];
   selected: string | null;
@@ -31,7 +31,39 @@ export interface SavedView {
 /** A vault would need a very large number of open folders to reach this; it only bounds bad data. */
 export const MAX_SAVED_PATHS = 5000;
 const MAX_QUERY_LENGTH = 200;
+const MAX_BATCHES_PER_FOLDER = 200;
 const LAYOUTS: readonly string[] = ["vertical", "radial", "mindmap"];
+
+function batchesToPaths(
+  batches: ViewState["batches"],
+  pathOf: (uid: string) => string | undefined,
+): Record<string, number[]> {
+  const out: Record<string, number[]> = {};
+  let count = 0;
+  for (const [uid, set] of batches) {
+    const path = pathOf(uid);
+    if (path === undefined || set.size === 0 || count >= MAX_SAVED_PATHS) continue;
+    out[path] = [...set].sort((a, b) => a - b).slice(0, MAX_BATCHES_PER_FOLDER);
+    count += 1;
+  }
+  return out;
+}
+
+/** Reads saved batches back: only whole, non-negative numbers, and bounded. Anything else is ignored. */
+function parseBatches(value: unknown): Record<string, number[]> {
+  const out: Record<string, number[]> = {};
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return out;
+  let count = 0;
+  for (const [path, list] of Object.entries(value)) {
+    if (count >= MAX_SAVED_PATHS) break;
+    if (!Array.isArray(list)) continue;
+    const numbers = list.filter((n): n is number => Number.isInteger(n) && n > 0).slice(0, MAX_BATCHES_PER_FOLDER);
+    if (numbers.length === 0) continue;
+    out[path] = numbers;
+    count += 1;
+  }
+  return out;
+}
 
 /** Turns the live state into the saved form. A card that has no path any more is left out. */
 export function saveView(state: ViewState, pathOf: (uid: string) => string | undefined): SavedView {
@@ -49,7 +81,7 @@ export function saveView(state: ViewState, pathOf: (uid: string) => string | und
     foldersOn: state.foldersOn,
     filesOn: state.filesOn,
     open: paths(state.open),
-    showAll: paths(state.showAll),
+    batches: batchesToPaths(state.batches, pathOf),
     filesFor: paths(state.filesFor),
     selected: state.selected === null ? null : (pathOf(state.selected) ?? null),
     focusRoot: pathOf(state.focusRoot) ?? "/",
@@ -73,9 +105,8 @@ export function parseSavedView(raw: unknown): SavedView | null {
   if (typeof raw !== "object" || raw === null) return null;
   const value = raw as Record<string, unknown>;
   const open = strings(value.open);
-  const showAll = strings(value.showAll);
   const filesFor = strings(value.filesFor);
-  if (!open || !showAll || !filesFor) return null;
+  if (!open || !filesFor) return null;
   if (typeof value.layoutMode !== "string" || !LAYOUTS.includes(value.layoutMode)) return null;
   if (typeof value.detail !== "boolean" || typeof value.foldersOn !== "boolean" || typeof value.filesOn !== "boolean") {
     return null;
@@ -88,12 +119,24 @@ export function parseSavedView(raw: unknown): SavedView | null {
     foldersOn: value.foldersOn,
     filesOn: value.filesOn,
     open,
-    showAll,
+    batches: parseBatches(value.batches),
     filesFor,
     selected: value.selected,
     focusRoot: value.focusRoot,
     query: value.query.slice(0, MAX_QUERY_LENGTH),
   };
+}
+
+function batchesFromPaths(
+  saved: Record<string, number[]>,
+  uidOf: (path: string) => string | undefined,
+): ViewState["batches"] {
+  const out = new Map<string, Set<number>>();
+  for (const [path, list] of Object.entries(saved)) {
+    const uid = uidOf(path);
+    if (uid !== undefined) out.set(uid, new Set(list));
+  }
+  return out;
 }
 
 /**
@@ -124,7 +167,7 @@ export function restoreView(
     foldersOn: saved.foldersOn,
     filesOn: saved.filesOn,
     open: uids(saved.open).add(rootUid).add(focus),
-    showAll: uids(saved.showAll),
+    batches: batchesFromPaths(saved.batches, uidOf),
     filesFor: uids(saved.filesFor),
     selected,
     focusRoot: focus,

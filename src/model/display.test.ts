@@ -25,7 +25,7 @@ const root = buildTree(
 const notes = root.children[0];
 
 function state(open: string[], filesOn = false): VisibilityState {
-  return { open: new Set(open), showAll: new Set(), filesFor: new Set(), filesOn };
+  return { open: new Set(open), batches: new Map(), filesFor: new Set(), filesOn };
 }
 
 describe("describeItem", () => {
@@ -113,7 +113,7 @@ describe("describeItem", () => {
     const s = state([many.uid]);
     const pill = visibleChildren(many, s, 6).at(-1)!;
     expect(describeItem(pill, s)).toMatchObject({ kind: "more", label: "+2 more", icon: null });
-    expect(describeItem(pill, s).tooltip).toBe("Show 2 more items");
+    expect(describeItem(pill, s).tooltip).toBe("Show more (2 items hidden)");
   });
 
   it("describes a capped pill as an inert note about what is left out", () => {
@@ -129,7 +129,8 @@ describe("describeItem", () => {
     const shown = describeItem(pill, state([]));
     expect(shown.label).toBe("120 not shown");
     expect(shown.tooltip).toContain("Search to find them");
-    expect(shown.tooltip).toContain("at most 500");
+    expect(shown.tooltip).toContain("at most 1000");
+    expect(shown.capped).toBe(true);
   });
 
   it("says what a screen reader needs for each kind of card", () => {
@@ -147,10 +148,10 @@ describe("describeItem", () => {
 
   it("tells a screen reader how to use a pill, and when it does nothing", () => {
     const base = { icon: null, colour: null, items: 0, filesShown: false, kind: "more" as const, subfolders: 0, files: 0, isOpen: false };
-    expect(describeForReader({ ...base, label: "+3 more", tooltip: "Show 3 more items" })).toBe(
-      "+3 more. Press Enter to show them.",
+    expect(describeForReader({ ...base, label: "+3 more", tooltip: "Show more (3 items hidden)" })).toBe(
+      "+3 more. Press Enter to show more.",
     );
-    expect(describeForReader({ ...base, label: "120 not shown", tooltip: "120 more items not shown. Search to find them." })).toBe(
+    expect(describeForReader({ ...base, label: "120 not shown", tooltip: "120 more items not shown. Search to find them.", capped: true })).toBe(
       "120 not shown. 120 more items not shown. Search to find them.",
     );
   });
@@ -166,6 +167,6 @@ describe("describeItem", () => {
     );
     const s = state([many.uid]);
     const pill = visibleChildren(many, s, 6).at(-1)!;
-    expect(describeItem(pill, s).tooltip).toBe("Show 1 more item");
+    expect(describeItem(pill, s).tooltip).toBe("Show more (1 item hidden)");
   });
 });

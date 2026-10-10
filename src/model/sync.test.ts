@@ -3,6 +3,7 @@ import { reconcileViewState } from "./sync";
 import {
   createViewState,
   focusOn,
+  revealBatch,
   select,
   setFoldersOn,
   toggleFilesFor,
@@ -18,7 +19,14 @@ describe("reconcileViewState", () => {
     expect(reconcileViewState(state, valid, ["root", "a"], none, "root")).toBe(state);
   });
 
-  it("drops open, filesFor and showAll ids that no longer exist", () => {
+  it("drops revealed batches of folders that no longer exist", () => {
+    const state = revealBatch(revealBatch(createViewState("root"), "gone", 1), "a", 2);
+    const next = reconcileViewState(state, valid, [], none, "root");
+    expect(next.batches.has("gone")).toBe(false);
+    expect(next.batches.get("a")?.has(2)).toBe(true);
+  });
+
+  it("drops open, filesFor and batch ids that no longer exist", () => {
     const state = toggleFilesFor(toggleOpen(createViewState("root"), "gone"), "gone");
     const next = reconcileViewState(state, valid, ["root", "a"], none, "root");
     expect(next.open.has("gone")).toBe(false);

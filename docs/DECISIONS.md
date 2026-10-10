@@ -305,3 +305,11 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 **Why:** The dashboard was mouse-only. The tree pattern is what screen reader users and Obsidian's file explorer already expect. Measured in Chrome with real key events: every key above, the focus ring on the canvas (it was missing until the stylesheet was rebuilt) and on toolbar buttons (Obsidian's own ring), and reduced motion turning the line animation and transitions off.
 
 **Not verified:** a real screen reader. The roles and labels are checked in the DOM, not heard.
+
+## D-048: Batch reveal for "+N more"
+
+**Decision:** A folder lists `limit` children at first (the List limit setting, default 40 and up to 200). `ViewState.batches` maps a folder to the extra batches revealed (batch 0 is always shown), and "+N more" reveals the lowest batch not shown yet (`nextBatchFor`, `revealBatch`). A folder never shows more than `FOLDER_CEILING` (1,000); past that the card is inert ("N not shown") and a search, which puts matches first (`prefer`), is the way to the rest. A search reveals only the batches that hold a match or a folder leading to one (`searchTree` takes the batch size and returns `batches`), so unrelated siblings stay hidden. A new or moved card reveals its own batch once it exists. Saved state keeps batches by path (a state saved before this, with the old expand-all list, still loads and its list is ignored). The numbers moved to `src/model/limits.ts`; the overall budget rose from 1,000 to 1,500 and the per-folder cap from 500 to 1,000. `onlyRenderVisibleElements` was turned back on. This replaces the per-folder expand-all of D-046; the rest of D-046 stands.
+
+**Why:** The request was for batches and a small first view of a big folder, which also makes the first view cheap (43 cards for a 10,000-note folder). Batches by position keep the order predictable. Measured at the new limits: 1,003 cards in one folder panned at 39 frames per second with every card drawn, and 60 with only the visible ones drawn, so that option earns its place now, though at 10,000 cards it did not.
+
+**Cost:** a folder of more than 1,000 notes cannot be browsed past the first 1,000 on the dashboard; searching reaches the rest. Batches earlier than a revealed one stay hidden until asked for, so a card can show with a gap before it.

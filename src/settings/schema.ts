@@ -7,6 +7,7 @@
  * rest of the plugin a normal, checked shape to read.
  */
 import type { CurveStyle, LayoutMode, MindMapView } from "../layout/types";
+import { DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT } from "../model/limits";
 
 export type { CurveStyle };
 
@@ -433,8 +434,8 @@ export const FIELDS: readonly Field[] = [
   {
     group: "layout", key: "overflowLimit", tab: "layout", section: "Folders", inPreset: true,
     label: "List limit",
-    description: "How many items a folder lists before the rest collapse into a \"+N more\" card.",
-    def: number({ min: 2, max: 30, step: 1, default: 6 }),
+    description: "How many items a folder lists at first. The \"+N more\" card reveals the next batch of this many, up to 1,000 in one folder. A search always finds the rest.",
+    def: number({ min: 2, max: MAX_LIST_LIMIT, step: 1, default: DEFAULT_LIST_LIMIT }),
   },
   {
     group: "layout", key: "startExpandFolders", tab: "layout", section: "Folders", inPreset: true,

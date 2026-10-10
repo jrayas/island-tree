@@ -3,8 +3,9 @@ import { computeLayout, type LayoutOptions } from "../layout/layout";
 import { searchTree, withSearchReveal } from "./search";
 import { balancedVault, countRawFiles, deepVault, flatVault } from "./synthetic";
 import { buildTree, folderUids, indexTree, UidRegistry } from "./tree";
-import { MAX_CARDS, buildVisibleTree, flattenVisible } from "./visibility";
-import { createViewState, setFilesOn, setFoldersOn, showAllFor } from "./viewState";
+import { FOLDER_CEILING, MAX_CARDS } from "./limits";
+import { buildVisibleTree, flattenVisible } from "./visibility";
+import { createViewState, revealBatch, setFilesOn, setFoldersOn, type ViewState } from "./viewState";
 
 const OPTIONS: LayoutOptions = {
   cardWidth: 116,
@@ -15,7 +16,14 @@ const OPTIONS: LayoutOptions = {
   ringStep: 90,
   mindMapView: "balanced",
 };
-const LIMIT = 24;
+const LIMIT = 40;
+
+/** Reveals every batch a folder allows, as clicking "+N more" over and over would. */
+function revealAll(state: ViewState, uid: string): ViewState {
+  let next = state;
+  for (let batch = 1; batch <= Math.ceil(FOLDER_CEILING / LIMIT); batch++) next = revealBatch(next, uid, batch);
+  return next;
+}
 
 /** Runs a step, returning how long it took in milliseconds. */
 function time<T>(run: () => T): { ms: number; value: T } {
@@ -80,7 +88,7 @@ describe("laying out many cards", () => {
 
   for (const mode of ["vertical", "radial", "mindmap"] as const) {
     it(`places ${mode} for a folder with every file listed`, () => {
-      const state = showAllFor(setFilesOn(setFoldersOn(createViewState(tree.uid), true, [tree.uid, folder.uid], tree.uid), true), folder.uid);
+      const state = revealAll(setFilesOn(setFoldersOn(createViewState(tree.uid), true, [tree.uid, folder.uid], tree.uid), true), folder.uid);
       const visible = buildVisibleTree(tree, state, LIMIT);
       const count = flattenVisible(visible).length;
       const placed = time(() => computeLayout(mode, visible, false, OPTIONS));

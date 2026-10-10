@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { UidRegistry, buildTree, indexTree, type RawEntry, type TreeNode } from "./tree";
+import { FOLDER_CEILING } from "./limits";
 import {
-  EXPANDED_CAP,
   buildVisibleTree,
   filesVisible,
   flattenVisible,
   moreId,
+  nextBatchFor,
   pickWithin,
   visibleChildren,
   type VisibilityState,
@@ -23,7 +24,7 @@ function state(
 ): VisibilityState {
   return {
     open: new Set(partial.open ?? []),
-    showAll: partial.showAll ?? new Set(),
+    batches: partial.batches ?? new Map(),
     filesFor: partial.filesFor ?? new Set(),
     filesOn: partial.filesOn ?? false,
   };
@@ -95,31 +96,43 @@ describe("visibleChildren", () => {
     expect(pill?.node).toBeNull();
   });
 
-  it("shows every child once the folder is in showAll", () => {
-    const many = buildTree(
-      {
-        name: "Vault",
-        path: "/",
-        children: Array.from({ length: 9 }, (_, i) => folder(`f${i}`, "", [])),
-      },
+  const nFolders = (count: number): TreeNode =>
+    buildTree(
+      { name: "Vault", path: "/", children: Array.from({ length: count }, (_, i) => folder(`f${String(i).padStart(4, "0")}`, "", [])) },
       new UidRegistry(),
     );
-    const kids = visibleChildren(many, state({ open: [many.uid], showAll: new Set([many.uid]) }), 6);
-    expect(kids).toHaveLength(9);
-    expect(kids.some((k) => k.kind === "more")).toBe(false);
+  const names = (items: { node: TreeNode | null }[]): string[] => items.filter((i) => i.node).map((i) => i.node?.name ?? "");
+
+  it("reveals the next batch when its number is in batches", () => {
+    const many = nFolders(20);
+    const first = visibleChildren(many, state({ open: [many.uid] }), 6);
+    expect(first).toHaveLength(7);
+    const withOne = visibleChildren(many, state({ open: [many.uid], batches: new Map([[many.uid, new Set([1])]]) }), 6);
+    expect(names(withOne)).toEqual(Array.from({ length: 12 }, (_, i) => `f${String(i).padStart(4, "0")}`));
+    expect(withOne[withOne.length - 1]?.hidden).toBe(8);
+    expect(withOne[withOne.length - 1]?.capped).toBe(false);
   });
 
-  it("caps an expanded folder and says what is left out", () => {
-    const huge = buildTree(
-      {
-        name: "Vault",
-        path: "/",
-        children: Array.from({ length: EXPANDED_CAP + 40 }, (_, i) => folder(`f${i}`, "", [])),
-      },
-      new UidRegistry(),
-    );
-    const kids = visibleChildren(huge, state({ open: [huge.uid], showAll: new Set([huge.uid]) }), 6);
-    expect(kids).toHaveLength(EXPANDED_CAP + 1);
+  it("shows only the batches asked for, in their original order", () => {
+    const many = nFolders(30);
+    const kids = visibleChildren(many, state({ open: [many.uid], batches: new Map([[many.uid, new Set([3])]]) }), 6);
+    // Batch 0 (f0..f5) and batch 3 (f18..f23), then a pill for the other 18.
+    expect(names(kids)).toEqual(["f0000", "f0001", "f0002", "f0003", "f0004", "f0005", "f0018", "f0019", "f0020", "f0021", "f0022", "f0023"]);
+    expect(kids[kids.length - 1]?.hidden).toBe(18);
+  });
+
+  it("drops the pill once every batch is revealed", () => {
+    const many = nFolders(14);
+    const all = visibleChildren(many, state({ open: [many.uid], batches: new Map([[many.uid, new Set([1, 2])]]) }), 6);
+    expect(all).toHaveLength(14);
+    expect(all.some((k) => k.kind === "more")).toBe(false);
+  });
+
+  it("never shows a folder past its ceiling, and says so on a pill that does nothing", () => {
+    const huge = nFolders(FOLDER_CEILING + 40);
+    const everyBatch = new Set(Array.from({ length: Math.ceil((FOLDER_CEILING + 40) / 40) }, (_, i) => i).filter((i) => i > 0));
+    const kids = visibleChildren(huge, state({ open: [huge.uid], batches: new Map([[huge.uid, everyBatch]]) }), 40);
+    expect(kids).toHaveLength(FOLDER_CEILING + 1);
     const pill = kids[kids.length - 1];
     expect(pill?.kind).toBe("more");
     expect(pill?.hidden).toBe(40);
@@ -151,6 +164,34 @@ describe("visibleChildren", () => {
     const { byPath } = setup();
     const f = byPath("/root.md");
     expect(visibleChildren(f, state({ open: [f.uid] }))).toEqual([]);
+  });
+});
+
+describe("nextBatchFor", () => {
+  const folderOf = (count: number): TreeNode =>
+    buildTree({ name: "Vault", path: "/", children: Array.from({ length: count }, (_, i) => folder(`f${i}`, "", [])) }, new UidRegistry());
+
+  it("offers the lowest batch not shown yet", () => {
+    const f = folderOf(30);
+    expect(nextBatchFor(f, state({ open: [f.uid] }), 6)).toBe(1);
+    expect(nextBatchFor(f, state({ open: [f.uid], batches: new Map([[f.uid, new Set([1])]]) }), 6)).toBe(2);
+    expect(nextBatchFor(f, state({ open: [f.uid], batches: new Map([[f.uid, new Set([2])]]) }), 6)).toBe(1);
+  });
+
+  it("offers nothing once everything is shown", () => {
+    const f = folderOf(14);
+    expect(nextBatchFor(f, state({ open: [f.uid], batches: new Map([[f.uid, new Set([1, 2])]]) }), 6)).toBeNull();
+  });
+
+  it("offers nothing for a list that fits", () => {
+    const f = folderOf(5);
+    expect(nextBatchFor(f, state({ open: [f.uid] }), 6)).toBeNull();
+  });
+
+  it("offers nothing at the ceiling", () => {
+    const f = folderOf(FOLDER_CEILING + 100);
+    const revealed = new Set(Array.from({ length: Math.ceil(FOLDER_CEILING / 40) }, (_, i) => i).filter((i) => i > 0));
+    expect(nextBatchFor(f, state({ open: [f.uid], batches: new Map([[f.uid, revealed]]) }), 40)).toBeNull();
   });
 });
 
@@ -195,14 +236,14 @@ describe("buildVisibleTree card budget", () => {
     Array.from({ length: count }, (_, i) => file(`n${i + 1}.md`, dir));
   const everything = (uids: string[]): VisibilityState => ({
     open: new Set(uids),
-    showAll: new Set(uids),
+    batches: new Map(),
     filesFor: new Set(),
     filesOn: true,
   });
 
   it("stops at the budget and says how many were left out", () => {
     const tree = buildTree({ name: "Vault", path: "/", children: files("", 50) }, new UidRegistry());
-    const root = buildVisibleTree(tree, everything([tree.uid]), 6, 11);
+    const root = buildVisibleTree(tree, everything([tree.uid]), 1000, 11);
     const cards = root.children.filter((c) => c.kind !== "more");
     const pill = root.children.find((c) => c.kind === "more");
     expect(cards).toHaveLength(10);
@@ -233,7 +274,7 @@ describe("buildVisibleTree card budget", () => {
 
   it("keeps an ordinary pill when the real cards fit", () => {
     const tree = buildTree({ name: "Vault", path: "/", children: files("", 9) }, new UidRegistry());
-    const state: VisibilityState = { open: new Set([tree.uid]), showAll: new Set(), filesFor: new Set(), filesOn: true };
+    const state: VisibilityState = { open: new Set([tree.uid]), batches: new Map(), filesFor: new Set(), filesOn: true };
     const root = buildVisibleTree(tree, state, 6, 100);
     const pill = root.children.at(-1);
     expect(pill?.kind).toBe("more");
@@ -243,7 +284,7 @@ describe("buildVisibleTree card budget", () => {
 
   it("changes nothing for a tree that fits", () => {
     const { root } = setup();
-    const state: VisibilityState = { open: new Set([root.uid]), showAll: new Set(), filesFor: new Set(), filesOn: true };
+    const state: VisibilityState = { open: new Set([root.uid]), batches: new Map(), filesFor: new Set(), filesOn: true };
     expect(buildVisibleTree(root, state, 6, 1000)).toEqual(buildVisibleTree(root, state, 6, 1_000_000));
   });
 });

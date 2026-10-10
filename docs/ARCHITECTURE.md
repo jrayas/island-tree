@@ -70,6 +70,7 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | File | Purpose |
 |---|---|
 | `src/model/tree.ts` | `RawEntry` (plain vault description), `TreeNode`, `UidRegistry` (stable ids per path), `compareEntries` (folders first, natural name order), `buildTree`, `indexTree`, `folderUids`, `ancestry`. `UidRegistry.moved` keeps an id when a file or folder is renamed or moved. |
+| `src/model/limits.ts` | Every number that keeps a big vault smooth, in one place: the list limit and its maximum, the per-folder ceiling, the overall card budget and the search delay. |
 | `src/model/visibility.ts` | SPEC section 4 rules 1 to 3. `visibleChildren`, `buildVisibleTree`, `flattenVisible`, `filesVisible`. A "+N more" pill is a `VisibleNode` of kind `more` with id `more:<folder uid>`. |
 | `src/model/viewState.ts` | `ViewState` (open, showAll, filesFor, filesOn, foldersOn, selected, focusRoot, query, layoutMode) and pure transitions: `toggleOpen`, `toggleFilesFor`, `showAllFor`, `select`, `setFoldersOn`, `setFilesOn` (rules 4 and 5), `focusOn`, `resetFocus`, `setQuery`, `setLayout`, `setDetail`, `resetView`. |
 | `src/model/sync.ts` | `reconcileViewState`: after a rebuild, drops ids that no longer exist, clears a vanished selection or focus, and opens folders created while Expand folders is on (folders closed by hand stay closed). |

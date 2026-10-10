@@ -22,7 +22,7 @@ Once released, install it from **Settings → Community plugins → Browse** and
 
 - Click the network icon in the ribbon, or run **Open dashboard** from the command palette.
 - Run **Open dashboard in sidebar** to open it in the right sidebar.
-- Click a folder to open or close it. Click the small badge on a folder to show or hide its files. Click "+N more" to show everything in a long list.
+- Click a folder to open or close it. Click the small badge on a folder to show or hide its files. A folder lists its first 40 items (the **List limit** setting); click "+N more" to reveal the next 40, up to 1,000 in one folder. A search always finds the rest.
 - **Keyboard:** Tab to the dashboard (one stop), then the arrow keys move through the cards, Right opens a folder and then steps into it, Left closes it and then steps out, Home and End jump to the first and last card, Enter opens a note (Ctrl or Cmd and Enter for a split) or focuses a folder or shows the cards behind a "+N more" card, and F shows or hides a folder's files. The view follows the selected card. Keys typed in a box, and Alt and Left (Obsidian's Back), are left alone. Screen readers hear each card's name, kind, whether a folder is open and what it holds. With reduced motion switched on in your system, the dashboard does not animate.
 - **Mouse, as in Obsidian's Canvas:** scroll pans, Shift and scroll pans sideways, and Ctrl or Cmd (or Space) and scroll zooms, as does a trackpad pinch. Drag the background with the left, middle or right button to pan, or hold Space and drag to pan even from a card. Shift and 1 fits the view, like the fit button. If you prefer the wheel to zoom, change **Mouse wheel** in Settings, Layout. The fourth zoom button (a dashed rectangle) lets you drag a rectangle over any part of the graph and zoom to it; holding Shift while dragging does the same. Escape cancels.
 - **Compact** in the toolbar is an on and off switch: it draws smaller cards with tighter spacing, to fit more on screen and keep text readable when **Fit** zooms out on a big vault. Your own sizes are never changed, so switching it off puts them back exactly. It is remembered, and also appears as **Density** in Settings, Layout.
@@ -43,7 +43,7 @@ Open **Settings → Island tree**. A live preview at the top shows each change a
 
 - **Cards:** width, height, corner radius, border width, side padding and text size. Which details show (age, size, links, tags, status), whether details start on, and the name of the status property.
 - **Lines and grid:** curve style (curved, step or straight), thickness, dash pattern, flow speed (0 stops the animation) and highlight colour. The grid behind the cards: dots, lines or none, with size, spacing, opacity and colour.
-- **Layout:** the default layout, gap between cards, spacing between levels, ring distances for the radial layout, how many items a folder lists before "+N more", and whether Expand folders and Expand files start on.
+- **Layout:** the default layout, gap between cards, spacing between levels, ring distances for the radial layout, how many items a folder lists at first and reveals with each "+N more", and whether Expand folders and Expand files start on.
 - **Presets:** Compact, Comfortable and Large, your own saved looks, resetting one tab or everything, and exporting or importing settings as JSON (file or clipboard). An import shows a summary and checks every value before anything changes.
 
 An empty colour or a text size of 0 follows your Obsidian theme. Every setting has a reset button.

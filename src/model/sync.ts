@@ -14,6 +14,13 @@ function onlyValid(set: ReadonlySet<string>, valid: ReadonlySet<string>): Readon
   return set;
 }
 
+function onlyValidBatches(batches: ViewState["batches"], valid: ReadonlySet<string>): ViewState["batches"] {
+  for (const uid of batches.keys()) {
+    if (!valid.has(uid)) return new Map([...batches].filter(([id]) => valid.has(id)));
+  }
+  return batches;
+}
+
 /**
  * Drops ids that no longer exist from every set, clears a vanished selection,
  * sends a vanished focus back to the vault root, and, while "Expand folders" is
@@ -34,19 +41,19 @@ export function reconcileViewState(
     const created = allFolders.filter((uid) => !previousFolders.has(uid));
     if (created.length > 0) open = new Set([...open, ...created]);
   }
-  const showAll = onlyValid(state.showAll, valid);
+  const batches = onlyValidBatches(state.batches, valid);
   const filesFor = onlyValid(state.filesFor, valid);
   const selected = state.selected !== null && valid.has(state.selected) ? state.selected : null;
   const focusRoot = valid.has(state.focusRoot) ? state.focusRoot : rootUid;
 
   if (
     open === state.open &&
-    showAll === state.showAll &&
+    batches === state.batches &&
     filesFor === state.filesFor &&
     selected === state.selected &&
     focusRoot === state.focusRoot
   ) {
     return state;
   }
-  return { ...state, open, showAll, filesFor, selected, focusRoot };
+  return { ...state, open, batches, filesFor, selected, focusRoot };
 }

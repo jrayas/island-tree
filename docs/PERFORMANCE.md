@@ -32,20 +32,26 @@ The cost is in drawing and animating cards. Each frame of the glide rebuilds eve
 | 1,200 cards in one folder | 1,200 | 0.8 s | 60 frames per second |
 | 2,500 cards in one folder | 2,500 | 1.6 s | 43 frames per second |
 
-Drawing only the cards that are on screen (Svelte Flow's `onlyRenderVisibleElements`) was tried and did not help, because the per-frame work is in our code, not the page. It was left out.
+Drawing only the cards that are on screen (Svelte Flow's `onlyRenderVisibleElements`) was tried at 10,000 cards and did not help, because the per-frame work is in our code, not the page. It was later turned on again for the lower limits below, where it does help.
 
 ## The limits
 
-- **One folder shows at most 500 cards** (`EXPANDED_CAP` in `src/model/visibility.ts`), even after "+N more" is clicked. A pill then says how many are not shown, and a search finds them. When a search opens a big folder, the matches are shown first.
-- **The whole dashboard draws at most 1,000 cards** (`MAX_CARDS`), whatever is open. The tree is filled level by level, so the top of the tree always shows and only the deepest levels are cut, with a pill ("N not shown") where children were left out. Pills do not count towards the 1,000.
-- **Search waits about 0.2 s after you stop typing** before it runs, so a broad first letter does not rebuild everything on every keystroke. Clearing the box is instant. The number of matches shows beside the box.
+All of them are named constants in `src/model/limits.ts`.
+
+- **A folder lists 40 children at first** (`DEFAULT_LIST_LIMIT`, the **List limit** setting, 2 to 200). "+N more" reveals the next batch of the same size, and a search reveals the batch that holds a match and no other. Batches are by position in the folder's sorted list (folders first, then notes, in natural order), so they are predictable and stable.
+- **One folder shows at most 1,000 children** (`FOLDER_CEILING`), however many batches are revealed. A card then says how many are "not shown" and does nothing when clicked; a search finds them, and shows its matches first.
+- **The whole dashboard draws at most 1,500 cards** (`MAX_CARDS`), whatever is open. The tree is filled level by level, so the top of the tree always shows and only the deepest levels are cut, with a card ("N not shown") where children were left out. Those cards do not count towards the 1,500.
+- **Only the cards on screen are drawn** (Svelte Flow's `onlyRenderVisibleElements`). At 10,000 cards this did not help, because the per-frame work is in our code; at the 1,000-card ceiling it is the difference between 39 and 60 frames per second.
+- **Search waits about 0.2 s after you stop typing** (`SEARCH_DELAY_MS`) before it runs, so a broad first letter does not rebuild everything on every keystroke. Clearing the box is instant. The number of matches shows beside the box.
 
 ## After the limits
 
-| Case | Cards | Time to appear | Panning |
+| Case | Cards in the dashboard | Time | Panning |
 |---|---|---|---|
-| A folder with 10,000 notes, "+N more" clicked | 503 | 0.19 s | 60 frames per second |
-| Searching "note" in the balanced vault | about 1,480 | 0.9 s | 60 frames per second |
+| A folder of 10,000 notes, first view | 43 | instant | 60 frames per second |
+| The same, "+N more" clicked 25 times (the ceiling) | 1,003 | about 0.1 s per click | 60 frames per second |
+| Searching "note" in the balanced vault (10,000 matches) | about 1,950 (43 drawn at a time) | 1.3 s | 60 frames per second |
+| Everything expanded in the balanced vault | 248 | 0.06 s | 60 frames per second |
 
 ## Not measured
 

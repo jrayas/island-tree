@@ -6,7 +6,8 @@
  */
 import { CATEGORY_STYLES, fileCategory } from "./fileType";
 import type { MetaDisplay } from "./meta";
-import { EXPANDED_CAP, filesVisible, type VisibilityState, type VisibleNode } from "./visibility";
+import { FOLDER_CEILING } from "./limits";
+import { filesVisible, type VisibilityState, type VisibleNode } from "./visibility";
 
 export interface CardDisplay {
   kind: VisibleNode["kind"];
@@ -24,6 +25,8 @@ export interface CardDisplay {
   /** Folders only: whether this folder currently lists its files. */
   filesShown: boolean;
   tooltip: string;
+  /** Pills only: nothing more can be shown here, so the card does nothing when clicked. */
+  capped?: boolean;
 }
 
 /**
@@ -32,9 +35,9 @@ export interface CardDisplay {
  */
 export function describeForReader(display: CardDisplay): string {
   if (display.kind === "more") {
-    return display.tooltip.startsWith("Show")
-      ? `${display.label}. Press Enter to show them.`
-      : `${display.label}. ${display.tooltip}`;
+    return display.capped
+      ? `${display.label}. ${display.tooltip}`
+      : `${display.label}. Press Enter to show more.`;
   }
   if (display.kind === "folder") {
     const holds = `${plural(display.subfolders, "folder", "folders")} and ${plural(display.files, "file", "files")}`;
@@ -69,9 +72,10 @@ export function describeItem(
       items: 0,
       isOpen: false,
       filesShown: false,
+      capped: item.capped === true,
       tooltip: item.capped
-        ? `${plural(item.hidden, "more item", "more items")} not shown, because a folder shows at most ${EXPANDED_CAP} at once. Search to find them.`
-        : `Show ${plural(item.hidden, "more item", "more items")}`,
+        ? `${plural(item.hidden, "more item", "more items")} not shown, because a folder shows at most ${FOLDER_CEILING} at once. Search to find them.`
+        : `Show more (${plural(item.hidden, "item", "items")} hidden)`,
     };
   }
 

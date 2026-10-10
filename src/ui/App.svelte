@@ -8,7 +8,8 @@
   import { openTarget, type OpenTarget } from "../actions/target";
   import { parseSavedView, restoreView, saveView, type SavedView } from "../model/savedView";
   import type { EditTarget, EditingApi, LockBridge } from "../editing/api";
-  import { relockDue } from "../editing/rules";
+  import { joinPath, relockDue } from "../editing/rules";
+  import { SEARCH_DELAY_MS } from "../model/limits";
   import { computeLayout, type LayoutOptions } from "../layout/layout";
   import { describeForReader, describeItem } from "../model/display";
   import { NAV_KEYS, navigate, type NavItem } from "../model/keyNav";
@@ -29,7 +30,7 @@
     type RawEntry,
     type TreeNode,
   } from "../model/tree";
-  import { buildVisibleTree, flattenVisible } from "../model/visibility";
+  import { buildVisibleTree, flattenVisible, nextBatchFor } from "../model/visibility";
   import {
     focusOn,
     initialViewState,
@@ -41,7 +42,7 @@
     setFoldersOn,
     setLayout,
     setQuery,
-    showAllFor,
+    revealBatch,
     showFolderContents,
     toggleFilesFor,
     toggleOpen,
@@ -185,7 +186,6 @@
 
   // What is typed shows at once; the search itself runs a moment after typing stops, so a broad first
   // letter in a big vault does not rebuild the whole dashboard on every keystroke.
-  const SEARCH_DELAY_MS = 180;
   let typed = $state(untrack(() => viewState.query));
   let searchTimer = 0;
   function typeQuery(text: string): void {
@@ -206,7 +206,7 @@
   });
   onDestroy(() => window.clearTimeout(searchTimer));
 
-  const search = $derived(searchTree(root, viewState.query));
+  const search = $derived(searchTree(root, viewState.query, cfg.layout.overflowLimit));
   // The search reveals matches without touching the saved state, so clearing it restores the view.
   const effective = $derived(withSearchReveal(viewState, search));
   const focusNode = $derived(index.get(viewState.focusRoot) ?? root);
@@ -285,16 +285,37 @@
     );
     root = next;
     metaVersion += 1;
-    selectPending(indexTree(next));
+    const known = indexTree(next);
+    selectPending(known);
+    revealPending(known);
   }
 
-  /** A note or folder just created from here is selected as soon as its card exists. */
+  /** Reveals the batch of its folder's children that holds a card, so the card is not hidden behind "+N more". */
+  function revealCard(known: ReadonlyMap<string, TreeNode>, uid: string): void {
+    const node = known.get(uid);
+    const parent = node?.parent;
+    if (!node || !parent) return;
+    const position = parent.children.indexOf(node);
+    viewState = revealBatch(viewState, parent.uid, Math.floor(position / cfg.layout.overflowLimit));
+  }
+
+  /** A note or folder just created from here is selected as soon as its card exists, in view. */
   function selectPending(known: ReadonlyMap<string, TreeNode>): void {
     if (!pendingSelect) return;
     const uid = registry.uidFor(pendingSelect);
     if (!known.has(uid)) return;
+    revealCard(known, uid);
     viewState = select(viewState, uid);
     pendingSelect = null;
+  }
+
+  /** A card just moved here from this dashboard is shown, in view, once it exists. */
+  function revealPending(known: ReadonlyMap<string, TreeNode>): void {
+    if (!pendingReveal) return;
+    const uid = registry.uidFor(pendingReveal);
+    if (!known.has(uid)) return;
+    revealCard(known, uid);
+    pendingReveal = null;
   }
 
   $effect(() =>
@@ -309,6 +330,7 @@
   let locked = $state(untrack(() => cfg.editing.startLocked));
   let lastEditAt = Date.now();
   let pendingSelect: string | null = null;
+  let pendingReveal: string | null = null;
 
   function toggleLock(): void {
     locked = !locked;
@@ -358,8 +380,8 @@
     if (!path) return;
     lastEditAt = Date.now();
     pendingSelect = path;
-    // Open the folder and its "+N more" list too, so the new card is not hidden in the overflow.
-    viewState = showAllFor(showFolderContents(viewState, folder.uid), folder.uid);
+    // Open the folder with its files showing; the new card's own batch is revealed once it exists.
+    viewState = showFolderContents(viewState, folder.uid);
     // The vault's own event usually arrives first; if it already has, the card is there now.
     selectPending(index);
   }
@@ -378,7 +400,10 @@
     if (locked || !source || !destination) return;
     if (await editing.move(targetOf(source), destination.path)) {
       lastEditAt = Date.now();
-      viewState = showAllFor(showFolderContents(viewState, destination.uid), destination.uid);
+      pendingReveal = joinPath(destination.path, source.name);
+      viewState = showFolderContents(viewState, destination.uid);
+      // The vault's own event usually arrives first; if it already has, the card is there now.
+      revealPending(index);
     }
   }
 
@@ -428,13 +453,21 @@
     settings.update((current) => withFieldValue(current, field, next));
   }
 
+  /** The "+N more" card: reveals the next batch of the folder's children. */
+  function revealMore(folderUid: string): void {
+    const folder = index.get(folderUid);
+    if (!folder) return;
+    const batch = nextBatchFor(folder, effective, cfg.layout.overflowLimit);
+    if (batch !== null) viewState = revealBatch(viewState, folderUid, batch);
+  }
+
   function activate(id: string): void {
     const item = visible.find((candidate) => candidate.id === id);
     if (!item) return;
     if (item.kind === "more") {
       // The pill expands its parent's overflow; it is never selected. Once the folder is as
       // expanded as it can be, the pill only reports what is left out.
-      if (item.parentId && !item.capped) viewState = showAllFor(viewState, item.parentId);
+      if (item.parentId && !item.capped) revealMore(item.parentId);
       return;
     }
     // A folder click opens or closes it and selects it; a file click only selects.
@@ -476,7 +509,7 @@
       const item = visible.find((candidate) => candidate.id === action.id);
       if (!item) return true;
       if (item.kind === "more") {
-        if (item.parentId && !item.capped) viewState = showAllFor(viewState, item.parentId);
+        if (item.parentId && !item.capped) revealMore(item.parentId);
       } else {
         openCard(action.id, { ctrlKey: event.ctrlKey, metaKey: event.metaKey });
       }

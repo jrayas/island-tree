@@ -15,7 +15,7 @@ describe("DEFAULT_SETTINGS", () => {
       levelGap: 44,
       ringRadius: 125,
       ringStep: 90,
-      overflowLimit: 6,
+      overflowLimit: 40,
     });
     expect(DEFAULT_SETTINGS.lines).toMatchObject({ curve: "curved", dash: "dashed", flowSpeed: 1 });
     expect(DEFAULT_SETTINGS.canvas).toMatchObject({ grid: "dots", gridSpacing: 22 });

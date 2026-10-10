@@ -4,6 +4,10 @@ Last updated: milestone 6 (editing).
 
 ## Done
 
+**Milestone 7, performance layer, step 1: batch reveal** (D-048)
+
+- "+N more" now reveals the next batch (the List limit, default 40) instead of everything, up to 1,000 in a folder; a search reveals only the batch with the match; new and moved cards reveal their own batch; only visible cards are drawn. Measured in headless Chrome on a 10,000-note folder: 43 cards at first, 60 frames per second at the ceiling. 441 unit tests.
+
 **Milestone 7, part 2: keyboard and screen reader** (D-047)
 
 - One tab stop with a focus ring, tree-view arrow keys, Enter, F, the camera following the selection, treeitem labels, badges out of the tab order and reduced motion. 424 unit tests; every key checked in headless Chrome with real key events. Not yet tried with a real screen reader.

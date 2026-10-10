@@ -381,6 +381,7 @@
     edgesFocusable={false}
     elementsSelectable={false}
     zoomOnDoubleClick={false}
+    onlyRenderVisibleElements
     proOptions={{ hideAttribution: true }}
     onnodeclick={({ node }) => {
       if (!suppressClick) onnodeclick(node.id);

@@ -114,6 +114,14 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Settings made in an earlier version (a vault that used the plugin before milestone 5) still load: the default layout and status property are kept.
 - [ ] No errors in the developer console (Ctrl+Shift+I) while using any of the above.
 
+**Batches ("+N more")** (use a big folder: `node scripts/synthetic-vault.mjs <empty folder> flat`, or a real folder with a few hundred notes)
+
+- [ ] Open a big folder with Expand files on: it lists its first 40 notes and a "+N more" card. Each click reveals 40 more and the number goes down. Nothing freezes.
+- [ ] After about 25 clicks the card says "N not shown" and does nothing when clicked. It works the same in Vertical, Radial and Mind map.
+- [ ] Search for a note near the end of the big folder: its batch appears with the match highlighted, the earlier batches stay hidden, and the match count shows beside the box.
+- [ ] Create a note in the big folder, or drop one into it: its card is revealed and, for a new note, selected.
+- [ ] Change **List limit** in Settings, Layout (for example to 10): the batches resize at once. Close the dashboard, press Back from a note, or restart: revealed batches are remembered.
+
 **Keyboard and screen reader** (use the keyboard only; a screen reader such as NVDA on Windows or VoiceOver on a Mac if you have one)
 
 - [ ] Tab reaches the toolbar buttons one by one, then the search box, then Lock, then the dashboard as a single stop with an accent-coloured ring, then the zoom buttons. The folder count badges are not stops.
