@@ -172,3 +172,5 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - Layout and model code must not import UI or `obsidian` code.
 - Edit styles in `src/styles.css`, never in the generated root `styles.css`.
 - Check Obsidian API names against `node_modules/obsidian/obsidian.d.ts` before using them.
+- Pass `cls` as an array whenever it has more than one class and the element is an SVG one. Obsidian's `createEl` sets `className`, so a space-separated string is fine for HTML elements, but `createSvg` hands the string to `classList.add`, which throws on a space. The typings say a space-separated string is allowed; the real app does not follow them for SVG. The same goes for `addClass` and `toggleClass`: one class name per argument.
+- Stand-ins for Obsidian in tests must be as strict as the real thing, or they hide bugs like the one above. The Chrome and jsdom stand-ins now copy `createEl` and `createSvg` from Obsidian's own `enhance.js` (found inside `obsidian.asar` in the install folder).

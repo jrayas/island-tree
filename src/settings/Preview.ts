@@ -118,8 +118,10 @@ export function renderPreview(container: HTMLElement, store: SettingsStore): () 
     for (const [id, highlighted] of [["folder", false], ["note", true]] as const) {
       const to = layout.positions.get(id);
       if (!root_ || !to) continue;
+      // An array, not a space-separated string: Obsidian's `createSvg` passes a string straight to
+      // `classList.add`, which throws on a space (unlike `createEl`, which sets `className`).
       const path = svg.createSvg("path", {
-        cls: `island-edge${highlighted ? " island-edge-highlight" : ""}`,
+        cls: highlighted ? ["island-edge", "island-edge-highlight"] : ["island-edge"],
       });
       path.setAttribute("d", branchPath(settings.lines.curve, null, root_.x, root_.y, to.x, to.y));
     }

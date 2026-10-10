@@ -4,6 +4,10 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 ## Unreleased
 
+### Fixed
+
+- The settings page showed only the header and part of the preview in Obsidian, with no tab strip or settings. The preview drew its highlighted line with a class string containing a space, which Obsidian's `createSvg` rejects, and the error stopped the rest of the page being built. It now passes a list of classes.
+
 ### Changed
 
 - The graph now fills the whole view below the toolbar and breadcrumb, painted with the same colour as Obsidian's Canvas (`--background-primary`) so the view reads as one continuous surface. The dots default to a fainter, Canvas-like colour (`--background-modifier-border`).
