@@ -24,22 +24,22 @@
   import {
     ancestry,
     buildTree,
-    folderUids,
     indexTree,
     UidRegistry,
     type RawEntry,
     type TreeNode,
   } from "../model/tree";
-  import { buildVisibleTree, flattenVisible, nextBatchFor } from "../model/visibility";
+  import { buildVisibleTree, filesVisible, flattenVisible, nextBatchFor } from "../model/visibility";
   import {
     focusOn,
+    collapseFolders,
+    expandLevel,
     initialViewState,
     resetFocus,
     restartView,
     select,
     setDetail,
     setFilesOn,
-    setFoldersOn,
     setLayout,
     setQuery,
     revealBatch,
@@ -97,11 +97,18 @@
   const registry = new UidRegistry();
   let root = $state.raw(untrack(() => buildTree(loadTree(), registry)));
   const index = $derived(indexTree(root));
-  const allFolders = $derived(folderUids(root));
   // Bumped when details may have changed, so cards re-read them.
   let metaVersion = $state(0);
 
   /** What the dashboard should start with, from the "start with" settings. */
+  /** The folders directly in the vault, which "start with the first level open" opens. */
+  function firstLevel(tree: TreeNode): string[] {
+    return tree.children
+      .filter((child) => child.kind === "folder")
+      .slice(0, cfg.layout.overflowLimit)
+      .map((child) => child.uid);
+  }
+
   function startOptions(): StartOptions {
     return {
       layoutMode: cfg.layout.defaultLayout,
@@ -127,7 +134,7 @@
 
   let viewState = $state.raw<ViewState>(
     untrack(() => {
-      const start = initialViewState(root.uid, folderUids(root), startOptions());
+      const start = initialViewState(root.uid, firstLevel(root), startOptions());
       const saved = parseSavedView(initialView);
       return saved ? restored(saved, root, start) : start;
     }),
@@ -142,7 +149,7 @@
   $effect(() => {
     stateBridge.snapshot = () => saveView(viewState, (uid) => index.get(uid)?.path);
     stateBridge.restore = (saved) => {
-      viewState = restored(saved, root, initialViewState(root.uid, allFolders, startOptions()));
+      viewState = restored(saved, root, initialViewState(root.uid, firstLevel(root), startOptions()));
       fitKey += 1;
     };
     return () => {
@@ -274,15 +281,8 @@
   // The tree is rebuilt whenever files are created, deleted or moved. The view
   // state is then tidied so it never points at cards that have gone.
   function refreshStructure(): void {
-    const previousFolders = new Set(allFolders);
     const next = buildTree(loadTree(), registry);
-    viewState = reconcileViewState(
-      viewState,
-      new Set(indexTree(next).keys()),
-      folderUids(next),
-      previousFolders,
-      next.uid,
-    );
+    viewState = reconcileViewState(viewState, new Set(indexTree(next).keys()), next.uid);
     root = next;
     metaVersion += 1;
     const known = indexTree(next);
@@ -453,6 +453,24 @@
     settings.update((current) => withFieldValue(current, field, next));
   }
 
+  // The folders on screen that are closed and have something to show: what Expand folders opens next.
+  const expandFrontier = $derived(
+    visible
+      .filter(
+        (item) =>
+          item.kind === "folder" &&
+          item.node !== null &&
+          !viewState.open.has(item.id) &&
+          item.node.children.some((child) => child.kind === "folder" || filesVisible(effective, item.id)),
+      )
+      .map((item) => item.id),
+  );
+
+  /** Expand folders: one level deeper each press; when every folder on screen is open, close them all. */
+  function expandFolders(): void {
+    viewState = expandFrontier.length > 0 ? expandLevel(viewState, expandFrontier) : collapseFolders(viewState, root.uid);
+  }
+
   /** The "+N more" card: reveals the next batch of the folder's children. */
   function revealMore(folderUid: string): void {
     const folder = index.get(folderUid);
@@ -547,15 +565,15 @@
       refit();
     }}
     onmindmap={chooseMindMap}
-    onfolders={() =>
-      (viewState = setFoldersOn(viewState, !viewState.foldersOn, allFolders, root.uid))}
+    canExpandMore={expandFrontier.length > 0}
+    onfolders={expandFolders}
     onfiles={() => (viewState = setFilesOn(viewState, !viewState.filesOn))}
     ondetail={() => {
       viewState = setDetail(viewState, !viewState.detail);
       refit();
     }}
     onreset={() => {
-      viewState = restartView(viewState, initialViewState(root.uid, allFolders, startOptions()));
+      viewState = restartView(viewState, initialViewState(root.uid, firstLevel(root), startOptions()));
       refit();
     }}
     onquery={typeQuery}

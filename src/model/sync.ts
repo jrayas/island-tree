@@ -22,25 +22,14 @@ function onlyValidBatches(batches: ViewState["batches"], valid: ReadonlySet<stri
 }
 
 /**
- * Drops ids that no longer exist from every set, clears a vanished selection,
- * sends a vanished focus back to the vault root, and, while "Expand folders" is
- * on, opens folders that did not exist before (`previousFolders`). Folders the
- * user closed by hand stay closed, because manual clicks win over the toggle.
- * Returns the same object when nothing needed to change, so an unrelated edit
- * does not re-render the dashboard.
+ * Drops ids that no longer exist from every set, clears a vanished selection and sends a
+ * vanished focus back to the vault root. New folders stay closed, even while "Expand folders" is
+ * on: opening them would build cards nobody asked for, which a pasted folder of thousands would
+ * turn into a freeze. Returns the same object when nothing needed to change, so an unrelated
+ * edit does not re-render the dashboard.
  */
-export function reconcileViewState(
-  state: ViewState,
-  valid: ReadonlySet<string>,
-  allFolders: readonly string[],
-  previousFolders: ReadonlySet<string>,
-  rootUid: string,
-): ViewState {
-  let open = onlyValid(state.open, valid);
-  if (state.foldersOn) {
-    const created = allFolders.filter((uid) => !previousFolders.has(uid));
-    if (created.length > 0) open = new Set([...open, ...created]);
-  }
+export function reconcileViewState(state: ViewState, valid: ReadonlySet<string>, rootUid: string): ViewState {
+  const open = onlyValid(state.open, valid);
   const batches = onlyValidBatches(state.batches, valid);
   const filesFor = onlyValid(state.filesFor, valid);
   const selected = state.selected !== null && valid.has(state.selected) ? state.selected : null;

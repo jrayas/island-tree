@@ -87,17 +87,16 @@ export function select(state: ViewState, uid: string | null): ViewState {
 }
 
 /**
- * "Expand folders" (rule 4). On opens every folder. Off closes everything back to
- * the root and resets the focus, because a focus deep in a tree that has just
- * collapsed would otherwise leave the view stranded.
+ * "Expand folders" (rule 4): opens one more level. `frontier` is the folders that are on screen
+ * and still closed, so each press goes one level deeper and nothing is built for folders nobody
+ * has reached. Once nothing is left to open, the button closes them all (`collapseFolders`).
  */
-export function setFoldersOn(
-  state: ViewState,
-  on: boolean,
-  allFolders: readonly string[],
-  rootUid: string,
-): ViewState {
-  if (on) return { ...state, foldersOn: true, open: new Set(allFolders) };
+export function expandLevel(state: ViewState, frontier: readonly string[]): ViewState {
+  return { ...state, foldersOn: true, open: new Set([...state.open, ...frontier]) };
+}
+
+/** Closes every folder back to the root and resets the focus, which a deep focus would strand. */
+export function collapseFolders(state: ViewState, rootUid: string): ViewState {
   return { ...state, foldersOn: false, open: new Set([rootUid]), focusRoot: rootUid };
 }
 
@@ -143,7 +142,7 @@ export interface StartOptions {
 /** The view the dashboard opens with, following the "start with" settings. */
 export function initialViewState(
   rootUid: string,
-  allFolders: readonly string[],
+  firstLevel: readonly string[],
   start: StartOptions,
 ): ViewState {
   const base = createViewState(rootUid, start.layoutMode);
@@ -151,7 +150,7 @@ export function initialViewState(
     ...base,
     detail: start.detail,
     foldersOn: start.expandFolders,
-    open: start.expandFolders ? new Set(allFolders) : base.open,
+    open: start.expandFolders ? new Set([rootUid, ...firstLevel]) : base.open,
     filesOn: start.expandFiles,
   };
 }

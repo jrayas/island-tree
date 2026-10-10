@@ -313,3 +313,11 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 **Why:** The request was for batches and a small first view of a big folder, which also makes the first view cheap (43 cards for a 10,000-note folder). Batches by position keep the order predictable. Measured at the new limits: 1,003 cards in one folder panned at 39 frames per second with every card drawn, and 60 with only the visible ones drawn, so that option earns its place now, though at 10,000 cards it did not.
 
 **Cost:** a folder of more than 1,000 notes cannot be browsed past the first 1,000 on the dashboard; searching reaches the rest. Batches earlier than a revealed one stay hidden until asked for, so a card can show with a gap before it.
+
+## D-049: Expand folders goes one level at a time
+
+**Decision:** `expandLevel(state, frontier)` opens the folders that are on screen, closed, and have something to show (a subfolder, or files while files are visible). The frontier is derived in `App.svelte` from the visible tree. When the frontier is empty the button becomes **Collapse folders** and `collapseFolders` closes everything and resets the focus. `reconcileViewState` no longer opens folders created while Expand folders is on, and the start setting opens the vault's first level (up to the List limit) and not every folder.
+
+**Why:** Opening every folder at once builds the whole tree, which on a big vault is exactly the cost the card limits exist to avoid, and a pasted folder of thousands would have opened itself. One level per press is predictable, stays within the card budget, and needs no confirmation. Measured: a press takes about 50 ms on the 10,000-note vault.
+
+**Cost:** a person who liked "open everything" presses the button a few times. Folders hidden behind "+N more" are not on screen, so they are not opened by Expand folders.

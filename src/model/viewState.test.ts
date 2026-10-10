@@ -8,7 +8,8 @@ import {
   select,
   setFilesOn,
   setDetail,
-  setFoldersOn,
+  collapseFolders,
+  expandLevel,
   setLayout,
   setQuery,
   revealBatch,
@@ -98,16 +99,28 @@ describe("select", () => {
   });
 });
 
-describe("setFoldersOn", () => {
-  it("opens every folder when turned on", () => {
-    const s = setFoldersOn(start(), true, ["root", "a", "b"], "root");
+describe("expandLevel and collapseFolders", () => {
+  it("opens the folders on screen and marks Expand folders on", () => {
+    const s = expandLevel(start(), ["a", "b"]);
     expect(s.foldersOn).toBe(true);
     expect([...s.open].sort()).toEqual(["a", "b", "root"]);
   });
 
-  it("closes back to the root and resets focus when turned off", () => {
-    const on = focusOn(setFoldersOn(start(), true, ["root", "a"], "root"), "a");
-    const off = setFoldersOn(on, false, ["root", "a"], "root");
+  it("goes one level deeper each time, keeping what was open", () => {
+    const first = expandLevel(start(), ["a"]);
+    const second = expandLevel(first, ["c", "d"]);
+    expect([...second.open].sort()).toEqual(["a", "c", "d", "root"]);
+  });
+
+  it("does not open anything else, and does not change the state it was given", () => {
+    const s = start();
+    expandLevel(s, ["a"]);
+    expect([...s.open]).toEqual(["root"]);
+  });
+
+  it("closes back to the root and resets focus", () => {
+    const on = focusOn(expandLevel(start(), ["a"]), "a");
+    const off = collapseFolders(on, "root");
     expect(off.foldersOn).toBe(false);
     expect([...off.open]).toEqual(["root"]);
     expect(off.focusRoot).toBe("root");
@@ -174,7 +187,7 @@ describe("setDetail", () => {
 });
 
 describe("initialViewState", () => {
-  const folders = ["root", "a", "b"];
+  const folders = ["a", "b"];
 
   it("starts plain by default", () => {
     const s = initialViewState("root", folders, {
@@ -191,13 +204,21 @@ describe("initialViewState", () => {
     expect(s.detail).toBe(true);
     expect(s.filesOn).toBe(true);
     expect(s.foldersOn).toBe(true);
+    // The first level only: the vault and its folders, not everything below.
     expect([...s.open].sort()).toEqual(["a", "b", "root"]);
+  });
+
+  it("does not open folders below the first level", () => {
+    const s = initialViewState("root", ["a"], {
+      layoutMode: "vertical", detail: false, expandFolders: true, expandFiles: false,
+    });
+    expect(s.open.has("deep")).toBe(false);
   });
 });
 
 describe("restartView", () => {
   it("goes back to the starting view but keeps the layout and detail level chosen since", () => {
-    const initial = initialViewState("root", ["root", "a"], {
+    const initial = initialViewState("root", ["a"], {
       layoutMode: "vertical", detail: false, expandFolders: true, expandFiles: false,
     });
     const messy = setQuery(

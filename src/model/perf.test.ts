@@ -5,7 +5,7 @@ import { balancedVault, countRawFiles, deepVault, flatVault } from "./synthetic"
 import { buildTree, folderUids, indexTree, UidRegistry } from "./tree";
 import { FOLDER_CEILING, MAX_CARDS } from "./limits";
 import { buildVisibleTree, flattenVisible } from "./visibility";
-import { createViewState, revealBatch, setFilesOn, setFoldersOn, type ViewState } from "./viewState";
+import { createViewState, revealBatch, setFilesOn, type ViewState } from "./viewState";
 
 const OPTIONS: LayoutOptions = {
   cardWidth: 116,
@@ -17,6 +17,11 @@ const OPTIONS: LayoutOptions = {
   mindMapView: "balanced",
 };
 const LIMIT = 40;
+
+/** Every folder open and every file showing, the heaviest view there is. */
+function openEverything(rootUid: string, folders: readonly string[]): ViewState {
+  return setFilesOn({ ...createViewState(rootUid), open: new Set(folders) }, true);
+}
 
 /** Reveals every batch a folder allows, as clicking "+N more" over and over would. */
 function revealAll(state: ViewState, uid: string): ViewState {
@@ -55,7 +60,7 @@ describe("a vault of 10,000 files", () => {
 
   it("keeps the visible tree small, whatever the vault size", () => {
     const tree = buildTree(raw, new UidRegistry());
-    const state = setFilesOn(setFoldersOn(createViewState(tree.uid), true, folderUids(tree), tree.uid), true);
+    const state = openEverything(tree.uid, folderUids(tree));
     const visible = time(() => flattenVisible(buildVisibleTree(tree, state, LIMIT)));
     expect(visible.value.length).toBeLessThan(MAX_CARDS * 2);
     expect(visible.ms).toBeLessThan(1500);
@@ -88,7 +93,7 @@ describe("laying out many cards", () => {
 
   for (const mode of ["vertical", "radial", "mindmap"] as const) {
     it(`places ${mode} for a folder with every file listed`, () => {
-      const state = revealAll(setFilesOn(setFoldersOn(createViewState(tree.uid), true, [tree.uid, folder.uid], tree.uid), true), folder.uid);
+      const state = revealAll(openEverything(tree.uid, [tree.uid, folder.uid]), folder.uid);
       const visible = buildVisibleTree(tree, state, LIMIT);
       const count = flattenVisible(visible).length;
       const placed = time(() => computeLayout(mode, visible, false, OPTIONS));
@@ -101,7 +106,7 @@ describe("laying out many cards", () => {
 describe("a deep vault", () => {
   it("lays out a chain of folders", () => {
     const tree = buildTree(deepVault(), new UidRegistry());
-    const state = setFilesOn(setFoldersOn(createViewState(tree.uid), true, folderUids(tree), tree.uid), true);
+    const state = openEverything(tree.uid, folderUids(tree));
     const visible = buildVisibleTree(tree, state, LIMIT);
     for (const mode of ["vertical", "radial", "mindmap"] as const) {
       const placed = time(() => computeLayout(mode, visible, false, OPTIONS));

@@ -4,6 +4,10 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 ## Unreleased
 
+### Changed
+
+- **Expand folders** now opens one more level each press, and only for the folders on screen; once everything on screen is open it reads **Collapse folders** and closes them all. Folders that appear later (created, moved or pasted) stay closed. The start setting is now **Start with the first level open**. Nothing is built for a folder nobody has reached, so Expand folders can no longer ask for the whole vault at once.
+
 ### Added
 
 - **"+N more" reveals a batch.** A folder lists its first 40 children (the **List limit** setting, now 2 to 200 with a default of 40), and "+N more" reveals the next 40 each time, up to 1,000 in one folder, then says how many are "not shown". A search reveals only the batch that holds a match. New and moved cards reveal their own batch. Which batches are open is remembered with the rest of the view. The limits live in `src/model/limits.ts`, the overall budget is 1,500 cards, and only the cards on screen are drawn.

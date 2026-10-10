@@ -4,6 +4,10 @@ Last updated: milestone 6 (editing).
 
 ## Done
 
+**Milestone 7, performance layer, step 2: Expand folders one level at a time** (D-049)
+
+- Each press opens the folders on screen; when all are open it becomes Collapse folders. New folders stay closed. The start setting opens the first level only. 443 unit tests; checked in Chrome on the small and the 10,000-note vault.
+
 **Milestone 7, performance layer, step 1: batch reveal** (D-048)
 
 - "+N more" now reveals the next batch (the List limit, default 40) instead of everything, up to 1,000 in a folder; a search reveals only the batch with the match; new and moved cards reveal their own batch; only visible cards are drawn. Measured in headless Chrome on a 10,000-note folder: 43 cards at first, 60 frames per second at the ceiling. 441 unit tests.

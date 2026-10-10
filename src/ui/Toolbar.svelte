@@ -8,6 +8,7 @@
     mindMapView,
     compact,
     foldersOn,
+    canExpandMore,
     filesOn,
     detailOn,
     query,
@@ -33,6 +34,8 @@
     /** Compact density is on: smaller cards and tighter spacing. */
     compact: boolean;
     foldersOn: boolean;
+    /** Some folder on screen is still closed, so Expand folders opens another level. */
+    canExpandMore: boolean;
     filesOn: boolean;
     detailOn: boolean;
     query: string;
@@ -89,8 +92,14 @@
   </div>
 
   <div class="island-toolbar-group">
-    <button type="button" class:is-active={foldersOn} aria-pressed={foldersOn} onclick={onfolders}
-      >Expand folders</button
+    <button
+      type="button"
+      class:is-active={foldersOn}
+      aria-pressed={foldersOn}
+      title={foldersOn && !canExpandMore
+        ? "Every folder on screen is open. Click to close them all."
+        : "Open the next level of folders. Click again for the level after."}
+      onclick={onfolders}>{foldersOn && !canExpandMore ? "Collapse folders" : "Expand folders"}</button
     >
     <button type="button" class:is-active={filesOn} aria-pressed={filesOn} onclick={onfiles}
       >Expand files</button

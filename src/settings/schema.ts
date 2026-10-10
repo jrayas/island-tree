@@ -439,8 +439,8 @@ export const FIELDS: readonly Field[] = [
   },
   {
     group: "layout", key: "startExpandFolders", tab: "layout", section: "Folders", inPreset: true,
-    label: "Start with all folders open",
-    description: "Open the dashboard with Expand folders already on.",
+    label: "Start with the first level open",
+    description: "Open the dashboard with the folders in the vault root already open. Expand folders then opens one more level each press.",
     def: bool(false),
   },
   {
