@@ -445,6 +445,8 @@
     curve={cfg.lines.curve}
     grid={{ type: cfg.canvas.grid, size: cfg.canvas.gridSize, spacing: cfg.canvas.gridSpacing }}
     {fitKey}
+    wheel={cfg.canvas.wheel}
+    onfit={refit}
     frameBox={placed.frame ?? null}
     onnodeclick={activate}
     onbadge={(id) => (viewState = toggleFilesFor(viewState, id))}

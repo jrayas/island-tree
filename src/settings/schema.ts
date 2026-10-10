@@ -45,7 +45,12 @@ export interface LineSettings {
   highlightColour: string;
 }
 
+/** What the scroll wheel does on the dashboard. Ctrl or Cmd and scroll always does the other one. */
+export type WheelBehaviour = "pan" | "zoom";
+
 export interface CanvasSettings {
+  /** Like Obsidian's Canvas: scroll pans by default. */
+  wheel: WheelBehaviour;
   grid: GridType;
   gridSize: number;
   gridSpacing: number;
@@ -358,6 +363,19 @@ export const FIELDS: readonly Field[] = [
       options: [
         { value: "comfortable", label: "Comfortable" },
         { value: "compact", label: "Compact" },
+      ],
+    },
+  },
+  {
+    group: "canvas", key: "wheel", tab: "layout", section: "Mouse", inPreset: false,
+    label: "Mouse wheel",
+    description: "What the scroll wheel does, as in Obsidian's Canvas. Pan moves the view, and Ctrl or Cmd with scroll (or Space with scroll) zooms. Zoom swaps them.",
+    def: {
+      kind: "enum",
+      default: "pan",
+      options: [
+        { value: "pan", label: "Pan" },
+        { value: "zoom", label: "Zoom" },
       ],
     },
   },

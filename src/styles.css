@@ -256,6 +256,20 @@
   stroke-dasharray: 4 3;
 }
 
+/* The fit button's corner-brackets icon is an outline too. */
+.island-tree-view .island-fit svg {
+  fill: none;
+}
+
+/* Space held: a drag pans even when it starts on a card, so cards let the pointer through. */
+.island-tree-view .island-canvas.is-space .svelte-flow__node {
+  pointer-events: none;
+}
+
+.island-tree-view .island-canvas.is-space .svelte-flow__pane {
+  cursor: grab;
+}
+
 .island-tree-view .svelte-flow__controls-button.is-active {
   background: var(--interactive-accent);
   color: var(--text-on-accent);

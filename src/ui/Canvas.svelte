@@ -16,7 +16,7 @@
   } from "@xyflow/svelte";
   import { easeFactor, seedPositions, stepPositions } from "../layout/animate";
   import type { CurveStyle, MindSide, Point } from "../layout/types";
-  import type { GridType } from "../settings/schema";
+  import type { GridType, WheelBehaviour } from "../settings/schema";
   import type { Box } from "../layout/bounds";
   import type { CanvasItem } from "./cardData";
   import { provideCanvasActions, provideZoom } from "./context";
@@ -25,6 +25,7 @@
   import BoxZoom from "./BoxZoom.svelte";
   import FitController from "./FitController.svelte";
   import ZoomWatcher from "./ZoomWatcher.svelte";
+  import { PAN_BUTTONS, isFitShortcut, keyBelongsElsewhere, wheelOptions, zoomKeys } from "./mouse";
   import { ZoomState } from "./zoomState.svelte";
 
   let {
@@ -38,6 +39,8 @@
     curve,
     grid,
     fitKey,
+    wheel,
+    onfit,
     onnodeclick,
     onbadge,
     onopen,
@@ -63,6 +66,10 @@
     grid: { type: GridType; size: number; spacing: number };
     /** Changing this value moves the camera to frame all cards. */
     fitKey: number;
+    /** What the scroll wheel does: pan (as in Obsidian's Canvas) or zoom. */
+    wheel: WheelBehaviour;
+    /** The Fit button or Shift and 1: frame the cards the same way the automatic fit does. */
+    onfit: () => void;
     onnodeclick: (id: string) => void;
     onbadge: (id: string) => void;
     onopen: (id: string, modifiers: { ctrlKey: boolean; metaKey: boolean }) => void;
@@ -169,6 +176,42 @@
   }
 
   provideZoom(new ZoomState());
+
+  // Space held over the dashboard turns a drag into a pan even when it starts on a card, and
+  // scroll into a zoom, as in Canvas. Cards stop catching the pointer while it is held.
+  let hovering = false;
+  let spaceHeld = $state(false);
+
+  function keyDown(event: KeyboardEvent): void {
+    if (!hovering || keyBelongsElsewhere(event.target as Element | null)) return;
+    if (event.code === "Space") {
+      event.preventDefault();
+      spaceHeld = true;
+    } else if (isFitShortcut(event)) {
+      event.preventDefault();
+      onfit();
+    }
+  }
+
+  function keyUp(event: KeyboardEvent): void {
+    if (event.code === "Space") spaceHeld = false;
+  }
+
+  // A right-button drag pans, so the menu that follows it must not open on a card. A plain
+  // right-click (no movement) still gets its menu.
+  let rightDown: { x: number; y: number } | null = null;
+
+  function rightPressed(event: PointerEvent): void {
+    if (event.button === 2) rightDown = { x: event.clientX, y: event.clientY };
+  }
+
+  function menuRequested(event: MouseEvent): void {
+    const moved = rightDown && Math.hypot(event.clientX - rightDown.x, event.clientY - rightDown.y) > DRAG_START_DISTANCE;
+    rightDown = null;
+    if (!moved) return;
+    event.preventDefault();
+    event.stopPropagation();
+  }
 
   // "Zoom to area" mode: on from the fourth zoom button, off after a zoom or Escape.
   let boxMode = $state(false);
@@ -286,9 +329,17 @@
   });
 </script>
 
+<svelte:window onkeydown={keyDown} onkeyup={keyUp} onblur={() => (spaceHeld = false)} />
+
 <div
   class="island-canvas"
   class:is-dragging={drag !== null}
+  class:is-space={spaceHeld}
+  role="presentation"
+  onpointerdowncapture={rightPressed}
+  oncontextmenucapture={menuRequested}
+  onmouseenter={() => (hovering = true)}
+  onmouseleave={() => (hovering = false)}
   bind:this={canvasEl}
   bind:clientWidth={paneWidth}
   bind:clientHeight={paneHeight}
@@ -302,7 +353,9 @@
     fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
     minZoom={MIN_ZOOM}
     maxZoom={2}
-    panOnDrag={!boxMode}
+    panOnDrag={boxMode ? false : PAN_BUTTONS}
+    {...wheelOptions(wheel)}
+    zoomActivationKey={zoomKeys(wheel)}
     nodesDraggable={false}
     nodesConnectable={false}
     nodesFocusable={false}
@@ -321,7 +374,17 @@
         size={grid.size}
       />
     {/if}
-    <Controls showLock={false} position="top-left">
+    <Controls showLock={false} showFitView={false} position="top-left">
+      <ControlButton
+        class="svelte-flow__controls-fitview island-fit"
+        onclick={onfit}
+        title="Fit to screen (Shift and 1)"
+        aria-label="Fit to screen"
+      >
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+          <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+        </svg>
+      </ControlButton>
       <ControlButton
         class={["island-box-zoom", boxMode && "is-active"]}
         onclick={() => (boxMode = !boxMode)}
