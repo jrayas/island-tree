@@ -263,7 +263,17 @@
   stroke-linecap: round;
 }
 
-/* The fit button's corner-brackets icon is an outline too. */
+/* The saved view button's bookmark is an outline until a view is saved, then it fills in. */
+.island-tree-view .island-saved-view svg {
+  fill: none;
+  stroke-linejoin: round;
+}
+
+.island-tree-view .island-saved-view.is-active svg {
+  fill: currentColor;
+}
+
+/* The fit button's frame-and-block icon is an outline too. */
 .island-tree-view .island-fit svg {
   fill: none;
 }

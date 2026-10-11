@@ -104,6 +104,7 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | `src/layout/zoomLevel.ts` | `zoomLevel`: below 0.45 minimal, from 0.7 detailed, otherwise normal. |
 | `src/layout/animate.ts` | `easeFactor` (frame-rate independent), `seedPositions` (new cards start at their parent), `stepPositions`. |
 | `src/layout/autoScroll.ts` | Auto-scroll as pure rules: the next view for a direction, speed and time step, the end of the cards (with the margin), turning round, "nothing to scroll", whether something else moved the view, and the state change for each action. |
+| `src/layout/camera.ts` | A saved camera as pure data: the card-space point at the middle of the pane plus the zoom, converting to and from the view, reading it back safely, and one camera per layout. |
 | `src/layout/bounds.ts` | `boundsOfCards`: the box around target positions, for fitting the camera. |
 | `src/layout/edgePath.ts` | The branch shapes: curved, step and straight, for the vertical and the radial layout, and `branchPath` which picks one for a curve style. Used by the dashboard and by the settings preview. | For the mind map: `mindMapPath` (card edge to card edge, as an S-curve, or rounded elbows for the step style, never a diagonal).
 
@@ -119,6 +120,7 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | `src/model/savedView.ts` | `SavedView`, `saveView`, `parseSavedView` and `restoreView`: how the dashboard was left, stored by path (ids change each session), read back defensively and applied only to paths that still exist. |
 | `src/ui/scrollBridge.ts` | The link that lets the "Toggle auto-scroll" command reach the app, like the lock bridge. |
 | `src/ui/AutoScroll.svelte` | Moves the camera a little every frame while auto-scroll runs, and hands control back when anything else moves it. Sits inside Svelte Flow. |
+| `src/ui/SavedViewButton.svelte` | The control strip's bookmark button: saves the camera, goes back to it, and offers the right-click menu. Sits inside Svelte Flow to reach the viewport. |
 | `src/ui/stateBridge.ts` | The link between the app and its Obsidian view for saving and restoring the saved view: `snapshot`, `restore` and `changed`. |
 | `scripts/check-guidelines.mjs` | Checks the manifest, version files, tag, required files and the source against the community rules a pattern can catch (unsafe HTML, network calls, global `app`, default hotkeys, console logging, placeholders, API versions against `minAppVersion`). Exits 1 on any error. `npm run check:release`. |
 | `.github/workflows/ci.yml`, `release.yml` | CI on every push and pull request (lint, tests, build, the rules check). On a bare version tag, the release workflow builds, checks the tag equals the manifest version, and attaches `main.js`, `manifest.json` and `styles.css` to a GitHub release. Not yet run on GitHub. |

@@ -114,6 +114,17 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Settings made in an earlier version (a vault that used the plugin before milestone 5) still load: the default layout and status property are kept.
 - [ ] No errors in the developer console (Ctrl+Shift+I) while using any of the above.
 
+**Saved view button**
+
+- [ ] The control strip is: zoom in, zoom out, fit, play, saved view (a bookmark), zoom to area. With nothing saved the bookmark is an outline, and its tooltip says "Save the current view".
+- [ ] Pan and zoom somewhere you like and click it: a notice says it saved, and the bookmark turns solid and accent-coloured. Pan and zoom elsewhere and click it: the camera glides back to the saved spot and zoom.
+- [ ] Right-click it: "Save current view here", "Go to saved view" and "Forget saved view" (the last two greyed out when nothing is saved). Forget empties the bookmark. With the button focused, the menu key or Shift and F10 opens the same menu.
+- [ ] Switch to Radial: the bookmark is empty there, and the vertical one is still saved when you switch back. Reset does not clear it, and does not move the camera back to it either.
+- [ ] Narrow the window or open a sidebar, move away and click it: the same spot is in the middle.
+- [ ] Open a note in this tab and press Back, or restart Obsidian: the saved view is still there.
+- [ ] Clicking it while auto-scroll runs pauses auto-scroll first.
+- [ ] The Fit icon is a frame with a block inside it.
+
 **Auto-scroll**
 
 - [ ] Open a vault with enough folders that the tree is bigger than the pane (or zoom in). Press Shift and Space with the pointer over the dashboard: the view drifts down at about the Speed setting, and pressing it again pauses.

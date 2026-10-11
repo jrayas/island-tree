@@ -16,7 +16,9 @@
   } from "@xyflow/svelte";
   import { easeFactor, seedPositions, stepPositions } from "../layout/animate";
   import { FADE_OUT_MS, MAX_FADING_CARDS } from "../model/limits";
+  import type { MenuEntry } from "../editing/api";
   import type { AutoScrollAction, AutoScrollState, ScrollEnd } from "../layout/autoScroll";
+  import type { SavedCamera } from "../layout/camera";
   import type { CurveStyle, MindSide, Point } from "../layout/types";
   import type { GridType, WheelBehaviour } from "../settings/schema";
   import type { Box } from "../layout/bounds";
@@ -28,6 +30,7 @@
   import BoxZoom from "./BoxZoom.svelte";
   import FitController from "./FitController.svelte";
   import FollowSelection from "./FollowSelection.svelte";
+  import SavedViewButton from "./SavedViewButton.svelte";
   import ZoomWatcher from "./ZoomWatcher.svelte";
   import {
     PAN_BUTTONS,
@@ -56,6 +59,10 @@
     autoSpeed,
     autoAtEnd,
     onauto,
+    savedCamera,
+    onsavecamera,
+    onmenu,
+    onnotice,
     activeId,
     searchId,
     onkey,
@@ -95,6 +102,14 @@
     autoAtEnd: ScrollEnd;
     /** A key, the end of the cards or a hand on the view changed auto-scroll. */
     onauto: (action: AutoScrollAction) => void;
+    /** The view saved for the layout on screen with the Saved view button, or null. */
+    savedCamera: SavedCamera | null;
+    /** Remember a camera for the layout on screen, or forget it when null. */
+    onsavecamera: (camera: SavedCamera | null) => void;
+    /** Shows a context menu at the pointer. */
+    onmenu: (event: MouseEvent, entries: MenuEntry[]) => void;
+    /** Shows a short message. */
+    onnotice: (message: string) => void;
     /** The selected card, which the keyboard moves and the screen reader announces. */
     activeId: string | null;
     /** The first search match on screen, which the camera glides to. */
@@ -488,7 +503,8 @@
         aria-label="Fit to screen"
       >
         <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
-          <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+          <path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M20 9V5.5A1.5 1.5 0 0 0 18.5 4H15M4 15v3.5A1.5 1.5 0 0 0 5.5 20H9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15" />
+          <rect x="8.5" y="9" width="7" height="6" rx="1" />
         </svg>
       </ControlButton>
       <ControlButton
@@ -506,6 +522,14 @@
           {/if}
         </svg>
       </ControlButton>
+      <SavedViewButton
+        saved={savedCamera}
+        width={paneWidth}
+        height={paneHeight}
+        onsave={onsavecamera}
+        {onmenu}
+        {onnotice}
+      />
       <ControlButton
         class={["island-box-zoom", boxMode && "is-active"]}
         onclick={() => (boxMode = !boxMode)}

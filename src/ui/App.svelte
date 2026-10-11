@@ -12,6 +12,7 @@
   import { CountCache, indexByPath } from "../model/counts";
   import { COUNT_CHUNK, SEARCH_DELAY_MS } from "../model/limits";
   import { nextAutoScroll, type AutoScrollAction, type AutoScrollState } from "../layout/autoScroll";
+  import { withCamera, type SavedCameras } from "../layout/camera";
   import { computeLayout, type LayoutOptions } from "../layout/layout";
   import { describeForReader, describeItem } from "../model/display";
   import { NAV_KEYS, navigate, type NavItem } from "../model/keyNav";
@@ -174,12 +175,17 @@
   // view does not jump while browsing.
   let fitKey = $state(0);
 
+  // The views saved with the Saved view button, one per layout. They only move the camera, so Reset,
+  // the layout and the open folders never touch them.
+  let cameras = $state.raw<SavedCameras>(untrack(() => parseSavedView(initialView)?.cameras ?? {}));
+
   // Remembering how the dashboard was left: Obsidian asks for a snapshot when this tab navigates
   // to a note (so Back can return) and when it saves the layout, and hands one back afterwards.
   $effect(() => {
-    stateBridge.snapshot = () => saveView(viewState, (uid) => index.get(uid)?.path);
+    stateBridge.snapshot = () => saveView(viewState, (uid) => index.get(uid)?.path, cameras);
     stateBridge.restore = (saved) => {
       viewState = restored(saved, root, initialViewState(root.uid, firstLevel(root), startOptions()));
+      cameras = saved.cameras ?? {};
       fitKey += 1;
     };
     return () => {
@@ -190,6 +196,7 @@
   // Ask Obsidian to save the layout whenever the view changes, so a restart brings it back too.
   $effect(() => {
     void viewState;
+    void cameras;
     untrack(() => stateBridge.changed?.());
   });
 
@@ -730,6 +737,10 @@
     autoSpeed={cfg.canvas.autoScrollSpeed}
     autoAtEnd={cfg.canvas.autoScrollAtEnd}
     onauto={driveAuto}
+    savedCamera={cameras[viewState.layoutMode] ?? null}
+    onsavecamera={(camera) => (cameras = withCamera(cameras, viewState.layoutMode, camera))}
+    onmenu={(event, entries) => editing.menu(event, entries)}
+    onnotice={(message) => editing.notify(message)}
     activeId={viewState.selected}
     searchId={searchFocus}
     onkey={navigateKey}
