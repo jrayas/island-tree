@@ -31,10 +31,12 @@ export interface VisibilityState {
   /** Global "Expand files" toggle. */
   filesOn: boolean;
   /**
-   * Cards that matter right now (search matches and the folders leading to them). A folder with
-   * more children than can be shown shows these first, so a search never hides its own results.
+   * Cards a search has picked out, one by one: the card itself and the folders leading to it. Each is
+   * shown wherever it sits among its siblings, beyond the batches shown and even when its folder's
+   * files are hidden, so finding one card never loads the others around it. At a folder's ceiling
+   * these are kept first.
    */
-  prefer?: ReadonlySet<string>;
+  pinned?: ReadonlySet<string>;
 }
 
 /**
@@ -79,11 +81,21 @@ export function moreId(folderUid: string): string {
 }
 
 /**
+ * The children a folder can list: subfolders, files when its files are shown, and any card a search
+ * has pinned, whatever its kind. `TreeNode.children` is sorted folders first, so the order is kept.
+ */
+function listedChildren(folder: TreeNode, state: VisibilityState): readonly TreeNode[] {
+  if (filesVisible(state, folder.uid)) return folder.children;
+  const pinned = state.pinned;
+  return folder.children.filter((child) => child.kind === "folder" || (pinned?.has(child.uid) ?? false));
+}
+
+/**
  * The next batch of a folder's children that "+N more" would reveal: the lowest batch not shown
  * yet. Null when everything is shown or the folder is at its ceiling.
  */
 export function nextBatchFor(folder: TreeNode, state: VisibilityState, limit: number = DEFAULT_LIMIT): number | null {
-  const listed = filesVisible(state, folder.uid) ? folder.children.length : folder.children.filter((c) => c.kind === "folder").length;
+  const listed = listedChildren(folder, state).length;
   const revealed = state.batches.get(folder.uid);
   const total = Math.ceil(listed / limit);
   let shown = 0;
@@ -112,17 +124,20 @@ export function visibleChildren(
 ): VisibleNode[] {
   if (folder.kind !== "folder" || !state.open.has(folder.uid)) return [];
 
-  const listed = filesVisible(state, folder.uid)
-    ? folder.children
-    : folder.children.filter((child) => child.kind === "folder");
+  const listed = listedChildren(folder, state);
 
   const revealed = state.batches.get(folder.uid);
+  const pinned = state.pinned;
   let shown: readonly TreeNode[];
   if (listed.length <= limit) shown = listed;
-  else if (!revealed || revealed.size === 0) shown = listed.slice(0, limit);
-  else shown = listed.filter((_, position) => position < limit || revealed.has(Math.floor(position / limit)));
+  else {
+    shown = listed.filter(
+      (child, position) =>
+        position < limit || revealed?.has(Math.floor(position / limit)) === true || (pinned?.has(child.uid) ?? false),
+    );
+  }
   // A folder never shows more than its ceiling, whatever was asked for. What matters comes first.
-  if (shown.length > FOLDER_CEILING) shown = pickWithin(shown, FOLDER_CEILING, state.prefer);
+  if (shown.length > FOLDER_CEILING) shown = pickWithin(shown, FOLDER_CEILING, pinned);
   const capped = shown.length >= FOLDER_CEILING && shown.length < listed.length;
   const items = shown.map<VisibleNode>((node) => ({
     id: node.uid,

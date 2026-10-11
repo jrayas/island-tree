@@ -17,7 +17,7 @@ The pure steps are not the problem. For 10,000 notes, on a normal laptop:
 | Step | Time |
 |---|---|
 | Build the tree and index it | about 40 ms |
-| Search the whole vault | about 1 ms |
+| Suggestions for a typed name, over all 10,000 notes (names in memory only) | a few milliseconds |
 | Lay out 10,000 cards (vertical, radial or mind map) | 5 to 12 ms |
 
 The cost is in drawing and animating cards. Each frame of the glide rebuilds every card, so the number of cards on screen is what matters.
@@ -42,7 +42,7 @@ All of them are named constants in `src/model/limits.ts`.
 - **One folder shows at most 1,000 children** (`FOLDER_CEILING`), however many batches are revealed. A card then says how many are "not shown" and does nothing when clicked; a search finds them, and shows its matches first.
 - **The whole dashboard draws at most 1,500 cards** (`MAX_CARDS`), whatever is open. The tree is filled level by level, so the top of the tree always shows and only the deepest levels are cut, with a card ("N not shown") where children were left out. Those cards do not count towards the 1,500.
 - **Only the cards on screen are drawn** (Svelte Flow's `onlyRenderVisibleElements`). At 10,000 cards this did not help, because the per-frame work is in our code; at the 1,000-card ceiling it is the difference between 39 and 60 frames per second.
-- **Search waits about 0.2 s after you stop typing** (`SEARCH_DELAY_MS`) before it runs, so a broad first letter does not rebuild everything on every keystroke. Clearing the box is instant. The number of matches shows beside the box.
+- **Search never loads the cards that match.** Typing lists at most 8 suggestions (`SUGGESTION_LIMIT`) from the names in memory, so a letter that matches 14,000 files costs a few milliseconds and no cards. Choosing one loads that one card (it and its folders are pinned, `model/reveal.ts`), however many names matched. Marking the cards already on screen waits about 0.2 s after you stop typing (`SEARCH_DELAY_MS`); clearing the box is instant.
 
 ## After the limits
 
@@ -50,7 +50,9 @@ All of them are named constants in `src/model/limits.ts`.
 |---|---|---|---|
 | A folder of 10,000 notes, first view | 43 | instant | 60 frames per second |
 | The same, "+N more" clicked 25 times (the ceiling) | 1,003 | about 0.1 s per click | 60 frames per second |
-| Searching "note" in the balanced vault (10,000 matches) | about 1,950 (43 drawn at a time) | 1.3 s | 60 frames per second |
+| Searching "note" in the balanced vault (10,000 matches) | about 1,950 (43 drawn at a time) | 1.3 s | 60 frames per second (before D-056: search no longer reveals every match) |
+| Typing "o" in the balanced vault (500 folders match), after D-056 | 42 (none added) | list on screen in about 28 ms | worst frame 17 ms, so 60 frames per second |
+| Going to one chosen folder or file there | 22 or 23 | about 50 ms | worst frame 33 ms |
 | Everything expanded in the balanced vault | 248 | 0.06 s | 60 frames per second |
 
 ## Not measured

@@ -23,6 +23,8 @@ export interface SavedView {
   batches: Record<string, number[]>;
   /** Folders whose files show whatever the Expand files toggle says. */
   filesFor: string[];
+  /** The cards a search went to. Left out when there are none. */
+  pinned?: string[];
   selected: string | null;
   /** The folder the view is focused on. */
   focusRoot: string;
@@ -90,6 +92,7 @@ export function saveView(
     open: paths(state.open),
     batches: batchesToPaths(state.batches, pathOf),
     filesFor: paths(state.filesFor),
+    ...(state.pinned.size > 0 ? { pinned: paths(state.pinned) } : {}),
     selected: state.selected === null ? null : (pathOf(state.selected) ?? null),
     focusRoot: pathOf(state.focusRoot) ?? "/",
     query: state.query,
@@ -122,6 +125,7 @@ export function parseSavedView(raw: unknown): SavedView | null {
   if (typeof value.focusRoot !== "string" || typeof value.query !== "string") return null;
   if (value.selected !== null && typeof value.selected !== "string") return null;
   const cameras = parseCameras(value.cameras);
+  const pinned = value.pinned === undefined ? [] : (strings(value.pinned) ?? []);
   return {
     layoutMode: value.layoutMode as LayoutMode,
     detail: value.detail,
@@ -130,6 +134,7 @@ export function parseSavedView(raw: unknown): SavedView | null {
     open,
     batches: parseBatches(value.batches),
     filesFor,
+    ...(pinned.length > 0 ? { pinned } : {}),
     selected: value.selected,
     focusRoot: value.focusRoot,
     query: value.query.slice(0, MAX_QUERY_LENGTH),
@@ -179,6 +184,7 @@ export function restoreView(
     open: uids(saved.open).add(rootUid).add(focus),
     batches: batchesFromPaths(saved.batches, uidOf),
     filesFor: uids(saved.filesFor),
+    pinned: uids(saved.pinned ?? []),
     selected,
     focusRoot: focus,
     query: saved.query,

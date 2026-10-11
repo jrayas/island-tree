@@ -84,8 +84,10 @@ export interface LayoutSettings {
   density: Density;
   /** Where a double click opens a note. Ctrl or Cmd always opens a split. */
   openNotesIn: OpenNotesIn;
-  /** While searching, fade the cards that do not match. Matches are highlighted either way. */
+  /** While typing in the search box, fade the cards on screen that do not match. Matches are highlighted either way. */
   dimOnSearch: boolean;
+  /** Also suggest files, by exact name only. Off, the search lists folders. The toolbar's Files button switches it. */
+  searchFiles: boolean;
   gap: number;
   levelGap: number;
   ringRadius: number;
@@ -453,8 +455,14 @@ export const FIELDS: readonly Field[] = [
   {
     group: "layout", key: "dimOnSearch", tab: "layout", section: "Search", inPreset: false,
     label: "Dim cards that don't match",
-    description: "While you search, fade every card that is not a match. Turn it off to keep every card at full strength. Matches always get a yellow highlight.",
+    description: "While you type in the search box, fade the cards on screen that are not a match. Turn it off to keep every card at full strength. Matching cards always get a yellow highlight.",
     def: bool(true),
+  },
+  {
+    group: "layout", key: "searchFiles", tab: "layout", section: "Search", inPreset: false,
+    label: "Search files too",
+    description: "Search lists folders only, so a vault with thousands of files never fills the dashboard. Turn this on to also find a file by its exact name, with or without its extension. Only the one card you choose is loaded. The Files button next to the search box switches it.",
+    def: bool(false),
   },
   {
     group: "layout", key: "gap", tab: "layout", section: "Spacing", inPreset: true,

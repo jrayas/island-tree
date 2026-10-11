@@ -120,7 +120,8 @@ describe("expandLevel and collapseFolders", () => {
 
   it("closes back to the root and resets focus", () => {
     const on = focusOn(expandLevel(start(), ["a"]), "a");
-    const off = collapseFolders(on, "root");
+    const off = collapseFolders({ ...on, pinned: new Set(["p"]) }, "root");
+    expect(off.pinned.size).toBe(0);
     expect(off.foldersOn).toBe(false);
     expect([...off.open]).toEqual(["root"]);
     expect(off.focusRoot).toBe("root");
@@ -156,17 +157,17 @@ describe("focus", () => {
 
 describe("setQuery", () => {
   it("stores the text", () => {
-    expect(setQuery(start(), "road", "root").query).toBe("road");
+    expect(setQuery(start(), "road").query).toBe("road");
   });
 
-  it("leaves focus when the search is non-empty", () => {
-    const s = setQuery(focusOn(start(), "a"), "road", "root");
-    expect(s.focusRoot).toBe("root");
+  it("only marks cards on screen, so it keeps the focus, whatever is typed", () => {
+    expect(setQuery(focusOn(start(), "a"), "road").focusRoot).toBe("a");
+    expect(setQuery(focusOn(start(), "a"), "  ").focusRoot).toBe("a");
   });
 
-  it("keeps focus when the search is cleared or blank", () => {
-    const s = setQuery(focusOn(start(), "a"), "  ", "root");
-    expect(s.focusRoot).toBe("a");
+  it("returns the same state when the text has not changed", () => {
+    const s = start();
+    expect(setQuery(s, s.query)).toBe(s);
   });
 });
 
@@ -221,11 +222,7 @@ describe("restartView", () => {
     const initial = initialViewState("root", ["a"], {
       layoutMode: "vertical", detail: false, expandFolders: true, expandFiles: false,
     });
-    const messy = setQuery(
-      select(toggleOpen(setDetail(setLayout(initial, "radial"), true), "a"), "a"),
-      "x",
-      "root",
-    );
+    const messy = setQuery(select(toggleOpen(setDetail(setLayout(initial, "radial"), true), "a"), "a"), "x");
     const reset = restartView(messy, initial);
     expect(reset.layoutMode).toBe("radial");
     expect(reset.detail).toBe(true);

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { computeLayout, type LayoutOptions } from "../layout/layout";
 import { CountCache, indexByPath } from "./counts";
-import { searchTree, withSearchReveal } from "./search";
+import { revealOne } from "./reveal";
+import { suggest } from "./suggest";
 import { balancedVault, countRawFiles, deepVault, flatVault } from "./synthetic";
 import { buildTree, folderUids, indexTree, UidRegistry } from "./tree";
 import { FOLDER_CEILING, MAX_CARDS } from "./limits";
@@ -51,7 +52,7 @@ describe("a vault of 10,000 files", () => {
     const built = time(() => buildTree(raw, registry));
     const indexed = time(() => indexTree(built.value));
     const folders = time(() => folderUids(built.value));
-    const search = time(() => searchTree(built.value, "note 17"));
+    const search = time(() => suggest(built.value, "topic 3", { files: false, limit: 8 }));
     expect(indexed.value.size).toBeGreaterThan(10_000);
     expect(folders.value.length).toBe(601);
     expect(built.ms).toBeLessThan(1500);
@@ -86,23 +87,45 @@ describe("a vault of 10,000 files", () => {
     expect(visible.ms).toBeLessThan(1500);
   });
 
-  it("a search that matches everything still draws a bounded number of cards", () => {
+  it("suggestions for text that matches almost everything list only a handful", () => {
     const tree = buildTree(raw, new UidRegistry());
-    const result = searchTree(tree, "note");
-    expect(result?.hits.size).toBe(10_000);
-    const state = withSearchReveal(createViewState(tree.uid), result);
-    const visible = time(() => flattenVisible(buildVisibleTree(tree, state, LIMIT)));
-    // Pills do not use up the budget, so allow some extra.
-    expect(visible.value.length).toBeLessThan(MAX_CARDS * 2);
-    expect(visible.ms).toBeLessThan(1500);
+    const result = time(() => suggest(tree, "o", { files: false, limit: 8 }));
+    expect(result.value.items).toHaveLength(8);
+    // Every one of the 500 "Topic" folders contains an o.
+    expect(result.value.total).toBe(500);
+    expect(result.ms).toBeLessThan(500);
   });
 
-  it("searching reveals matches without opening the vault", () => {
+  it("finding a file by its exact name looks through all 10,000 quickly", () => {
     const tree = buildTree(raw, new UidRegistry());
-    const result = searchTree(tree, "area 42");
-    const state = withSearchReveal(createViewState(tree.uid), result);
+    const result = time(() => suggest(tree, "note 17.md", { files: true, limit: 8 }));
+    expect(result.value.total).toBe(500);
+    expect(result.value.items).toHaveLength(8);
+    expect(result.ms).toBeLessThan(500);
+  });
+
+  it("going to one card loads only that card, however many names matched", () => {
+    const tree = buildTree(raw, new UidRegistry());
+    const target = [...indexTree(tree).values()].find((n) => n.path === "Area 42/Topic 3/note 17.md");
+    if (!target) throw new Error("The made-up vault has no such note.");
+    const state = revealOne(createViewState(tree.uid), target);
     const visible = time(() => flattenVisible(buildVisibleTree(tree, state, LIMIT)));
-    expect(visible.value.length).toBeLessThan(500);
+    // The vault, the top-level folders, Area 42 with its topics, Topic 3 with just the one note.
+    expect(visible.value.length).toBeLessThan(120);
+    expect(visible.value.some((item) => item.id === target.uid)).toBe(true);
+    expect(visible.ms).toBeLessThan(500);
+  });
+
+  it("going to one file in a folder of 20,000 shows that file and nothing else from it", () => {
+    const flat = buildTree(flatVault(20_000), new UidRegistry());
+    const target = [...indexTree(flat).values()].find((n) => n.name === "note 15000.md");
+    if (!target) throw new Error("The made-up vault has no such note.");
+    const state = revealOne(createViewState(flat.uid), target);
+    const visible = time(() => flattenVisible(buildVisibleTree(flat, state, LIMIT)));
+    const files = visible.value.filter((item) => item.kind === "file");
+    expect(files.map((item) => item.node?.name)).toEqual(["note 15000.md"]);
+    expect(visible.value.length).toBeLessThan(10);
+    expect(visible.ms).toBeLessThan(500);
   });
 });
 

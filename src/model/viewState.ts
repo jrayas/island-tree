@@ -15,8 +15,10 @@ export interface ViewState extends VisibilityState {
   foldersOn: boolean;
   /** Uid of the folder the dashboard is focused on. The vault root when not focused. */
   focusRoot: string;
-  /** The search text as typed. */
+  /** The search text as typed. It only marks the cards already on screen; it never loads others. */
   query: string;
+  /** Cards a search has gone to (the card and the folders leading to it), shown one by one. */
+  pinned: ReadonlySet<string>;
   layoutMode: LayoutMode;
   /** The Details toggle: bigger cards with a second row of file details. */
   detail: boolean;
@@ -33,6 +35,7 @@ export function createViewState(rootUid: string, layoutMode: LayoutMode = "verti
     foldersOn: false,
     focusRoot: rootUid,
     query: "",
+    pinned: new Set(),
     layoutMode,
     detail: false,
   };
@@ -95,9 +98,12 @@ export function expandLevel(state: ViewState, frontier: readonly string[]): View
   return { ...state, foldersOn: true, open: new Set([...state.open, ...frontier]) };
 }
 
-/** Closes every folder back to the root and resets the focus, which a deep focus would strand. */
+/**
+ * Closes every folder back to the root and resets the focus, which a deep focus would strand. The
+ * cards a search went to are forgotten too, since there is nothing left open to show them in.
+ */
 export function collapseFolders(state: ViewState, rootUid: string): ViewState {
-  return { ...state, foldersOn: false, open: new Set([rootUid]), focusRoot: rootUid };
+  return { ...state, foldersOn: false, open: new Set([rootUid]), focusRoot: rootUid, pinned: new Set() };
 }
 
 /**
@@ -118,13 +124,9 @@ export function resetFocus(state: ViewState, rootUid: string): ViewState {
   return state.focusRoot === rootUid ? state : { ...state, focusRoot: rootUid };
 }
 
-/**
- * Sets the search text. A non-empty search shows matches from the whole vault, so
- * it also leaves any focus, as the mockup does.
- */
-export function setQuery(state: ViewState, query: string, rootUid: string): ViewState {
-  const next = { ...state, query };
-  return query.trim() === "" ? next : { ...next, focusRoot: rootUid };
+/** Sets the search text, which marks the matching cards that are already on screen. */
+export function setQuery(state: ViewState, query: string): ViewState {
+  return state.query === query ? state : { ...state, query };
 }
 
 export function setLayout(state: ViewState, layoutMode: LayoutMode): ViewState {

@@ -4,6 +4,10 @@ Last updated: milestone 7 (polish and release). All seven milestones are built; 
 
 ## Done
 
+**Search suggests and loads one card** (D-056)
+
+- A ranked suggestions list from names in memory (folders; files by exact name when Files is on), a combobox in the toolbar, going to a single card by pinning it and the folders above it, a Files button and setting, the old reveal-everything search removed, and the pinned card saved with the dashboard. Checked: 538 unit tests, and in headless Chrome the list and ranking, marked letters, arrow keys, Escape, clicking, going to one deep card and one file among 30 with only that card loaded, the Files switch, the "No folder matches" notice, surviving a remount and Reset. **Not run:** in real Obsidian.
+
 **One short tooltip** (D-055)
 
 - Cards, badges and the control strip carry only an `aria-label` (Obsidian's black tooltip), the tree's long instructions are hidden text, numbers group thousands, and "in all" is only said when it adds something. Checked in the browser: no `title` left on cards, badges or the strip, and the accessibility tree still names and describes the tree. **Not run:** in real Obsidian.

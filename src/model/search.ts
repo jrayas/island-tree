@@ -1,27 +1,26 @@
 /**
- * Name search over the whole tree.
+ * Marking the cards on screen that match what is typed.
  *
- * Search never changes the saved view state. It produces a "reveal" overlay that
- * opens the folders leading to each match while the query is non-empty, and
- * clearing the query puts the view back as it was (a deliberate change from the
- * mockup, which left everything open). Implements SPEC.md section 4 rule 7.
+ * This looks only at the cards already drawn, so typing is free however big the vault is and never
+ * opens a folder or loads a card. Finding something that is not on screen is the job of the
+ * suggestions (suggest.ts) and of going to the chosen card (reveal.ts). Clearing the text puts the
+ * cards back as they were.
  */
-import { DEFAULT_LIST_LIMIT } from "./limits";
-import type { TreeNode } from "./tree";
-import type { Batches, VisibilityState } from "./visibility";
 
-export interface SearchResult {
+/** The cards on screen that match, and the cards leading down to them. */
+export interface CardMatch {
   /** Cards whose name matches. */
   hits: ReadonlySet<string>;
-  /** Folders that lead to a match, up to the root. */
+  /** Cards on screen that have a match somewhere below them, up to the top. */
   ancestors: ReadonlySet<string>;
-  /** Folders directly holding a match, whose files must be listed. */
-  parents: ReadonlySet<string>;
-  /**
-   * For each folder on the way to a match, the batches of its children that hold a match or a
-   * folder leading to one, so a search reveals those batches and nothing else.
-   */
-  batches: Batches;
+}
+
+/** The parts of a visible card the matching reads. */
+export interface MatchableCard {
+  id: string;
+  parentId: string | null;
+  /** The vault name, or null for a "+N more" card, which is never a match. */
+  node: { name: string } | null;
 }
 
 /** Trims and lower-cases a query so matching ignores case and stray spaces. */
@@ -29,92 +28,36 @@ export function normaliseQuery(query: string): string {
   return query.trim().toLowerCase();
 }
 
-/** Finds matching names anywhere in the tree. Null means no search is active. */
-export function searchTree(
-  root: TreeNode,
-  query: string,
-  batchSize: number = DEFAULT_LIST_LIMIT,
-): SearchResult | null {
+/** Whether a name matches the query. An empty query matches nothing. */
+export function nameMatches(name: string, query: string): boolean {
+  const needle = normaliseQuery(query);
+  return needle !== "" && name.toLowerCase().includes(needle);
+}
+
+/** Finds the matching cards among those on screen. Null means nothing is being searched for. */
+export function matchVisible(visible: readonly MatchableCard[], query: string): CardMatch | null {
   const needle = normaliseQuery(query);
   if (needle === "") return null;
-
   const hits = new Set<string>();
   const ancestors = new Set<string>();
-  const parents = new Set<string>();
-  const batches = new Map<string, Set<number>>();
-
-  const mark = (folderUid: string, position: number): void => {
-    const batch = Math.floor(position / batchSize);
-    if (batch === 0) return;
-    let set = batches.get(folderUid);
-    if (!set) batches.set(folderUid, (set = new Set()));
-    set.add(batch);
-  };
-
-  // `chain` is the way down to `node`: each folder and its position among its siblings.
-  const chain: { node: TreeNode; position: number }[] = [];
-  const walk = (node: TreeNode, position: number): void => {
-    if (node.name.toLowerCase().includes(needle)) {
-      hits.add(node.uid);
-      if (node.parent) parents.add(node.parent.uid);
-      for (let up = node.parent; up; up = up.parent) ancestors.add(up.uid);
-      // The match and every folder above it sit in some batch of their parent.
-      for (const link of chain) if (link.node.parent) mark(link.node.parent.uid, link.position);
-      if (node.parent) mark(node.parent.uid, position);
-    }
-    chain.push({ node, position });
-    node.children.forEach((child, index) => walk(child, index));
-    chain.pop();
-  };
-  walk(root, 0);
-  return { hits, ancestors, parents, batches };
-}
-
-function mergeBatches(a: Batches, b: Batches): Batches {
-  const out = new Map<string, Set<number>>();
-  for (const source of [a, b]) {
-    for (const [uid, set] of source) {
-      const merged = out.get(uid) ?? new Set<number>();
-      for (const batch of set) merged.add(batch);
-      out.set(uid, merged);
+  const parentOf = new Map<string, string | null>();
+  for (const card of visible) {
+    parentOf.set(card.id, card.parentId);
+    if (card.node && card.node.name.toLowerCase().includes(needle)) hits.add(card.id);
+  }
+  for (const id of hits) {
+    for (let up = parentOf.get(id) ?? null; up !== null && !ancestors.has(up); up = parentOf.get(up) ?? null) {
+      ancestors.add(up);
     }
   }
-  return out;
+  return { hits, ancestors };
 }
 
 /**
- * The visibility state with the search reveal applied: every folder leading to a
- * match is open, showing the batch of children that holds the match (and no others), and the
- * folders holding matches show their files. Returns the input unchanged when no search is active.
+ * Whether a card should fade while something is typed: anything that is neither a match nor on the
+ * way to one. "+N more" cards are never matches, so they fade.
  */
-export function withSearchReveal(
-  state: VisibilityState,
-  result: SearchResult | null,
-): VisibilityState {
-  if (!result) return state;
-  return {
-    ...state,
-    open: new Set([...state.open, ...result.ancestors]),
-    batches: mergeBatches(state.batches, result.batches),
-    prefer: new Set([...result.hits, ...result.ancestors]),
-    filesFor: new Set([...state.filesFor, ...result.parents]),
-  };
-}
-
-/**
- * The first match that is on screen, in reading order: where the camera goes when a search reveals
- * something, and what Enter in the search box selects. `visible` lists the cards parents first.
- */
-export function firstVisibleHit(visible: readonly { id: string }[], result: SearchResult | null): string | null {
-  if (!result) return null;
-  return visible.find((item) => result.hits.has(item.id))?.id ?? null;
-}
-
-/**
- * Whether a card should fade while a search is active: anything that is neither
- * a match nor on the way to one. Pills are never matches, so they fade.
- */
-export function isDimmed(id: string, result: SearchResult | null): boolean {
-  if (!result) return false;
-  return !result.hits.has(id) && !result.ancestors.has(id);
+export function isDimmed(id: string, match: CardMatch | null): boolean {
+  if (!match) return false;
+  return !match.hits.has(id) && !match.ancestors.has(id);
 }

@@ -300,3 +300,73 @@ describe("buildVisibleTree and flattenVisible", () => {
     expect(flat.find((n) => n.node?.name === "Deep")?.parentId).toBe(a.uid);
   });
 });
+
+describe("pinned cards", () => {
+  const dir = (path: string, children: RawEntry[]): RawEntry => ({ name: path.split("/").pop() ?? "", path, children });
+  const file = (path: string): RawEntry => ({ name: path.split("/").pop() ?? "", path });
+  const tree = buildTree(
+    { name: "Vault", path: "/", children: [dir("/Big", [
+      ...Array.from({ length: 5 }, (_, i) => dir("/Big/dir " + i, [])),
+      ...Array.from({ length: 20 }, (_, i) => file("/Big/file " + String(i).padStart(2, "0") + ".md")),
+    ])] },
+    new UidRegistry(),
+  );
+  const big = tree.children[0];
+  if (!big) throw new Error("no folder");
+  const state = (pinned: string[], extra: Partial<VisibilityState> = {}): VisibilityState => ({
+    open: new Set([tree.uid, big.uid]),
+    batches: new Map(),
+    filesFor: new Set(),
+    filesOn: false,
+    pinned: new Set(pinned),
+    ...extra,
+  });
+  const names = (s: VisibilityState, limit = 3): string[] =>
+    visibleChildren(big, s, limit).map((item) => item.node?.name ?? "more");
+
+  it("shows a pinned file although files are off, and nothing else from the files", () => {
+    const target = big.children.find((c) => c.name === "file 12.md");
+    if (!target) throw new Error("no file");
+    expect(names(state([target.uid]), 10)).toContain("file 12.md");
+    expect(names(state([]), 10)).not.toContain("file 12.md");
+    expect(names(state([target.uid]), 10).filter((n) => n.startsWith("file"))).toEqual(["file 12.md"]);
+  });
+
+  it("shows a pinned card beyond the batches shown, with a pill for the rest", () => {
+    const target = big.children.find((c) => c.name === "file 19.md");
+    if (!target) throw new Error("no file");
+    const shown = visibleChildren(big, state([target.uid], { filesOn: true }), 3);
+    expect(shown.map((item) => item.node?.name ?? "more")).toEqual(["dir 0", "dir 1", "dir 2", "file 19.md", "more"]);
+    // 25 children listed, 4 shown: the pill stands for the other 21.
+    expect(shown[shown.length - 1]?.hidden).toBe(21);
+  });
+
+  it("counts a pinned file in the pill's total, so nothing is lost", () => {
+    const target = big.children.find((c) => c.name === "file 00.md");
+    if (!target) throw new Error("no file");
+    const shown = visibleChildren(big, state([target.uid]), 3);
+    // Five folders and the one pinned file are listed: three shown, plus the pinned one, two hidden.
+    expect(shown.filter((item) => item.kind === "more").map((item) => item.hidden)).toEqual([2]);
+  });
+
+  it("keeps pinned cards first when a folder is at its ceiling", () => {
+    const many = buildTree(
+      { name: "Vault", path: "/", children: [dir("/M", Array.from({ length: FOLDER_CEILING + 50 }, (_, i) => file("/M/f" + String(i).padStart(5, "0"))))] },
+      new UidRegistry(),
+    );
+    const folder = many.children[0];
+    const last = folder?.children[FOLDER_CEILING + 49];
+    if (!folder || !last) throw new Error("no folder");
+    const revealedAll = new Map([[folder.uid, new Set(Array.from({ length: 40 }, (_, i) => i + 1))]]);
+    const shown = visibleChildren(
+      folder,
+      { open: new Set([many.uid, folder.uid]), batches: revealedAll, filesFor: new Set(), filesOn: true, pinned: new Set([last.uid]) },
+      40,
+    );
+    expect(shown.some((item) => item.id === last.uid)).toBe(true);
+  });
+
+  it("changes nothing when no card is pinned", () => {
+    expect(names(state([]), 10)).toEqual(["dir 0", "dir 1", "dir 2", "dir 3", "dir 4"]);
+  });
+});

@@ -1,7 +1,6 @@
 <script lang="ts">
-  // Keeps a card in view: the selected card when the keyboard moves the selection off screen, and
-  // the first match when a search reveals one. The camera glides to put it in the middle, at the
-  // same zoom. A card already in view is left alone, so a click never moves the camera. Must sit
+  // Keeps the selected card in view: when the keyboard moves the selection off screen, or a search goes
+  // to a card that is. The camera glides to put it in the middle, at the same zoom. A card already in view is left alone, so a click never moves the camera. Must sit
   // inside <SvelteFlow>.
   import { untrack } from "svelte";
   import { useSvelteFlow } from "@xyflow/svelte";
@@ -9,7 +8,6 @@
 
   let {
     activeId,
-    searchId,
     targets,
     cardWidth,
     cardHeight,
@@ -17,8 +15,6 @@
     height,
   }: {
     activeId: string | null;
-    /** The first search match on screen, or null when nothing is being searched for. */
-    searchId: string | null;
     targets: Map<string, Point>;
     cardWidth: number;
     cardHeight: number;
@@ -49,13 +45,6 @@
 
   $effect(() => {
     const id = activeId;
-    if (id === null || width === 0 || height === 0) return;
-    untrack(() => bringIntoView(id));
-  });
-
-  // A search reveals its match where the layout has put it, which can be a long way off.
-  $effect(() => {
-    const id = searchId;
     if (id === null || width === 0 || height === 0) return;
     untrack(() => bringIntoView(id));
   });

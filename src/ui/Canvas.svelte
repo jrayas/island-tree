@@ -68,7 +68,6 @@
     onmenu,
     onnotice,
     activeId,
-    searchId,
     onkey,
     onfit,
     onnodeclick,
@@ -116,8 +115,6 @@
     onnotice: (message: string) => void;
     /** The selected card, which the keyboard moves and the screen reader announces. */
     activeId: string | null;
-    /** The first search match on screen, which the camera glides to. */
-    searchId: string | null;
     /** A navigation key was pressed on the tree. Returns true when the key was handled. */
     onkey: (event: KeyboardEvent) => boolean;
     /** The Fit button or Shift and 1: frame the cards the same way the automatic fit does. */
@@ -564,7 +561,7 @@
       onpause={(reason) => onauto({ type: "pause", reason })}
       onturn={(direction) => onauto({ type: "turn", direction })}
     />
-    <FollowSelection {activeId} {searchId} {targets} {cardWidth} {cardHeight} width={paneWidth} height={paneHeight} />
+    <FollowSelection {activeId} {targets} {cardWidth} {cardHeight} width={paneWidth} height={paneHeight} />
     <FitController
       trigger={fitKey}
       {targets}

@@ -36,12 +36,12 @@ App.svelte  (owns tree + view state; everything below it is derived)
   RawEntry ─buildTree(registry)─► TreeNode        (rebuilt on create / delete / move; ids stay stable)
   readMeta(path) ─describeMeta─► MetaDisplay      (re-read when metaVersion changes)
   reconcileViewState tidies the view state after every rebuild
-  viewState ─withSearchReveal(searchTree)─► effective state
-  buildVisibleTree(focus node, effective) ─► VisibleNode tree
+  viewState (open folders, batches, pinned cards) ─► the state the visibility rules read
+  buildVisibleTree(focus node, viewState) ─► VisibleNode tree
         │                                          │
         │                             computeLayout(mode, detail) ─► card centres (+ radial centre)
         ▼                                          ▼
-  describeItem + search flags ─► CanvasItem[]  +  targets (Map id → Point)
+  describeItem + match flags ─► CanvasItem[]  +  targets (Map id → Point)
                                           └────────► Canvas.svelte
                                                        ├─ animate.ts: glide centres frame by frame
                                                        ├─ FitController: frame the targets when fitKey changes
@@ -76,7 +76,9 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | `src/model/viewState.ts` | `ViewState` (open, showAll, filesFor, filesOn, foldersOn, selected, focusRoot, query, layoutMode) and pure transitions: `toggleOpen`, `toggleFilesFor`, `showAllFor`, `select`, `setFoldersOn`, `setFilesOn` (rules 4 and 5), `focusOn`, `resetFocus`, `setQuery`, `setLayout`, `setDetail`, `resetView`. |
 | `src/model/sync.ts` | `reconcileViewState`: after a rebuild, drops ids that no longer exist, clears a vanished selection or focus, and leaves new folders closed, even while Expand folders is on (folders closed by hand stay closed). |
 | `src/model/meta.ts` | `FileMeta` and `MetaDisplay`, recency bands, age and size wording, `statusOf` (frontmatter value to status), `statusKind`, `buildLinkIndex` (outgoing and incoming counts from `resolvedLinks`), `describeMeta`. |
-| `src/model/search.ts` | `searchTree` finds name matches, their ancestors and parent folders. `withSearchReveal` turns that into a temporary overlay on the visibility state (rule 7). `isDimmed` says which cards fade. |
+| `src/model/search.ts` | Marking the cards already on screen that match what is typed (`matchVisible`), which fade (`isDimmed`), and `nameMatches`. It never opens a folder or loads a card. |
+| `src/model/suggest.ts` | What the search box lists while you type: the best few folders (and, with Files on, files by exact name), ranked exact, then start of the name, then start of a word, then anywhere, then loose letters in order, with the matched parts and where each lives. Looks at names in memory only. |
+| `src/model/reveal.ts` | `revealOne`: going to one card. Opens the folders above it, pins it and them, and selects it, so only that card loads. |
 | `src/model/fileType.ts` | File name to category, Lucide icon id and theme-variable colour. |
 | `src/model/display.ts` | `describeItem`: the label, icon, counts and tooltip a card shows. |
 | `src/model/info.ts` | `describeSelection` and `pathLabel`: the info panel's text. |
@@ -116,7 +118,7 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | `src/model/synthetic.ts` | Made-up vaults (`balancedVault`, `flatVault`, `deepVault`) as a `RawEntry`, for the performance test. Deterministic. |
 | `src/model/perf.test.ts` | Times the pure steps on 10,000 notes and checks the card limits hold, with generous ceilings so it only fails on a real slowdown. |
 | `src/model/keyNav.ts` | `navigate`: what an arrow, Home, End or Enter key does through the visible cards (tree-view rules). Pure and tested. F is handled in `App.svelte`. |
-| `src/ui/FollowSelection.svelte` | Glides the camera to put a card in view: the selected card when the keyboard moves it off screen, and the first search match when a search reveals one. Cards already in view are left alone. |
+| `src/ui/FollowSelection.svelte` | Glides the camera to put a card in view: the selected card when the keyboard moves it off screen, and a card a search has just gone to. Cards already in view are left alone. |
 | `src/model/savedView.ts` | `SavedView`, `saveView`, `parseSavedView` and `restoreView`: how the dashboard was left, stored by path (ids change each session), read back defensively and applied only to paths that still exist. |
 | `src/ui/scrollBridge.ts` | The link that lets the "Toggle auto-scroll" command reach the app, like the lock bridge. |
 | `src/ui/AutoScroll.svelte` | Moves the camera a little every frame while auto-scroll runs, and hands control back when anything else moves it. Sits inside Svelte Flow. |
@@ -132,7 +134,7 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | File | Purpose |
 |---|---|
 | `src/ui/App.svelte` | Root. Takes the `SettingsStore`, keeps the latest settings in `cfg`, builds the tree, holds `viewState`, derives visible items, layout and `CanvasItem[]`. The "start with" settings decide the first view and what Reset returns to. Changes to card size or spacing bump `fitKey` so the camera re-frames; a new status property name makes cards re-read their details. Click rules: a folder click opens or closes it and selects it; a file click selects; a pill click expands the parent's overflow; a badge click toggles that folder's files; a double click focuses a folder or opens a file. |
-| `src/ui/Toolbar.svelte` | Layout switch (Vertical, Radial, and Mind map, whose label shows the active view and which cycles it when clicked again), Expand folders, Expand files, Details, Reset, search box, Focus selected, Reset focus, and a Lock button that reads Locked or Unlocked. Stateless. |
+| `src/ui/Toolbar.svelte` | Layout switch (Vertical, Radial, and Mind map, whose label shows the active view and which cycles it when clicked again), Expand folders, Expand files, Details, Reset, the search box with its dropdown of suggestions and the Files button, Focus selected, Reset focus, and a Lock button that reads Locked or Unlocked. It keeps only the search box's own state (whether the list is open and which row is lit). |
 | `src/ui/Breadcrumb.svelte` | Path from the vault root to the focus; ancestors are buttons that move the focus up. |
 | `src/ui/EditBar.svelte` | The editing bar under the breadcrumb, shown only while unlocked: the selected card's name and Rename, New note, New folder and Delete. Stateless. |
 | `src/ui/InfoPanel.svelte` | Details of the selected card as plain text floating bottom left over the graph, left-aligned: name, path, and one quiet line of details. No box, never takes clicks, fades in and out, and keeps its last text while fading. Sits in `.island-stage` with the canvas, `--island-edge-gap` (24px) from the left and bottom, with its height capped so it stops a gap short of the zoom stack. The zoom buttons are a column on the left edge centred on `--island-zoom-offset-y` (45%); see D-038. |
@@ -191,7 +193,7 @@ Everything here is pure and unit tested unless marked Obsidian.
 - The settings page uses the classic API, so its settings are not in Obsidian's own settings search on 1.13 and later (D-026).
 - Presets store the current values, not a link to the defaults, so a preset made today keeps today's look even if a default changes later.
 - Removed cards disappear at once instead of fading out (polish, milestone 7).
-- While a search is active, folders on the way to a match stay open; closing one by hand has no effect until the search is cleared.
+- The cards a search has gone to (the card and its folders) stay pinned, so each shows wherever it sits in its list, until another search pick, Collapse folders or Reset. Closing a folder by hand still works.
 - Details wording uses British date format (for example 8 Oct 2026) whatever the system locale.
 - No keyboard navigation yet (milestone 7).
 

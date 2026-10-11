@@ -71,6 +71,77 @@
   width: 11rem;
 }
 
+/* The search box and the list of suggestions that drops from it, like the quick switcher. */
+.island-tree-view .island-search {
+  position: relative;
+}
+
+.island-tree-view .island-suggestions {
+  position: absolute;
+  top: calc(100% + var(--size-2-2));
+  left: 0;
+  z-index: 30;
+  min-width: 18rem;
+  max-width: min(32rem, 90vw);
+  margin: 0;
+  padding: var(--size-2-2);
+  list-style: none;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-l);
+}
+
+.island-tree-view .island-suggestions.is-end {
+  left: auto;
+  right: 0;
+}
+
+.island-tree-view .island-suggestion {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  padding: var(--size-2-3) var(--size-4-2);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+}
+
+.island-tree-view .island-suggestion.is-active {
+  background: var(--background-modifier-hover);
+}
+
+.island-tree-view .island-suggestion-icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--text-muted);
+}
+
+.island-tree-view .island-suggestion-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.island-tree-view .island-suggestion-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.island-tree-view .island-suggestion-name mark {
+  background: transparent;
+  color: var(--text-accent);
+  font-weight: var(--font-semibold);
+}
+
+.island-tree-view .island-suggestion-where {
+  overflow: hidden;
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Breadcrumb */
 .island-tree-view .island-breadcrumb {
   display: flex;

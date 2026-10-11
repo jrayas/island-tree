@@ -65,3 +65,16 @@ describe("reconcileViewState", () => {
     expect(state.open.has("gone")).toBe(true);
   });
 });
+
+describe("reconcileViewState and pinned cards", () => {
+  it("forgets pinned cards that no longer exist and keeps the others", () => {
+    const state = { ...createViewState("root"), pinned: new Set(["a", "gone"]) };
+    const next = reconcileViewState(state, valid, "root");
+    expect(next.pinned).toEqual(new Set(["a"]));
+  });
+
+  it("returns the same state when every pinned card is still there", () => {
+    const state = { ...createViewState("root"), pinned: new Set(["a", "b"]) };
+    expect(reconcileViewState(state, valid, "root")).toBe(state);
+  });
+});

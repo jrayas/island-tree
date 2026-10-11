@@ -10,7 +10,7 @@
   import type { EditTarget, EditingApi, LockBridge } from "../editing/api";
   import { joinPath, relockDue } from "../editing/rules";
   import { CountCache, indexByPath } from "../model/counts";
-  import { COUNT_CHUNK, SEARCH_DELAY_MS } from "../model/limits";
+  import { COUNT_CHUNK, SEARCH_DELAY_MS, SUGGESTION_LIMIT } from "../model/limits";
   import { nextAutoScroll, type AutoScrollAction, type AutoScrollState } from "../layout/autoScroll";
   import { withCamera, type SavedCameras } from "../layout/camera";
   import { computeLayout, type LayoutOptions } from "../layout/layout";
@@ -18,7 +18,9 @@
   import { NAV_KEYS, navigate, type NavItem } from "../model/keyNav";
   import { describeSelection } from "../model/info";
   import { cardRow, describeMeta, type FileMeta, type MetaDisplay } from "../model/meta";
-  import { firstVisibleHit, isDimmed, searchTree, withSearchReveal } from "../model/search";
+  import { revealOne } from "../model/reveal";
+  import { isDimmed, matchVisible } from "../model/search";
+  import { suggest } from "../model/suggest";
   import { withDensity } from "../settings/density";
   import { findField, withFieldValue } from "../settings/schema";
   import type { SettingsStore } from "../settings/store";
@@ -228,16 +230,23 @@
     metaVersion += 1;
   });
 
-  // What is typed shows at once; the search itself runs a moment after typing stops, so a broad first
-  // letter in a big vault does not rebuild the whole dashboard on every keystroke.
+  // What is typed shows at once and drives the suggestions, which look through names in memory only.
+  // Marking the matching cards that are already on screen waits a moment after typing stops.
   let typed = $state(untrack(() => viewState.query));
   let searchTimer = 0;
+  // The card the last search went to. It alone gets the highlight, until something else is selected
+  // or something is typed.
+  let found = $state<string | null>(null);
+  $effect(() => {
+    if (found !== null && viewState.selected !== found) untrack(() => (found = null));
+  });
   function typeQuery(text: string): void {
     typed = text;
+    found = null;
     window.clearTimeout(searchTimer);
     const apply = (): void => {
       searchTimer = 0;
-      viewState = setQuery(viewState, text, root.uid);
+      viewState = setQuery(viewState, text);
     };
     // Clearing the box is cheap and should feel instant.
     if (text.trim() === "") apply();
@@ -250,11 +259,13 @@
   });
   onDestroy(() => window.clearTimeout(searchTimer));
 
-  const search = $derived(searchTree(root, viewState.query, cfg.layout.overflowLimit));
-  // The search reveals matches without touching the saved state, so clearing it restores the view.
-  const effective = $derived(withSearchReveal(viewState, search));
+  // The best few folders (and, with Files on, files by exact name) for what is typed. It never loads
+  // a card: choosing one goes to that card alone.
+  const suggestions = $derived(
+    typed.trim() === "" ? null : suggest(root, typed, { files: cfg.layout.searchFiles, limit: SUGGESTION_LIMIT }),
+  );
   const focusNode = $derived(index.get(viewState.focusRoot) ?? root);
-  const visibleRoot = $derived(buildVisibleTree(focusNode, effective, cfg.layout.overflowLimit));
+  const visibleRoot = $derived(buildVisibleTree(focusNode, viewState, cfg.layout.overflowLimit));
   const visible = $derived(flattenVisible(visibleRoot));
   const placed = $derived(
     computeLayout(viewState.layoutMode, visibleRoot, viewState.detail, layoutOptions),
@@ -267,35 +278,46 @@
     new Set(selectedNode ? ancestry(selectedNode).map((n) => n.uid) : []),
   );
 
-  // Where the camera goes when a search reveals something: the first match on screen.
-  const searchFocus = $derived(firstVisibleHit(visible, search));
-
-  // Clearing a search puts the cards back where they were, which can be far from where the camera
-  // followed a match, so the view frames the tree again instead of showing empty space.
-  let wasSearching = untrack(() => search !== null);
-  $effect(() => {
-    const searching = search !== null;
-    if (wasSearching && !searching) untrack(() => (fitKey += 1));
-    wasSearching = searching;
-  });
+  // The cards on screen that match what is typed, which get the highlight (and the dim, if it is on).
+  const match = $derived(matchVisible(visible, viewState.query));
 
   /**
-   * Enter in the search box: select the first match (it is on screen, since the search revealed it),
-   * so Focus selected, the editing bar and the keyboard all work on it, and move to the dashboard.
+   * A suggestion was chosen (Enter or a click): go to that one card. Its folders open and it is
+   * selected, so Focus selected, the editing bar and the keyboard all work on it, and the camera
+   * follows the selection. Nothing else that matches the text is loaded, and the box is cleared.
    */
   let appEl = $state<HTMLDivElement>();
-  async function selectFirstMatch(): Promise<void> {
-    // The search runs a moment after typing stops; Enter should not have to wait for it.
+  async function pickCard(uid: string): Promise<void> {
+    const node = index.get(uid);
+    if (!node) return;
     window.clearTimeout(searchTimer);
     searchTimer = 0;
-    if (viewState.query !== typed) viewState = setQuery(viewState, typed, root.uid);
+    viewState = revealOne(setQuery(viewState, ""), node);
+    typed = "";
+    found = node.uid;
     await tick();
-    const id = searchFocus;
-    if (id !== null) {
-      viewState = select(viewState, id);
-      await tick();
-    }
     focusCanvas();
+  }
+
+  /** Enter with nothing to go to: say why, and hand the keyboard back when the box is empty. */
+  function nothingToGoTo(): void {
+    const text = typed.trim();
+    if (text === "") {
+      focusCanvas();
+      return;
+    }
+    editing.notify(
+      cfg.layout.searchFiles
+        ? `Nothing is named "${text}".`
+        : `No folder matches "${text}". Turn on Files to look for a file by its exact name.`,
+    );
+  }
+
+  /** The Files button: whether the search also finds files, by exact name. The setting remembers it. */
+  function toggleSearchFiles(): void {
+    const field = findField("layout.searchFiles");
+    if (!field) return;
+    settings.update((current) => withFieldValue(current, field, !cfg.layout.searchFiles));
   }
 
   /** Moves the keyboard to the dashboard, so its shortcuts (arrows, Shift and Space) work again. */
@@ -322,7 +344,7 @@
       void countsVersion;
       const display = describeItem(
         item,
-        effective,
+        viewState,
         meta,
         { tags: cfg.cards.showTags },
         item.node?.kind === "folder" ? counts.countsFor(item.node) : undefined,
@@ -336,8 +358,8 @@
           reader: describeForReader(display),
           level,
           selected: viewState.selected === item.id,
-          hit: search?.hits.has(item.id) ?? false,
-          dim: cfg.layout.dimOnSearch && isDimmed(item.id, search),
+          hit: found === item.id || (match?.hits.has(item.id) ?? false),
+          dim: cfg.layout.dimOnSearch && isDimmed(item.id, match),
           compact: viewState.layoutMode === "radial",
           draggable:
             !locked && cfg.editing.allowDrag && item.kind !== "more" && item.id !== root.uid,
@@ -582,7 +604,7 @@
           item.kind === "folder" &&
           item.node !== null &&
           !viewState.open.has(item.id) &&
-          item.node.children.some((child) => child.kind === "folder" || filesVisible(effective, item.id)),
+          item.node.children.some((child) => child.kind === "folder" || filesVisible(viewState, item.id)),
       )
       .map((item) => item.id),
   );
@@ -596,7 +618,7 @@
   function revealMore(folderUid: string): void {
     const folder = index.get(folderUid);
     if (!folder) return;
-    const batch = nextBatchFor(folder, effective, cfg.layout.overflowLimit);
+    const batch = nextBatchFor(folder, viewState, cfg.layout.overflowLimit);
     if (batch !== null) viewState = revealBatch(viewState, folderUid, batch);
   }
 
@@ -678,7 +700,10 @@
     filesOn={viewState.filesOn}
     detailOn={viewState.detail}
     query={typed}
-    matches={search ? search.hits.size : null}
+    {suggestions}
+    searchFiles={cfg.layout.searchFiles}
+    onsearchfiles={toggleSearchFiles}
+    onpick={(uid) => void pickCard(uid)}
     canFocus={selectedNode?.kind === "folder"}
     isFocused={viewState.focusRoot !== root.uid}
     onlayout={(mode) => {
@@ -698,7 +723,7 @@
       refit();
     }}
     onquery={typeQuery}
-    onsearchenter={() => void selectFirstMatch()}
+    onsearchenter={nothingToGoTo}
     onsearchescape={focusCanvas}
     onsearchfocus={() => driveAuto({ type: "pause" })}
     onfocus={focusSelected}
@@ -742,7 +767,6 @@
     onmenu={(event, entries) => editing.menu(event, entries)}
     onnotice={(message) => editing.notify(message)}
     activeId={viewState.selected}
-    searchId={searchFocus}
     onkey={navigateKey}
     onfit={refit}
     frameBox={placed.frame ?? null}

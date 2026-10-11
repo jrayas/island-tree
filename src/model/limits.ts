@@ -18,7 +18,10 @@ export const FOLDER_CEILING = 1000;
 /** The most cards the whole dashboard draws at once, whatever is open. Filled level by level. */
 export const MAX_CARDS = 1500;
 
-/** How long search waits after the last key press before it runs. */
+/** How many suggestions the search box lists under it. The rest are counted, not listed. */
+export const SUGGESTION_LIMIT = 8;
+
+/** How long marking the matching cards on screen waits after the last key press. */
 export const SEARCH_DELAY_MS = 180;
 
 /**

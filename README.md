@@ -10,7 +10,7 @@ An Obsidian plugin that shows your vault's folders and files as an animated, can
 - Pan and zoom that behave like Obsidian's Canvas, a zoom-to-area tool, and a Compact switch.
 - Updates by itself when files change.
 - Smooth on big vaults: tested with 10,000 notes, including one folder holding 10,000. See [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md).
-- Search that finds a note wherever it is and glides the view to it.
+- Search that suggests as you type, like Obsidian's quick switcher, and loads only the one card you choose.
 - Cards showing file type, link counts, tags, status, modified date and size, each switchable.
 - A saved view: one click saves where you are looking, and another brings you back from anywhere, separately for each layout.
 - Auto-scroll for reading hands-free: Shift and Space starts and pauses it, Shift and an arrow key sets the direction, and the speed is a setting.
@@ -42,7 +42,8 @@ From **Settings → Community plugins → Browse**, search for "Island tree" and
 - **Expand folders** opens one more level each press (only the folders on screen), and once everything on screen is open it becomes **Collapse folders** and closes them all. **Expand files** lists the files of every open folder. **Reset** goes back to the start. Folders you have not reached are never built, which keeps a big vault fast.
 - The dashboard follows your vault: new, renamed, moved and deleted notes appear without reloading.
 - Turn on **Details** for bigger cards with a second row for notes: a dot for how recently it changed (green today, amber within a week, grey older), its age, size, number of links and its status. The status comes from a `status` property in the note. Zoom in to see the row; zoomed far out, cards shrink to a colour and a short name.
-- Type in **Search names** to reveal matching files and folders. Matches get a yellow highlight, and by default the other cards fade; turn that off with **Dim cards that don't match** in Settings, Layout. The view glides to the first match, however deep or far down a long list it is, and shows only the batch of cards around it. Press Enter in the box to select that match (and move to the dashboard), so **Focus selected** and the keyboard work on it. Clear the box to return to your view.
+- Type in the search box to see the best matching **folders**, best first, with the matched letters picked out and where each one lives. Use the arrow keys or the mouse, and press **Enter** to go to the highlighted one. Only that card is loaded: its folders open, it is selected and highlighted, the view glides to it, and the rest of a long list stays behind its "+N more" card. The box clears and the keyboard moves to the dashboard, so **Focus selected** and the arrow keys work on it. While you type, the cards already on screen that match get a yellow highlight, and by default the others fade; turn that off with **Dim cards that don't match** in Settings, Layout. Escape closes the list, and a second Escape returns to the dashboard.
+- The **Files** button next to the box (or **Search files too** in Settings, Layout) also finds files, by their exact name only, with or without the extension. A loose word never turns into thousands of files. Reset forgets the card you went to.
 - Double click a folder to focus on it, or select one and use **Focus selected**. The breadcrumb and **Reset focus** take you back up.
 - **Editing:** click **Locked** in the toolbar to unlock (or run **Toggle lock** from the command palette). An editing bar appears with **Rename**, **New note**, **New folder** and **Delete** for the selected card, and right-clicking a card offers the same. Drag a card onto a folder to move it. Every change shows a notice with **Undo** for about seven seconds. Links update through Obsidian, and deleted notes go to Obsidian's trash. The dashboard locks again by itself after a few minutes without changes (Settings, Editing).
 - Double click a file to open it in a new tab (the default), or hold Ctrl (Cmd on a Mac) to open it in a split. **Open notes in** (Settings, Layout) can open it in the dashboard's own tab instead: then Obsidian's Back (the arrow, Alt and Left, or the mouse's back button) returns to the dashboard just as you left it. The dashboard also remembers how it was left across a restart.
@@ -63,10 +64,10 @@ An empty colour or a text size of 0 follows your Obsidian theme. Every setting h
 ## Known limits
 
 - Desktop only for version 1.
-- One folder shows at most 1,000 cards (40 at a time), and the whole dashboard draws at most 1,500 at once. A card says how many are "not shown"; search finds them.
+- One folder shows at most 1,000 cards (40 at a time), and the whole dashboard draws at most 1,500 at once. A card says how many are "not shown"; the search box finds them.
 - Editing has been checked against a stand-in for the vault, not yet in many real vaults. Deleting a note can be undone (it comes back as a new file with its saved content); deleting a folder cannot, so use Obsidian's trash.
 - The dashboard rebuilds its tree when files change, with a short wait to gather bursts of changes, so a very large paste takes a moment to show.
-- Search matches file and folder names, not the text inside notes.
+- Search matches file and folder names, not the text inside notes. It lists folders only unless Files is on, and then only exact file names, and it lists at most 8 suggestions (the rest are counted).
 
 ## Privacy
 

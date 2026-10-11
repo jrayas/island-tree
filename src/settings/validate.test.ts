@@ -121,6 +121,9 @@ describe("sanitiseSettings", () => {
     expect(DEFAULT_SETTINGS.layout.dimOnSearch).toBe(true);
     expect(sanitiseSettings({ layout: { dimOnSearch: false } }).settings.layout.dimOnSearch).toBe(false);
     expect(sanitiseSettings({ layout: { dimOnSearch: "no" } }).settings.layout.dimOnSearch).toBe(true);
+    expect(DEFAULT_SETTINGS.layout.searchFiles).toBe(false);
+    expect(sanitiseSettings({ layout: { searchFiles: true } }).settings.layout.searchFiles).toBe(true);
+    expect(sanitiseSettings({ layout: { searchFiles: "yes" } }).settings.layout.searchFiles).toBe(false);
   });
 
   it("keeps the auto-scroll settings in range and falls back to the defaults for bad ones", () => {

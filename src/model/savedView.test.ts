@@ -160,3 +160,38 @@ describe("saved cameras", () => {
     expect(parseSavedView(old)?.cameras).toBeUndefined();
   });
 });
+
+describe("saved pinned cards", () => {
+  const pinnedState = (): ViewState => ({ ...left(), pinned: new Set(["n1", "n2"]) });
+
+  it("leaves the key out when nothing is pinned, so older saved states are unchanged", () => {
+    expect("pinned" in saveView(left(), pathOf)).toBe(false);
+  });
+
+  it("stores the pinned cards by path and brings them back by id", () => {
+    const saved = saveView(pinnedState(), pathOf);
+    expect(saved.pinned).toEqual(["/Projects", "/Projects/Plugin"]);
+    const parsed = parseSavedView(JSON.parse(JSON.stringify(saved)));
+    expect(parsed?.pinned).toEqual(["/Projects", "/Projects/Plugin"]);
+    const back = restoreView(parsed as SavedView, uidOf, createViewState("n0"), "n0");
+    expect(back.pinned).toEqual(new Set(["n1", "n2"]));
+  });
+
+  it("drops a pinned path that is no longer in the vault", () => {
+    const saved = { ...saveView(pinnedState(), pathOf), pinned: ["/Projects", "/Gone"] };
+    const back = restoreView(saved, uidOf, createViewState("n0"), "n0");
+    expect(back.pinned).toEqual(new Set(["n1"]));
+  });
+
+  it("ignores pinned data that is not a list of strings", () => {
+    const raw = { ...saveView(left(), pathOf), pinned: [1, 2] };
+    const parsed = parseSavedView(raw);
+    expect(parsed).not.toBeNull();
+    expect(parsed?.pinned).toBeUndefined();
+  });
+
+  it("reads a state saved before pinned cards existed", () => {
+    const back = restoreView(saveView(left(), pathOf), uidOf, createViewState("n0"), "n0");
+    expect(back.pinned.size).toBe(0);
+  });
+});

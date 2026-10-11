@@ -1,44 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { firstVisibleHit, isDimmed, normaliseQuery, searchTree, withSearchReveal } from "./search";
-import { UidRegistry, buildTree, indexTree, type TreeNode } from "./tree";
-import { FOLDER_CEILING } from "./limits";
-import { buildVisibleTree, flattenVisible, type VisibilityState } from "./visibility";
+import { isDimmed, matchVisible, nameMatches, normaliseQuery, type MatchableCard } from "./search";
 
-const root = buildTree(
-  {
-    name: "Vault",
-    path: "/",
-    children: [
-      {
-        name: "Projects",
-        path: "/Projects",
-        children: [
-          {
-            name: "Plugin",
-            path: "/Projects/Plugin",
-            children: [{ name: "Roadmap.md", path: "/Projects/Plugin/Roadmap.md" }],
-          },
-          { name: "notes.md", path: "/Projects/notes.md" },
-        ],
-      },
-      { name: "Daily", path: "/Daily", children: [{ name: "today.md", path: "/Daily/today.md" }] },
-    ],
-  },
-  new UidRegistry(),
-);
-
-const byPath = (path: string): TreeNode => {
-  const found = [...indexTree(root).values()].find((n) => n.path === path);
-  if (!found) throw new Error(path);
-  return found;
-};
-
-const base = (): VisibilityState => ({
-  open: new Set([root.uid]),
-  batches: new Map(),
-  filesFor: new Set(),
-  filesOn: false,
+const card = (id: string, parentId: string | null, name: string | null): MatchableCard => ({
+  id,
+  parentId,
+  node: name === null ? null : { name },
 });
+
+// Vault > Projects > Plugin > Roadmap.md, Projects > notes.md, Vault > Daily > today.md, and a pill.
+const visible: MatchableCard[] = [
+  card("root", null, "Vault"),
+  card("projects", "root", "Projects"),
+  card("plugin", "projects", "Plugin"),
+  card("roadmap", "plugin", "Roadmap.md"),
+  card("notes", "projects", "notes.md"),
+  card("daily", "root", "Daily"),
+  card("today", "daily", "today.md"),
+  card("more:daily", "daily", null),
+];
 
 describe("normaliseQuery", () => {
   it("trims and lower-cases", () => {
@@ -46,174 +25,62 @@ describe("normaliseQuery", () => {
   });
 });
 
-describe("searchTree", () => {
-  it("returns null for an empty or blank query", () => {
-    expect(searchTree(root, "")).toBeNull();
-    expect(searchTree(root, "   ")).toBeNull();
+describe("nameMatches", () => {
+  it("ignores case and stray spaces, and matches part of a name", () => {
+    expect(nameMatches("Roadmap.md", " ROAD ")).toBe(true);
+    expect(nameMatches("Roadmap.md", "map.m")).toBe(true);
+  });
+  it("matches nothing for an empty query or a different name", () => {
+    expect(nameMatches("Roadmap.md", "")).toBe(false);
+    expect(nameMatches("Roadmap.md", "   ")).toBe(false);
+    expect(nameMatches("Roadmap.md", "zzz")).toBe(false);
+  });
+});
+
+describe("matchVisible", () => {
+  it("is null for an empty or blank query", () => {
+    expect(matchVisible(visible, "")).toBeNull();
+    expect(matchVisible(visible, "  ")).toBeNull();
   });
 
-  it("finds matches by name ignoring case, with their ancestors and parents", () => {
-    const result = searchTree(root, "ROAD");
-    const hit = byPath("/Projects/Plugin/Roadmap.md");
-    expect([...(result?.hits ?? [])]).toEqual([hit.uid]);
-    expect(result?.parents).toEqual(new Set([byPath("/Projects/Plugin").uid]));
-    expect(result?.ancestors).toEqual(
-      new Set([byPath("/Projects/Plugin").uid, byPath("/Projects").uid, root.uid]),
-    );
+  it("finds matching cards by name, ignoring case, with the cards above them", () => {
+    const result = matchVisible(visible, "ROAD");
+    expect([...(result?.hits ?? [])]).toEqual(["roadmap"]);
+    expect(result?.ancestors).toEqual(new Set(["plugin", "projects", "root"]));
   });
 
   it("matches folders as well as files", () => {
-    expect(searchTree(root, "plug")?.hits.has(byPath("/Projects/Plugin").uid)).toBe(true);
+    expect(matchVisible(visible, "plug")?.hits.has("plugin")).toBe(true);
   });
 
-  it("returns empty sets when nothing matches", () => {
-    const result = searchTree(root, "zzz");
+  it("returns empty sets when nothing on screen matches", () => {
+    const result = matchVisible(visible, "zzz");
     expect(result?.hits.size).toBe(0);
     expect(result?.ancestors.size).toBe(0);
   });
-});
 
-describe("firstVisibleHit", () => {
-  it("is the first match on screen, in reading order", () => {
-    const result = searchTree(root, "roadmap");
-    const visible = flattenVisible(buildVisibleTree(root, withSearchReveal(base(), result)));
-    const id = firstVisibleHit(visible, result);
-    expect(visible.find((n) => n.id === id)?.node?.name).toBe("Roadmap.md");
+  it("only looks at what is on screen, and never matches a pill", () => {
+    expect(matchVisible(visible, "more")?.hits.size).toBe(0);
+    expect(matchVisible(visible.filter((c) => c.id !== "roadmap"), "road")?.hits.size).toBe(0);
   });
 
-  it("skips matches that have no card, and is null when none is shown", () => {
-    const result = searchTree(root, "roadmap");
-    // The vault alone is open: the match is somewhere below, with no card.
-    const visible = flattenVisible(buildVisibleTree(root, base()));
-    expect(firstVisibleHit(visible, result)).toBeNull();
-  });
-
-  it("is null when nothing is being searched for", () => {
-    expect(firstVisibleHit([{ id: "a" }], null)).toBeNull();
-  });
-
-  it("takes the earliest in the list when several match", () => {
-    expect(firstVisibleHit([{ id: "x" }, { id: "b" }, { id: "a" }], { hits: new Set(["a", "b"]), ancestors: new Set(), parents: new Set(), batches: new Map() })).toBe("b");
-  });
-});
-
-describe("searchTree batches", () => {
-  const folderOf = (count: number): TreeNode =>
-    buildTree(
-      { name: "Vault", path: "/", children: Array.from({ length: count }, (_, i) => ({ name: `item ${String(i).padStart(3, "0")}`, path: `/item ${String(i).padStart(3, "0")}`, children: [] })) },
-      new UidRegistry(),
-    );
-
-  it("marks no batch for a match in the first batch", () => {
-    const tree = folderOf(100);
-    expect(searchTree(tree, "item 005", 40)?.batches.size).toBe(0);
-  });
-
-  it("marks the batch of a match deeper in the list", () => {
-    const tree = folderOf(100);
-    const result = searchTree(tree, "item 085", 40);
-    expect([...(result?.batches.get(tree.uid) ?? [])]).toEqual([2]);
-  });
-
-  it("marks the batches of a folder on the way to a match, level by level", () => {
-    const tree = buildTree(
-      {
-        name: "Vault",
-        path: "/",
-        children: [
-          ...Array.from({ length: 50 }, (_, i) => ({ name: `a${String(i).padStart(2, "0")}`, path: `/a${String(i).padStart(2, "0")}`, children: [] as never[] })),
-          { name: "z", path: "/z", children: [{ name: "needle.md", path: "/z/needle.md" }] },
-        ],
-      },
-      new UidRegistry(),
-    );
-    const result = searchTree(tree, "needle", 40);
-    // "z" is the 51st folder, so it sits in batch 1 of the vault; the note is first inside "z".
-    expect([...(result?.batches.get(tree.uid) ?? [])]).toEqual([1]);
-    expect(result?.batches.size).toBe(1);
-  });
-
-  it("counts every match, however many there are", () => {
-    const tree = folderOf(100);
-    expect(searchTree(tree, "item", 40)?.hits.size).toBe(100);
-  });
-});
-
-describe("withSearchReveal", () => {
-  it("returns the same state when no search is active", () => {
-    const state = base();
-    expect(withSearchReveal(state, null)).toBe(state);
-  });
-
-  it("opens the path to a match and lists the files beside it", () => {
-    const state = withSearchReveal(base(), searchTree(root, "roadmap"));
-    const visible = flattenVisible(buildVisibleTree(root, state)).map((n) => n.node?.name);
-    expect(visible).toContain("Plugin");
-    expect(visible).toContain("Roadmap.md");
-    expect(visible).not.toContain("today.md");
-  });
-
-  it("never hides a match in a folder too big to show in full", () => {
-    const names = Array.from({ length: FOLDER_CEILING + 200 }, (_, i) => `note ${String(i + 1).padStart(5, "0")}.md`);
-    const huge = buildTree(
-      {
-        name: "Vault",
-        path: "/",
-        children: [{ name: "Big", path: "/Big", children: names.map((name) => ({ name, path: `/Big/${name}` })) }],
-      },
-      new UidRegistry(),
-    );
-    // The last note sorts well past the ceiling, but it is the one being searched for.
-    const target = names[names.length - 1] ?? "";
-    const state = withSearchReveal(
-      { open: new Set([huge.uid]), batches: new Map(), filesFor: new Set(), filesOn: true },
-      searchTree(huge, target),
-    );
-    const visible = flattenVisible(buildVisibleTree(huge, state)).map((n) => n.node?.name);
-    expect(visible).toContain(target);
-  });
-
-  it("reveals only the batch that holds the match, not the ones before it", () => {
-    const names = Array.from({ length: 200 }, (_, i) => `note ${String(i + 1).padStart(3, "0")}.md`);
-    const big = buildTree(
-      {
-        name: "Vault",
-        path: "/",
-        children: [{ name: "Big", path: "/Big", children: names.map((name) => ({ name, path: `/Big/${name}` })) }],
-      },
-      new UidRegistry(),
-    );
-    const target = "note 101.md"; // position 100: with batches of 40, batch 2 (positions 80 to 119)
-    const result = searchTree(big, target, 40);
-    const bigFolder = big.children[0];
-    expect(bigFolder).toBeDefined();
-    expect([...(result?.batches.get(bigFolder?.uid ?? "") ?? [])]).toEqual([2]);
-    const state = withSearchReveal({ open: new Set([big.uid]), batches: new Map(), filesFor: new Set(), filesOn: true }, result);
-    const shown = flattenVisible(buildVisibleTree(big, state, 40)).map((n) => n.node?.name);
-    expect(shown).toContain(target);
-    expect(shown).toContain("note 001.md"); // batch 0 is always there
-    expect(shown).not.toContain("note 050.md"); // batch 1 stays hidden
-    expect(shown).not.toContain("note 150.md"); // so does batch 3
-  });
-
-  it("does not change the original state", () => {
-    const state = base();
-    withSearchReveal(state, searchTree(root, "roadmap"));
-    expect(state.open.size).toBe(1);
-    expect(state.filesFor.size).toBe(0);
+  it("copes with a card whose parent is not on screen", () => {
+    const result = matchVisible([card("lone", "gone", "alone")], "lone");
+    expect([...(result?.hits ?? [])]).toEqual(["lone"]);
+    expect(result?.ancestors.has("gone")).toBe(true);
   });
 });
 
 describe("isDimmed", () => {
-  it("never dims anything without a search", () => {
-    expect(isDimmed("x", null)).toBe(false);
+  const result = matchVisible(visible, "road");
+  it("dims nothing when nothing is typed", () => {
+    expect(isDimmed("notes", null)).toBe(false);
   });
-
-  it("keeps matches and their ancestors bright and dims the rest", () => {
-    const result = searchTree(root, "roadmap");
-    expect(isDimmed(byPath("/Projects/Plugin/Roadmap.md").uid, result)).toBe(false);
-    expect(isDimmed(byPath("/Projects").uid, result)).toBe(false);
-    expect(isDimmed(byPath("/Daily").uid, result)).toBe(true);
-    expect(isDimmed("more:whatever", result)).toBe(true);
+  it("keeps matches and the cards leading to them, and dims the rest", () => {
+    expect(isDimmed("roadmap", result)).toBe(false);
+    expect(isDimmed("plugin", result)).toBe(false);
+    expect(isDimmed("root", result)).toBe(false);
+    expect(isDimmed("notes", result)).toBe(true);
+    expect(isDimmed("more:daily", result)).toBe(true);
   });
 });

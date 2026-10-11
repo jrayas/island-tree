@@ -32,6 +32,7 @@ export function reconcileViewState(state: ViewState, valid: ReadonlySet<string>,
   const open = onlyValid(state.open, valid);
   const batches = onlyValidBatches(state.batches, valid);
   const filesFor = onlyValid(state.filesFor, valid);
+  const pinned = onlyValid(state.pinned, valid);
   const selected = state.selected !== null && valid.has(state.selected) ? state.selected : null;
   const focusRoot = valid.has(state.focusRoot) ? state.focusRoot : rootUid;
 
@@ -39,10 +40,11 @@ export function reconcileViewState(state: ViewState, valid: ReadonlySet<string>,
     open === state.open &&
     batches === state.batches &&
     filesFor === state.filesFor &&
+    pinned === state.pinned &&
     selected === state.selected &&
     focusRoot === state.focusRoot
   ) {
     return state;
   }
-  return { ...state, open, batches, filesFor, selected, focusRoot };
+  return { ...state, open, batches, filesFor, pinned, selected, focusRoot };
 }

@@ -114,6 +114,19 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Settings made in an earlier version (a vault that used the plugin before milestone 5) still load: the default layout and status property are kept.
 - [ ] No errors in the developer console (Ctrl+Shift+I) while using any of the above.
 
+**Search**
+
+- [ ] Type a few letters: a list drops under the box with the best folders first, the matched letters coloured, and each folder's path in grey. The count beside the box says "8 of N" when there are more than 8, and "No matches" when there are none.
+- [ ] Arrow Down and Up move the lit row; Enter goes to it. The folders above it open, only that card is loaded (the rest of its list stays behind "+N more"), it is selected with a yellow ring, the view glides to it, the box clears and the arrow keys now move through the cards.
+- [ ] Click a suggestion with the mouse: the same.
+- [ ] Escape closes the list and keeps the text; a second Escape moves the keyboard to the dashboard.
+- [ ] Type a letter that matches thousands of names in a big vault (use the 10,000-note vault): nothing slows down, and no cards are added until you choose one.
+- [ ] While typing, the cards already on screen that match get a yellow ring and the others fade (unless "Dim cards that don't match" is off). Clearing the box puts them back.
+- [ ] Files off: a file name finds nothing ("No folder matches…" if you press Enter). Press **Files**, type the exact file name, with or without `.md`: that file is listed with its folder, and Enter loads only it. A part of a name still finds no files.
+- [ ] Two files with the same name in different folders are listed separately, each with its path.
+- [ ] After going to a card, press Reset: the card is forgotten and the view is back to the start. Open a note and press Back, or restart Obsidian: the card you went to is still shown.
+- [ ] Search type: "Search files too" in Settings, Layout and the Files button stay in step.
+
 **Tooltips**
 
 - [ ] Hover a card: one black tooltip, such as "articles, folder, open, 125 folders and 0 files, 15,101 files in all". No second white box.
