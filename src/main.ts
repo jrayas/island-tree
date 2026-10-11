@@ -52,6 +52,17 @@ export default class IslandTreePlugin extends Plugin {
       },
     });
 
+    this.addCommand({
+      id: "toggle-auto-scroll",
+      name: "Toggle auto-scroll",
+      checkCallback: (checking) => {
+        const view = this.app.workspace.getActiveViewOfType(IslandTreeView);
+        if (!view) return false;
+        if (!checking) view.toggleAutoScroll();
+        return true;
+      },
+    });
+
     this.addSettingTab(new IslandTreeSettingTab(this.app, this));
   }
 

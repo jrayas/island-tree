@@ -4,6 +4,10 @@ Last updated: milestone 7 (polish and release). All seven milestones are built; 
 
 ## Done
 
+**Auto-scroll** (D-053)
+
+- A pure step function with tests, a canvas component that drifts the view and pauses when anything else moves it, Shift and Space and Shift and an arrow as keys, a play button beside Fit, a "Toggle auto-scroll" command, four settings in the Layout tab, and Enter or Escape in the search box returning the keyboard to the dashboard. Checked in headless Chrome: speed, pausing, direction, wheel, press, drag, zoom, Fit, Shift and 1, the control button, the command, the end and reversing, the search box, reduced motion, and the two notices. That run found and fixed two real faults (it cut short Fit and the zoom buttons, and the keys needed the pointer over the dashboard). **Not run:** in real Obsidian.
+
 **Milestone 7, release polish** (D-052)
 
 - `npm run check:release`, CI and release workflows, `docs/SUBMISSION.md`, the saved publishing prompt, README install, privacy and known limits, a `SPEC.md` section on where the build differs, a cleanup-on-unload audit (nothing leaks), `normalizePath()` for edited paths, and a fade-out for removed cards. Checked: the script against deliberately bad code, the fade with and without reduced motion in Chrome. **Not run:** the workflows on GitHub, and anything in real Obsidian beyond the first look at the settings page.

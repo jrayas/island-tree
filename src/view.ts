@@ -20,6 +20,7 @@ import { settingsToCssVars } from "./settings/cssVars";
 import { withDensity } from "./settings/density";
 import { watchVault, type VaultWatchHandlers } from "./model/watch";
 import App from "./ui/App.svelte";
+import type { ScrollBridge } from "./ui/scrollBridge";
 import { createStateBridge, type StateBridge } from "./ui/stateBridge";
 
 export const VIEW_TYPE_ISLAND_TREE = "island-tree-view";
@@ -30,6 +31,8 @@ export class IslandTreeView extends ItemView {
   private stopMeasuring: (() => void) | null = null;
   /** Lets the "Toggle lock" command reach the app, which owns the lock. */
   private readonly lockBridge: LockBridge = { toggle: null };
+  /** Lets the "Toggle auto-scroll" command reach the app, which owns auto-scroll. */
+  private readonly scrollBridge: ScrollBridge = { toggle: null };
   /** Lets the view save and restore how the dashboard was left. */
   private readonly stateBridge: StateBridge = createStateBridge();
   /** A state Obsidian handed back before the app was mounted, used when it mounts. */
@@ -79,6 +82,11 @@ export class IslandTreeView extends ItemView {
     this.lockBridge.toggle?.();
   }
 
+  /** Starts or pauses auto-scroll, for the "Toggle auto-scroll" command. */
+  toggleAutoScroll(): void {
+    this.scrollBridge.toggle?.();
+  }
+
   async onOpen(): Promise<void> {
     this.contentEl.empty();
     this.contentEl.addClass("island-tree-view");
@@ -114,6 +122,7 @@ export class IslandTreeView extends ItemView {
         settings: this.plugin.store,
         editing: new EditingController(this.app, () => this.plugin.store.get().editing),
         lockBridge: this.lockBridge,
+        scrollBridge: this.scrollBridge,
         stateBridge: this.stateBridge,
         initialView: this.pending,
       },

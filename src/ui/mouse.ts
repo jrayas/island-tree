@@ -6,6 +6,7 @@
  * wheel to zoom. These small pure pieces turn that choice into Svelte Flow's
  * options and decide when a key press belongs to the dashboard.
  */
+import type { AutoScrollAction, ScrollDirection } from "../layout/autoScroll";
 import type { WheelBehaviour } from "../settings/schema";
 
 /** Svelte Flow's scroll options for a wheel behaviour. Ctrl or Cmd and scroll always zooms too. */
@@ -39,13 +40,37 @@ export function keyBelongsElsewhere(target: KeyTargetLike | null): boolean {
   return target.closest('input, textarea, select, button, a, [contenteditable="true"], [role="dialog"]') !== null;
 }
 
-/** The parts of a key event the fit shortcut looks at. */
+/** The parts of a key event the shortcuts look at. */
 export interface KeyPress {
   code: string;
   shiftKey: boolean;
   ctrlKey: boolean;
   metaKey: boolean;
   altKey: boolean;
+}
+
+const ARROW_DIRECTIONS: Record<string, ScrollDirection> = {
+  ArrowDown: "down",
+  ArrowUp: "up",
+  ArrowRight: "right",
+  ArrowLeft: "left",
+};
+
+/** Whether this is an arrow key with Shift held and nothing else, which sets the auto-scroll direction. */
+export function isShiftArrow(event: KeyPress & { key: string }): boolean {
+  return event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey && event.key in ARROW_DIRECTIONS;
+}
+
+/**
+ * What a key press does to auto-scroll, or null when it is not an auto-scroll key. Shift and Space
+ * starts or pauses; Shift and an arrow points it that way and starts it. Ctrl, Cmd and Alt are left
+ * alone (on some keyboards AltGr counts as Ctrl and Alt), and plain Space and arrows are untouched.
+ */
+export function autoScrollKey(event: KeyPress & { key: string }): AutoScrollAction | null {
+  if (!event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return null;
+  if (event.code === "Space") return { type: "toggle" };
+  const direction = ARROW_DIRECTIONS[event.key];
+  return direction ? { type: "go", direction } : null;
 }
 
 /** Shift and 1 (the key itself, so it works on every keyboard layout): the shortcut for zoom to fit. */

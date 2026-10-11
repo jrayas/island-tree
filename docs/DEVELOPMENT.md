@@ -114,6 +114,18 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Settings made in an earlier version (a vault that used the plugin before milestone 5) still load: the default layout and status property are kept.
 - [ ] No errors in the developer console (Ctrl+Shift+I) while using any of the above.
 
+**Auto-scroll**
+
+- [ ] Open a vault with enough folders that the tree is bigger than the pane (or zoom in). Press Shift and Space with the pointer over the dashboard: the view drifts down at about the Speed setting, and pressing it again pauses.
+- [ ] Shift and each arrow key turns it that way and starts it. Plain arrows still move the selection and pause it. Shift and an arrow does not move the selection.
+- [ ] Scrolling the wheel, dragging, zooming, clicking, pressing Fit or Shift and 1, or clicking in the search box all pause it. Pressing the play button while it runs pauses it, and pressing it again starts it.
+- [ ] It stops with the last card a little way from the edge. With "At the end" set to Reverse it turns round and keeps going.
+- [ ] When everything fits on screen, or it is already at the end, pressing start shows a short notice.
+- [ ] Type in the search box, then press Enter or Escape: the keyboard returns to the dashboard and Shift and Space works without clicking. Escape keeps the text.
+- [ ] "Toggle auto-scroll" from the command palette works while the dashboard is the active tab, and is not offered elsewhere. It has no default hotkey; bind one under Hotkeys to try it.
+- [ ] With "Start when the dashboard opens" on it starts at once; with the system's reduced motion on it does not.
+- [ ] **Check in real Obsidian only:** that no other plugin or Obsidian itself uses Shift and Space or Shift and the arrows while the dashboard has the keyboard, and that it feels smooth with a trackpad.
+
 **Release tooling and the fade-out**
 
 - [ ] `npm run check:release -- --built` after a build: it should report only what is genuinely outstanding (the author name in `manifest.json` and `LICENSE` until you change them).

@@ -6,10 +6,11 @@
  * adding one entry here (SPEC.md section 9). The typed interfaces below give the
  * rest of the plugin a normal, checked shape to read.
  */
+import type { ScrollDirection, ScrollEnd } from "../layout/autoScroll";
 import type { CurveStyle, LayoutMode, MindMapView } from "../layout/types";
 import { DEFAULT_LIST_LIMIT, MAX_LIST_LIMIT } from "../model/limits";
 
-export type { CurveStyle };
+export type { CurveStyle, ScrollDirection, ScrollEnd };
 
 /** Bumped when the saved shape changes; `migrate` in validate.ts upgrades older data. */
 export const SETTINGS_VERSION = 2;
@@ -52,6 +53,14 @@ export type WheelBehaviour = "pan" | "zoom";
 export interface CanvasSettings {
   /** Like Obsidian's Canvas: scroll pans by default. */
   wheel: WheelBehaviour;
+  /** Which way auto-scroll drifts when it starts. Shift and an arrow key changes it while it runs. */
+  autoScrollDirection: ScrollDirection;
+  /** Screen pixels per second. */
+  autoScrollSpeed: number;
+  /** Stop at the last card, or turn round and keep going. */
+  autoScrollAtEnd: ScrollEnd;
+  /** Start drifting as soon as the dashboard opens (never with reduced motion). */
+  autoScrollOnOpen: boolean;
   grid: GridType;
   gridSize: number;
   gridSpacing: number;
@@ -386,6 +395,46 @@ export const FIELDS: readonly Field[] = [
         { value: "zoom", label: "Zoom" },
       ],
     },
+  },
+  {
+    group: "canvas", key: "autoScrollDirection", tab: "layout", section: "Auto-scroll", inPreset: false,
+    label: "Direction",
+    description: "Which way the view drifts when auto-scroll starts. While it runs, Shift with an arrow key turns it. Shift and Space, or the play button beside Fit, starts and pauses it. A \"Toggle auto-scroll\" command is there too, for your own hotkey. It only works inside the dashboard.",
+    def: {
+      kind: "enum",
+      default: "down",
+      options: [
+        { value: "down", label: "Down" },
+        { value: "up", label: "Up" },
+        { value: "right", label: "Right" },
+        { value: "left", label: "Left" },
+      ],
+    },
+  },
+  {
+    group: "canvas", key: "autoScrollSpeed", tab: "layout", section: "Auto-scroll", inPreset: false,
+    label: "Speed",
+    description: "How fast the view drifts, in pixels of screen per second, at any zoom.",
+    def: number({ min: 10, max: 300, step: 10, default: 40, unit: "px/s" }),
+  },
+  {
+    group: "canvas", key: "autoScrollAtEnd", tab: "layout", section: "Auto-scroll", inPreset: false,
+    label: "At the end",
+    description: "What happens when the view reaches the last card. Stop waits for you. Reverse turns round and keeps going.",
+    def: {
+      kind: "enum",
+      default: "stop",
+      options: [
+        { value: "stop", label: "Stop" },
+        { value: "reverse", label: "Reverse" },
+      ],
+    },
+  },
+  {
+    group: "canvas", key: "autoScrollOnOpen", tab: "layout", section: "Auto-scroll", inPreset: false,
+    label: "Start when the dashboard opens",
+    description: "Begin drifting as soon as the dashboard opens. Off by default, and it never starts by itself when your system asks for reduced motion. Any scroll, drag or key press pauses it.",
+    def: bool(false),
   },
   {
     group: "layout", key: "openNotesIn", tab: "layout", section: "Opening notes", inPreset: false,

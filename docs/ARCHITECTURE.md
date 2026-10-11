@@ -103,6 +103,7 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | `src/editing/toast.ts` | The notice with an Undo button that lasts about seven seconds. |
 | `src/layout/zoomLevel.ts` | `zoomLevel`: below 0.45 minimal, from 0.7 detailed, otherwise normal. |
 | `src/layout/animate.ts` | `easeFactor` (frame-rate independent), `seedPositions` (new cards start at their parent), `stepPositions`. |
+| `src/layout/autoScroll.ts` | Auto-scroll as pure rules: the next view for a direction, speed and time step, the end of the cards (with the margin), turning round, "nothing to scroll", whether something else moved the view, and the state change for each action. |
 | `src/layout/bounds.ts` | `boundsOfCards`: the box around target positions, for fitting the camera. |
 | `src/layout/edgePath.ts` | The branch shapes: curved, step and straight, for the vertical and the radial layout, and `branchPath` which picks one for a curve style. Used by the dashboard and by the settings preview. | For the mind map: `mindMapPath` (card edge to card edge, as an S-curve, or rounded elbows for the step style, never a diagonal).
 
@@ -116,6 +117,8 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | `src/model/keyNav.ts` | `navigate`: what an arrow, Home, End or Enter key does through the visible cards (tree-view rules). Pure and tested. F is handled in `App.svelte`. |
 | `src/ui/FollowSelection.svelte` | Glides the camera to put a card in view: the selected card when the keyboard moves it off screen, and the first search match when a search reveals one. Cards already in view are left alone. |
 | `src/model/savedView.ts` | `SavedView`, `saveView`, `parseSavedView` and `restoreView`: how the dashboard was left, stored by path (ids change each session), read back defensively and applied only to paths that still exist. |
+| `src/ui/scrollBridge.ts` | The link that lets the "Toggle auto-scroll" command reach the app, like the lock bridge. |
+| `src/ui/AutoScroll.svelte` | Moves the camera a little every frame while auto-scroll runs, and hands control back when anything else moves it. Sits inside Svelte Flow. |
 | `src/ui/stateBridge.ts` | The link between the app and its Obsidian view for saving and restoring the saved view: `snapshot`, `restore` and `changed`. |
 | `scripts/check-guidelines.mjs` | Checks the manifest, version files, tag, required files and the source against the community rules a pattern can catch (unsafe HTML, network calls, global `app`, default hotkeys, console logging, placeholders, API versions against `minAppVersion`). Exits 1 on any error. `npm run check:release`. |
 | `.github/workflows/ci.yml`, `release.yml` | CI on every push and pull request (lint, tests, build, the rules check). On a bare version tag, the release workflow builds, checks the tag equals the manifest version, and attaches `main.js`, `manifest.json` and `styles.css` to a GitHub release. Not yet run on GitHub. |
@@ -200,6 +203,7 @@ Audited on 2026-10-11: every listener, timer, observer and animation frame, and 
 | `view.ts` | store subscription, resize observer, window `resize`, `layout-change` | `onClose` (stop styling, stop measuring); `layout-change` through `registerEvent` |
 | `model/watch.ts` | vault and metadata listeners, two debounce timers, the pending path set | The returned function (`offref`, cancel, clear), and `registerEvent` as well |
 | `App.svelte` | settings subscription, auto-lock interval, search timer, whole-vault count timer and its slices | Effect clean-up and `onDestroy`; a run counter abandons a count in progress |
+| `AutoScroll.svelte` | one animation frame loop while running | Effect clean-up: stopping, or the dashboard closing |
 | `Canvas.svelte` | animation frame, drag window listeners, fade-out timer, window key listeners | `onDestroy`; the `svelte:window` handlers are removed by Svelte |
 | `BoxZoom.svelte` | window key listeners | Svelte |
 | `settings/` | preview subscription, tab and row listeners, the delayed save | `hide()`; listeners die with their elements; `flush` clears the timer |

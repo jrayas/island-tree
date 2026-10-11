@@ -16,6 +16,7 @@
   } from "@xyflow/svelte";
   import { easeFactor, seedPositions, stepPositions } from "../layout/animate";
   import { FADE_OUT_MS, MAX_FADING_CARDS } from "../model/limits";
+  import type { AutoScrollAction, AutoScrollState, ScrollEnd } from "../layout/autoScroll";
   import type { CurveStyle, MindSide, Point } from "../layout/types";
   import type { GridType, WheelBehaviour } from "../settings/schema";
   import type { Box } from "../layout/bounds";
@@ -23,11 +24,20 @@
   import { provideCanvasActions, provideZoom } from "./context";
   import IslandNode from "./IslandNode.svelte";
   import BranchEdge from "./BranchEdge.svelte";
+  import AutoScroll from "./AutoScroll.svelte";
   import BoxZoom from "./BoxZoom.svelte";
   import FitController from "./FitController.svelte";
   import FollowSelection from "./FollowSelection.svelte";
   import ZoomWatcher from "./ZoomWatcher.svelte";
-  import { PAN_BUTTONS, isFitShortcut, keyBelongsElsewhere, wheelOptions, zoomKeys } from "./mouse";
+  import {
+    PAN_BUTTONS,
+    autoScrollKey,
+    isFitShortcut,
+    isShiftArrow,
+    keyBelongsElsewhere,
+    wheelOptions,
+    zoomKeys,
+  } from "./mouse";
   import { ZoomState } from "./zoomState.svelte";
 
   let {
@@ -42,6 +52,10 @@
     grid,
     fitKey,
     wheel,
+    auto,
+    autoSpeed,
+    autoAtEnd,
+    onauto,
     activeId,
     searchId,
     onkey,
@@ -73,6 +87,14 @@
     fitKey: number;
     /** What the scroll wheel does: pan (as in Obsidian's Canvas) or zoom. */
     wheel: WheelBehaviour;
+    /** Whether auto-scroll is running, and which way. */
+    auto: AutoScrollState;
+    /** Auto-scroll speed in screen pixels per second. */
+    autoSpeed: number;
+    /** What auto-scroll does at the last card. */
+    autoAtEnd: ScrollEnd;
+    /** A key, the end of the cards or a hand on the view changed auto-scroll. */
+    onauto: (action: AutoScrollAction) => void;
     /** The selected card, which the keyboard moves and the screen reader announces. */
     activeId: string | null;
     /** The first search match on screen, which the camera glides to. */
@@ -188,13 +210,30 @@
 
   provideZoom(new ZoomState());
 
+  // Fit (the button or Shift and 1) moves the view with an animation, so auto-scroll stops first.
+  let lastFitKey = untrack(() => fitKey);
+  $effect(() => {
+    if (fitKey === lastFitKey) return;
+    lastFitKey = fitKey;
+    untrack(() => onauto({ type: "pause" }));
+  });
+
   // Space held over the dashboard turns a drag into a pan even when it starts on a card, and
   // scroll into a zoom, as in Canvas. Cards stop catching the pointer while it is held.
   let hovering = false;
   let spaceHeld = $state(false);
 
   function keyDown(event: KeyboardEvent): void {
-    if (!hovering || keyBelongsElsewhere(event.target as Element | null)) return;
+    // The keys belong to the dashboard while the pointer is over it or the keyboard is in it.
+    const focused = canvasEl?.contains(canvasEl.ownerDocument.activeElement) ?? false;
+    if (!(hovering || focused) || keyBelongsElsewhere(event.target as Element | null)) return;
+    // Shift and Space, and Shift and an arrow, drive auto-scroll. Checked before plain Space, which pans.
+    const scroll = autoScrollKey(event);
+    if (scroll) {
+      event.preventDefault();
+      if (!event.repeat) onauto(scroll);
+      return;
+    }
     if (event.code === "Space") {
       event.preventDefault();
       spaceHeld = true;
@@ -213,6 +252,10 @@
   let rightDown: { x: number; y: number } | null = null;
 
   function rightPressed(event: PointerEvent): void {
+    // A hand on the view (a drag, a click on a card, a zoom button) takes over from auto-scroll. Its
+    // own button is excluded, or pressing Pause would pause and then start it again. It has to stop:
+    // every frame it sets the view, which would cut short any animated move that starts meanwhile.
+    if (!(event.target as Element | null)?.closest?.(".island-auto-scroll")) onauto({ type: "pause" });
     if (event.button === 2) rightDown = { x: event.clientX, y: event.clientY };
   }
 
@@ -229,7 +272,13 @@
   function treeKey(event: KeyboardEvent): void {
     if (keyBelongsElsewhere(event.target as Element | null)) return;
     if (event.altKey || ((event.ctrlKey || event.metaKey) && event.key !== "Enter")) return;
-    if (onkey(event)) event.preventDefault();
+    // Shift and an arrow belongs to auto-scroll (see keyDown), not to moving through the cards.
+    if (isShiftArrow(event)) return;
+    if (onkey(event)) {
+      event.preventDefault();
+      // Moving through the cards by hand takes over from auto-scroll.
+      onauto({ type: "pause" });
+    }
   }
 
   // "Zoom to area" mode: on from the fourth zoom button, off after a zoom or Escape.
@@ -389,7 +438,7 @@
   class:is-space={spaceHeld}
   role="tree"
   tabindex="0"
-  aria-label="Vault tree. Use the arrow keys to move, Enter to open, and F to show or hide a folder's files."
+  aria-label="Vault tree. Use the arrow keys to move, Enter to open, F to show or hide a folder's files, and Shift with Space or an arrow to scroll on its own."
   aria-activedescendant={activeId ? `island-card-${activeId}` : undefined}
   onkeydown={treeKey}
   onpointerdowncapture={rightPressed}
@@ -443,6 +492,21 @@
         </svg>
       </ControlButton>
       <ControlButton
+        class={["island-auto-scroll", auto.running && "is-active"]}
+        onclick={() => onauto({ type: "toggle" })}
+        title={auto.running ? "Pause auto-scroll (Shift and Space)" : "Start auto-scroll (Shift and Space)"}
+        aria-label={auto.running ? "Pause auto-scroll" : "Start auto-scroll"}
+        aria-pressed={auto.running}
+      >
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+          {#if auto.running}
+            <path d="M9 5v14M15 5v14" />
+          {:else}
+            <path d="M8 5l11 7-11 7z" />
+          {/if}
+        </svg>
+      </ControlButton>
+      <ControlButton
         class={["island-box-zoom", boxMode && "is-active"]}
         onclick={() => (boxMode = !boxMode)}
         title="Zoom to area (or hold Shift and drag)"
@@ -456,6 +520,19 @@
     </Controls>
     <BoxZoom active={boxMode} minZoom={MIN_ZOOM} onfinish={() => (boxMode = false)} />
     <ZoomWatcher />
+    <AutoScroll
+      running={auto.running}
+      direction={auto.direction}
+      speed={autoSpeed}
+      atEnd={autoAtEnd}
+      {targets}
+      {cardWidth}
+      {cardHeight}
+      width={paneWidth}
+      height={paneHeight}
+      onpause={(reason) => onauto({ type: "pause", reason })}
+      onturn={(direction) => onauto({ type: "turn", direction })}
+    />
     <FollowSelection {activeId} {searchId} {targets} {cardWidth} {cardHeight} width={paneWidth} height={paneHeight} />
     <FitController
       trigger={fitKey}

@@ -123,6 +123,29 @@ describe("sanitiseSettings", () => {
     expect(sanitiseSettings({ layout: { dimOnSearch: "no" } }).settings.layout.dimOnSearch).toBe(true);
   });
 
+  it("keeps the auto-scroll settings in range and falls back to the defaults for bad ones", () => {
+    const canvas = DEFAULT_SETTINGS.canvas;
+    expect(canvas.autoScrollDirection).toBe("down");
+    expect(canvas.autoScrollSpeed).toBe(40);
+    expect(canvas.autoScrollAtEnd).toBe("stop");
+    expect(canvas.autoScrollOnOpen).toBe(false);
+    const good = sanitiseSettings({
+      canvas: { autoScrollDirection: "left", autoScrollSpeed: 120, autoScrollAtEnd: "reverse", autoScrollOnOpen: true },
+    }).settings.canvas;
+    expect(good.autoScrollDirection).toBe("left");
+    expect(good.autoScrollSpeed).toBe(120);
+    expect(good.autoScrollAtEnd).toBe("reverse");
+    expect(good.autoScrollOnOpen).toBe(true);
+    const bad = sanitiseSettings({
+      canvas: { autoScrollDirection: "sideways", autoScrollSpeed: 100000, autoScrollAtEnd: "loop", autoScrollOnOpen: "yes" },
+    }).settings.canvas;
+    expect(bad.autoScrollDirection).toBe("down");
+    expect(bad.autoScrollSpeed).toBe(300);
+    expect(bad.autoScrollAtEnd).toBe("stop");
+    expect(bad.autoScrollOnOpen).toBe(false);
+    expect(sanitiseSettings({ canvas: { autoScrollSpeed: 1 } }).settings.canvas.autoScrollSpeed).toBe(10);
+  });
+
   it("limits out-of-range numbers and rejects wrong types, with readable messages", () => {
     const { settings, report } = sanitiseSettings({
       cards: { width: 5000, height: "tall" },

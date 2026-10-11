@@ -11,6 +11,7 @@
   import { joinPath, relockDue } from "../editing/rules";
   import { CountCache, indexByPath } from "../model/counts";
   import { COUNT_CHUNK, SEARCH_DELAY_MS } from "../model/limits";
+  import { nextAutoScroll, type AutoScrollAction, type AutoScrollState } from "../layout/autoScroll";
   import { computeLayout, type LayoutOptions } from "../layout/layout";
   import { describeForReader, describeItem } from "../model/display";
   import { NAV_KEYS, navigate, type NavItem } from "../model/keyNav";
@@ -55,6 +56,7 @@
   import EditBar from "./EditBar.svelte";
   import type { CanvasItem } from "./cardData";
   import InfoPanel from "./InfoPanel.svelte";
+  import type { ScrollBridge } from "./scrollBridge";
   import type { StateBridge } from "./stateBridge";
   import Toolbar from "./Toolbar.svelte";
 
@@ -66,6 +68,7 @@
     settings,
     editing,
     lockBridge,
+    scrollBridge,
     stateBridge,
     initialView = null,
   }: {
@@ -80,6 +83,8 @@
     editing: EditingApi;
     /** Lets the "Toggle lock" command reach this app. */
     lockBridge: LockBridge;
+    /** Lets the "Toggle auto-scroll" command reach this app. */
+    scrollBridge: ScrollBridge;
     /** Lets the view save and restore how the dashboard was left. */
     stateBridge: StateBridge;
     /** How the dashboard was left last time, if Obsidian handed it back. */
@@ -279,9 +284,15 @@
     if (viewState.query !== typed) viewState = setQuery(viewState, typed, root.uid);
     await tick();
     const id = searchFocus;
-    if (id === null) return;
-    viewState = select(viewState, id);
-    await tick();
+    if (id !== null) {
+      viewState = select(viewState, id);
+      await tick();
+    }
+    focusCanvas();
+  }
+
+  /** Moves the keyboard to the dashboard, so its shortcuts (arrows, Shift and Space) work again. */
+  function focusCanvas(): void {
     appEl?.querySelector<HTMLElement>(".island-canvas")?.focus();
   }
 
@@ -410,6 +421,40 @@
     lockBridge.toggle = toggleLock;
     return () => {
       lockBridge.toggle = null;
+    };
+  });
+
+  // ---- Auto-scroll. Not saved with the view: each dashboard starts from the settings. It never
+  // starts by itself when the system asks for reduced motion.
+  let auto = $state<AutoScrollState>(
+    untrack(() => ({
+      running: cfg.canvas.autoScrollOnOpen && !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+      direction: cfg.canvas.autoScrollDirection,
+    })),
+  );
+
+  function driveAuto(action: AutoScrollAction): void {
+    const next = nextAutoScroll(auto, action);
+    if (next.running !== auto.running || next.direction !== auto.direction) auto = next;
+    if (action.type === "pause" && action.reason === "fits") {
+      editing.notify("Everything is already on screen, so there is nothing to scroll.");
+    } else if (action.type === "pause" && action.reason === "edge") {
+      editing.notify("Already at the end. Turn it round with Shift and an arrow key.");
+    }
+  }
+
+  // Changing the direction setting points auto-scroll that way straight away.
+  $effect(() => {
+    const direction = cfg.canvas.autoScrollDirection;
+    untrack(() => {
+      if (auto.direction !== direction) auto = { ...auto, direction };
+    });
+  });
+
+  $effect(() => {
+    scrollBridge.toggle = () => driveAuto({ type: "toggle" });
+    return () => {
+      scrollBridge.toggle = null;
     };
   });
 
@@ -647,6 +692,8 @@
     }}
     onquery={typeQuery}
     onsearchenter={() => void selectFirstMatch()}
+    onsearchescape={focusCanvas}
+    onsearchfocus={() => driveAuto({ type: "pause" })}
     onfocus={focusSelected}
     onunfocus={() => {
       viewState = resetFocus(viewState, root.uid);
@@ -679,6 +726,10 @@
     grid={{ type: cfg.canvas.grid, size: cfg.canvas.gridSize, spacing: cfg.canvas.gridSpacing }}
     {fitKey}
     wheel={cfg.canvas.wheel}
+    {auto}
+    autoSpeed={cfg.canvas.autoScrollSpeed}
+    autoAtEnd={cfg.canvas.autoScrollAtEnd}
+    onauto={driveAuto}
     activeId={viewState.selected}
     searchId={searchFocus}
     onkey={navigateKey}

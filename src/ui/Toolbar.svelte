@@ -25,6 +25,8 @@
     onreset,
     onquery,
     onsearchenter,
+    onsearchescape,
+    onsearchfocus,
     onfocus,
     onunfocus,
     onlock,
@@ -60,6 +62,10 @@
     onquery: (text: string) => void;
     /** Enter was pressed in the search box: select the first match. */
     onsearchenter: () => void;
+    /** Escape was pressed in the search box: give the keyboard back to the dashboard, keeping the text. */
+    onsearchescape: () => void;
+    /** The search box got the keyboard. */
+    onsearchfocus: () => void;
     onfocus: () => void;
     onunfocus: () => void;
     onlock: () => void;
@@ -130,10 +136,15 @@
     spellcheck="false"
     value={query}
     oninput={(event) => onquery(event.currentTarget.value)}
+    onfocus={onsearchfocus}
     onkeydown={(event) => {
       if (event.key === "Enter") {
         event.preventDefault();
         onsearchenter();
+      } else if (event.key === "Escape") {
+        // A search box would clear itself on Escape; here it hands the keyboard back instead.
+        event.preventDefault();
+        onsearchescape();
       }
     }}
   />

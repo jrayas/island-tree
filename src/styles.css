@@ -256,6 +256,13 @@
   stroke-dasharray: 4 3;
 }
 
+/* The auto-scroll button's play and pause icons are outlines too. */
+.island-tree-view .island-auto-scroll svg {
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
 /* The fit button's corner-brackets icon is an outline too. */
 .island-tree-view .island-fit svg {
   fill: none;
