@@ -114,6 +114,13 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Settings made in an earlier version (a vault that used the plugin before milestone 5) still load: the default layout and status property are kept.
 - [ ] No errors in the developer console (Ctrl+Shift+I) while using any of the above.
 
+**Tooltips**
+
+- [ ] Hover a card: one black tooltip, such as "articles, folder, open, 125 folders and 0 files, 15,101 files in all". No second white box.
+- [ ] Hover a folder's count badge: "Show files" or "Hide files". Hover the empty canvas: nothing appears.
+- [ ] Hover Fit, play, saved view and zoom to area: one black tooltip each, with the shortcut where there is one.
+- [ ] A screen reader still reads the tree as "Vault tree" with its instructions.
+
 **Saved view button**
 
 - [ ] The control strip is: zoom in, zoom out, fit, play, saved view (a bookmark), zoom to area. With nothing saved the bookmark is an outline, and its tooltip says "Save the current view".

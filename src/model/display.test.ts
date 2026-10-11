@@ -171,6 +171,16 @@ describe("describeItem", () => {
     );
   });
 
+  it("groups thousands, and does not repeat the count when nothing is nested deeper", () => {
+    const base = { icon: null, colour: null, items: 0, filesShown: false, tooltip: "", kind: "folder" as const, label: "articles", isOpen: true };
+    expect(describeForReader({ ...base, subfolders: 125, files: 0, total: { folders: 719, files: 15101 } })).toBe(
+      "articles, folder, open, 125 folders and 0 files, 15,101 files in all",
+    );
+    expect(describeForReader({ ...base, label: "Inbox", isOpen: false, subfolders: 0, files: 4, total: { folders: 0, files: 4 } })).toBe(
+      "Inbox, folder, closed, 0 folders and 4 files",
+    );
+  });
+
   it("tells a screen reader how to use a pill, and when it does nothing", () => {
     const base = { icon: null, colour: null, items: 0, filesShown: false, kind: "more" as const, subfolders: 0, files: 0, isOpen: false };
     expect(describeForReader({ ...base, label: "+3 more", tooltip: "Show more (3 items hidden)" })).toBe(

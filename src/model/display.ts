@@ -44,14 +44,17 @@ export function describeForReader(display: CardDisplay): string {
   }
   if (display.kind === "folder") {
     const holds = `${plural(display.subfolders, "folder", "folders")} and ${plural(display.files, "file", "files")}`;
-    const inAll = display.total ? `, ${plural(display.total.files, "file", "files")} in all` : "";
+    // Only worth saying when there is more inside than the folder holds directly.
+    const deeper =
+      display.total && (display.total.files > display.files || display.total.folders > display.subfolders);
+    const inAll = deeper && display.total ? `, ${plural(display.total.files, "file", "files")} in all` : "";
     return `${display.label}, folder, ${display.isOpen ? "open" : "closed"}, ${holds}${inAll}`;
   }
   return `${display.label}, file`;
 }
 
 function plural(count: number, singular: string, pluralForm: string): string {
-  return `${count} ${count === 1 ? singular : pluralForm}`;
+  return `${count.toLocaleString("en-GB")} ${count === 1 ? singular : pluralForm}`;
 }
 
 /**

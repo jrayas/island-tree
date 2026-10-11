@@ -6,6 +6,8 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 ### Changed
 
+- **One short hover tooltip.** Cards and the control buttons showed two tooltips at once: Obsidian's black one and a long white one from the browser. Only the black one is left. A card says, for example, "articles, folder, open, 125 folders and 0 files, 15,101 files in all": thousands are grouped, and "in all" is left out when nothing is nested deeper. A folder's count badge says "Show files" or "Hide files". The tree's long instructions no longer pop up when the pointer rests on the empty canvas; screen readers still read them. The control buttons' tooltips now include their shortcut, such as "Fit to screen (Shift and 1)".
+
 - Folder and file counts are kept in a cache by path. They are counted once after the first draw, in slices that give the browser a turn, and a change recounts only the folders above it (a move updates both the old and the new parent), so a redraw, zoom or hover never recounts anything. A folder's tooltip and screen reader wording now also give the total number of files and folders inside it, once counted. Changes to the vault are gathered for 250 ms into one update, which now names every path involved, and the listeners are registered through the view so Obsidian removes them if the view goes away.
 
 - **Expand folders** now opens one more level each press, and only for the folders on screen; once everything on screen is open it reads **Collapse folders** and closes them all. Folders that appear later (created, moved or pasted) stay closed. The start setting is now **Start with the first level open**. Nothing is built for a folder nobody has reached, so Expand folders can no longer ask for the whole vault at once.

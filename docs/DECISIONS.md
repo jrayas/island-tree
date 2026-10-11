@@ -363,3 +363,11 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 **Why:** It answers "let me keep a view I like and get back to it from anywhere" without turning Reset into something that does two jobs. The saved state already travels with the tab (Back, restart), so no new storage is needed and the settings table stays flat. Saving the centre rather than the offset keeps it right when the pane changes size.
 
 **Limits:** A saved view belongs to the dashboard tab, so a new tab starts without one. It is a place in the layout, not a set of cards: if Compact or Details is switched, or folders are opened or closed, the cards sit differently and the saved place may show something else. Tooltips come from `aria-label` only (Obsidian turns that into its own tooltip; a `title` as well would show two).
+
+## D-055: Tooltips come from `aria-label` alone
+
+**Decision:** Obsidian shows its own tooltip for any element with an `aria-label`, and the browser shows another for a `title`, so an element with both showed two. Cards, the folder badges and the control strip now carry only `aria-label`, and the `title` is gone. The card's `aria-label` is the screen reader wording (name, kind, open or closed, what it holds); the badge's is the action ("Show files" or "Hide files"); the control buttons' include their shortcut. The tree's own name and instructions moved to visually hidden text referenced by `aria-labelledby` and `aria-describedby`, so they are still announced but cannot pop up over the empty canvas. Numbers in these texts group thousands (en-GB), and "in all" is only said when there are files or folders deeper than the folder's own.
+
+**Cost:** A file card no longer shows its age, size, links and tags on hover. They are on the card with Details on, and in the details panel when it is selected.
+
+**Left alone:** The toolbar's buttons (Mind map, Expand folders, Compact, Locked) still use `title` for their longer explanation, because their visible text is their name and an `aria-label` would replace it. Svelte Flow's own zoom in and zoom out buttons keep the `title` it gives them.

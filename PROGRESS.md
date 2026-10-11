@@ -4,6 +4,10 @@ Last updated: milestone 7 (polish and release). All seven milestones are built; 
 
 ## Done
 
+**One short tooltip** (D-055)
+
+- Cards, badges and the control strip carry only an `aria-label` (Obsidian's black tooltip), the tree's long instructions are hidden text, numbers group thousands, and "in all" is only said when it adds something. Checked in the browser: no `title` left on cards, badges or the strip, and the accessibility tree still names and describes the tree. **Not run:** in real Obsidian.
+
 **Saved view button and the new Fit icon** (D-054)
 
 - A pure camera module with tests, the button inside Svelte Flow, one saved camera per layout kept in the dashboard's saved state, a right-click menu, and a frame-with-a-block Fit icon. Checked in headless Chrome: the strip order, saving and returning exactly, Reset leaving it alone, per-layout, a resized pane staying centred on the same spot, the menu actions, and surviving a remount. **Not run:** in real Obsidian, and the menu key.

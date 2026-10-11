@@ -43,6 +43,10 @@
   } from "./mouse";
   import { ZoomState } from "./zoomState.svelte";
 
+  // Obsidian turns an element's aria-label into its own hover tooltip, so the tree's name and its
+  // instructions live in hidden text instead, which screen readers still read but nothing pops up.
+  const labelId = $props.id();
+
   let {
     items,
     targets,
@@ -453,7 +457,8 @@
   class:is-space={spaceHeld}
   role="tree"
   tabindex="0"
-  aria-label="Vault tree. Use the arrow keys to move, Enter to open, F to show or hide a folder's files, and Shift with Space or an arrow to scroll on its own."
+  aria-labelledby="{labelId}-name"
+  aria-describedby="{labelId}-help"
   aria-activedescendant={activeId ? `island-card-${activeId}` : undefined}
   onkeydown={treeKey}
   onpointerdowncapture={rightPressed}
@@ -464,6 +469,11 @@
   bind:clientWidth={paneWidth}
   bind:clientHeight={paneHeight}
 >
+  <span id="{labelId}-name" class="island-sr-only">Vault tree</span>
+  <span id="{labelId}-help" class="island-sr-only"
+    >Use the arrow keys to move, Enter to open, F to show or hide a folder's files, and Shift with Space or an arrow to
+    scroll on its own.</span
+  >
   <SvelteFlow
     {nodes}
     {edges}
@@ -499,8 +509,7 @@
       <ControlButton
         class="svelte-flow__controls-fitview island-fit"
         onclick={onfit}
-        title="Fit to screen (Shift and 1)"
-        aria-label="Fit to screen"
+        aria-label="Fit to screen (Shift and 1)"
       >
         <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
           <path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M20 9V5.5A1.5 1.5 0 0 0 18.5 4H15M4 15v3.5A1.5 1.5 0 0 0 5.5 20H9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15" />
@@ -510,8 +519,7 @@
       <ControlButton
         class={["island-auto-scroll", auto.running && "is-active"]}
         onclick={() => onauto({ type: "toggle" })}
-        title={auto.running ? "Pause auto-scroll (Shift and Space)" : "Start auto-scroll (Shift and Space)"}
-        aria-label={auto.running ? "Pause auto-scroll" : "Start auto-scroll"}
+        aria-label={auto.running ? "Pause auto-scroll (Shift and Space)" : "Start auto-scroll (Shift and Space)"}
         aria-pressed={auto.running}
       >
         <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
@@ -533,8 +541,7 @@
       <ControlButton
         class={["island-box-zoom", boxMode && "is-active"]}
         onclick={() => (boxMode = !boxMode)}
-        title="Zoom to area (or hold Shift and drag)"
-        aria-label="Zoom to area"
+        aria-label="Zoom to area (or hold Shift and drag)"
         aria-pressed={boxMode}
       >
         <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" aria-hidden="true">

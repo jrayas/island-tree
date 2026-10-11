@@ -40,7 +40,6 @@
   class:island-card-minimal={minimal}
   class:island-card-draggable={data.draggable}
   class:nopan={data.draggable}
-  title={display.tooltip}
   ondblclick={open}
   onpointerdown={(event) => {
     if (data.draggable) actions.ondragstart(id, event);
@@ -80,7 +79,7 @@
         type="button"
         class="island-card-badge"
         class:island-card-badge-on={display.filesShown}
-        aria-label={display.tooltip}
+        aria-label={display.filesShown ? "Hide files" : "Show files"}
         tabindex="-1"
         onclick={badgeClick}
         onpointerdown={(event) => event.stopPropagation()}
