@@ -10,3 +10,6 @@ data.json
 .vscode/
 .idea/
 .DS_Store
+
+# Screenshots taken from a personal vault, kept local
+public/

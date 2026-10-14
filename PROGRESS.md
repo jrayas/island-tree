@@ -110,7 +110,7 @@ Last updated: milestone 7 (polish and release). All seven milestones are built; 
 - **Canvas colour match** is by variable, not by sight: compare with a Canvas tab as the checklist in `docs/DEVELOPMENT.md` says, and change two lines if your theme gives Canvas its own colour (D-034).
 - **Settings page layout** is the part most likely to need visual fixes: the preview's scaling, the tab strip, the row spacing and the slider value labels are written but unseen.
 - **Folder renames:** I am not certain whether Obsidian sends one `rename` event for a folder or one per file inside it. The code handles both (D-020).
-- **Author name is a placeholder** ("Your name") in `manifest.json` and `LICENSE`. `npm run check:release` fails until you change it.
+- **Author name** is "Anthirayas" in `manifest.json` and `LICENSE` (set before the first push). Change it there if you want a different name.
 - **The release and CI workflows have never run on GitHub**, and the repository does not exist yet. Expect a small fix or two on the first run.
 - **The settings page opens with a header card showing the plugin name.** The guidelines say not to put a top-level heading with the plugin name in a settings tab. It is a styled block, not a heading, and the lint rule passes, but a reviewer may ask for it to go (`src/settings/SettingsTab.ts`).
 - **`minAppVersion` 1.7.2** was checked for imports and the main member APIs from the typings, not by running on 1.7.2.
