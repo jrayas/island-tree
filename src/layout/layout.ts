@@ -81,6 +81,8 @@ export function computeLayout(
   if (mode === "radial") {
     result = layoutRadial(root, {
       cardWidth: cardSize.width,
+      cardHeight: cardSize.height,
+      gap: Math.round(options.gap / 2),
       radii: ringRadii(options.ringRadius),
       ringStep: options.ringStep,
       scale: detail ? DETAILED_RING_SCALE : 1,

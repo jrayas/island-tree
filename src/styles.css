@@ -371,6 +371,12 @@
   cursor: grab;
 }
 
+/* The card under the pointer comes to the front, so neighbours that touch or overlap never hide it. The
+   wrapper's z-index is set inline, so this needs !important. */
+.island-tree-view .svelte-flow__node:hover {
+  z-index: 20 !important;
+}
+
 .island-tree-view .svelte-flow__controls-button.is-active {
   background: var(--interactive-accent);
   color: var(--text-on-accent);

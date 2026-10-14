@@ -18,6 +18,13 @@ export interface RadialOptions {
   scale?: number;
   /** Space kept clear beyond the outermost card. */
   margin?: number;
+  /**
+   * The card's height. When given, a ring that would crowd its cards together grows until they
+   * clear each other; without it the rings are exactly as configured.
+   */
+  cardHeight?: number;
+  /** Space kept between neighbouring cards on a ring when it has to grow. */
+  gap?: number;
 }
 
 /** The mockup's rings, used until the settings milestone makes them configurable. */
@@ -54,30 +61,87 @@ export function layoutRadial(root: LayoutNode, options: RadialOptions): LayoutRe
     return count;
   };
 
-  const deepest = (node: LayoutNode, depth: number): number =>
-    node.children.reduce((max, child) => Math.max(max, deepest(child, depth + 1)), depth);
-
-  const half = ringRadius(deepest(root, 0), radii, ringStep, scale) + cardWidth / 2 + margin;
-  const positions: LayoutResult["positions"] = new Map();
-
-  const place = (node: LayoutNode, from: number, to: number, depth: number): void => {
+  // Pass one: each card's angle. Walking the tree in order visits the cards of a ring in order
+  // around it, so the angles of one ring come out sorted.
+  const placed: { id: string; angle: number; depth: number }[] = [];
+  const anglesByDepth: number[][] = [];
+  const spread = (node: LayoutNode, from: number, to: number, depth: number): void => {
     const angle = (from + to) / 2;
-    const radius = ringRadius(depth, radii, ringStep, scale);
-    positions.set(node.id, {
-      x: half + radius * Math.cos(angle),
-      y: half + radius * Math.sin(angle),
-    });
+    placed.push({ id: node.id, angle, depth });
+    (anglesByDepth[depth] ??= []).push(angle);
 
     const total = leafCount(node);
     let start = from;
     for (const child of node.children) {
       const span = ((to - from) * leafCount(child)) / total;
-      place(child, start, start + span, depth + 1);
+      spread(child, start, start + span, depth + 1);
       start += span;
     }
   };
-
   // Start straight up and sweep a full turn.
-  place(root, -Math.PI / 2, 1.5 * Math.PI, 0);
+  spread(root, -Math.PI / 2, 1.5 * Math.PI, 0);
+
+  // Pass two: each ring's radius, pushed out where its cards would otherwise touch.
+  const cardHeight = options.cardHeight;
+  const gap = options.gap ?? 0;
+  const ringRadii: number[] = [];
+  for (let depth = 0; depth < anglesByDepth.length; depth++) {
+    const wanted = ringRadius(depth, radii, ringStep, scale);
+    const previous = ringRadii[depth - 1];
+    // Never closer to the ring inside than the settings say.
+    let radius =
+      previous === undefined
+        ? wanted
+        : Math.max(wanted, previous + wanted - ringRadius(depth - 1, radii, ringStep, scale));
+    if (cardHeight !== undefined && depth > 0) {
+      radius = Math.max(
+        radius,
+        radiusToClear(anglesByDepth[depth] ?? [], cardWidth, cardHeight, gap),
+      );
+    }
+    ringRadii.push(radius);
+  }
+
+  const outermost = ringRadii[ringRadii.length - 1] ?? 0;
+  const half = outermost + cardWidth / 2 + margin;
+  const positions: LayoutResult["positions"] = new Map();
+  for (const { id, angle, depth } of placed) {
+    const radius = ringRadii[depth] ?? 0;
+    positions.set(id, {
+      x: half + radius * Math.cos(angle),
+      y: half + radius * Math.sin(angle),
+    });
+  }
   return { positions, width: 2 * half, height: 2 * half, centre: { x: half, y: half } };
+}
+
+/**
+ * The smallest ring radius at which neighbouring cards, at these angles, do not overlap.
+ *
+ * Two neighbours are `chord` apart, in the direction of the ring's tangent; two cards of
+ * `width` by `height` clear each other once they are far enough apart sideways or up and down,
+ * whichever the tangent allows sooner.
+ */
+export function radiusToClear(
+  angles: readonly number[],
+  width: number,
+  height: number,
+  gap: number,
+): number {
+  if (angles.length < 2) return 0;
+  let needed = 0;
+  for (let i = 0; i < angles.length; i++) {
+    const a = angles[i];
+    const next = angles[(i + 1) % angles.length];
+    const between = i + 1 < angles.length ? next - a : next + 2 * Math.PI - a;
+    // Past half a turn apart, the cards get further from each other the other way round.
+    const separation = Math.min(between, Math.PI);
+    const tangent = a + between / 2 + Math.PI / 2;
+    const across = Math.abs(Math.cos(tangent));
+    const up = Math.abs(Math.sin(tangent));
+    const distance = Math.min(across < 1e-9 ? Infinity : width / across, up < 1e-9 ? Infinity : height / up);
+    const chord = 2 * Math.sin(Math.max(separation, 1e-6) / 2);
+    needed = Math.max(needed, (distance + gap) / chord);
+  }
+  return needed;
 }

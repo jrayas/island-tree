@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { layoutRadial, ringRadius, type RadialOptions } from "./radial";
+import { layoutRadial, radiusToClear, ringRadius, type RadialOptions } from "./radial";
 import type { LayoutNode } from "./types";
 
 const options: RadialOptions = {
@@ -105,5 +105,96 @@ describe("layoutRadial", () => {
   it("positions every node exactly once", () => {
     const tree = node("r", node("a", node("a1")), node("b"), node("c"));
     expect(layoutRadial(tree, options).positions.size).toBe(5);
+  });
+});
+
+describe("radiusToClear", () => {
+  const turn = (n: number): number[] => Array.from({ length: n }, (_, i) => (2 * Math.PI * i) / n);
+
+  it("needs nothing for a ring with one card or none", () => {
+    expect(radiusToClear([], 80, 30, 0)).toBe(0);
+    expect(radiusToClear([1], 80, 30, 0)).toBe(0);
+  });
+
+  it("asks for a bigger ring the more cards share it", () => {
+    expect(radiusToClear(turn(40), 80, 30, 0)).toBeGreaterThan(radiusToClear(turn(10), 80, 30, 0));
+  });
+
+  it("keeps neighbours apart by at least the card size", () => {
+    const angles = turn(24);
+    const radius = radiusToClear(angles, 80, 30, 0);
+    // Compare real card rectangles: they must not overlap at the radius it gives.
+    const box = (angle: number): { x: number; y: number } => ({ x: radius * Math.cos(angle), y: radius * Math.sin(angle) });
+    for (let i = 0; i < angles.length; i++) {
+      const a = box(angles[i]);
+      const b = box(angles[(i + 1) % angles.length]);
+      const overlaps = Math.abs(a.x - b.x) < 80 - 1e-6 && Math.abs(a.y - b.y) < 30 - 1e-6;
+      expect(overlaps).toBe(false);
+    }
+  });
+
+  it("adds the gap between neighbours", () => {
+    expect(radiusToClear(turn(24), 80, 30, 10)).toBeGreaterThan(radiusToClear(turn(24), 80, 30, 0));
+  });
+});
+
+describe("layoutRadial with crowded rings", () => {
+  const many = (n: number): LayoutNode => node("r", ...Array.from({ length: n }, (_, i) => node(`c${i}`)));
+  const crowded: RadialOptions = { ...options, cardWidth: 80, cardHeight: 30, gap: 5 };
+
+  const overlapping = (result: ReturnType<typeof layoutRadial>, width: number, height: number): number => {
+    const points = [...result.positions.values()];
+    let count = 0;
+    for (let i = 0; i < points.length; i++) {
+      for (let j = i + 1; j < points.length; j++) {
+        const a = points[i];
+        const b = points[j];
+        if (Math.abs(a.x - b.x) < width - 1e-6 && Math.abs(a.y - b.y) < height - 1e-6) count++;
+      }
+    }
+    return count;
+  };
+
+  it("overlaps when the rings are left as configured and there are too many cards", () => {
+    expect(overlapping(layoutRadial(many(40), options), 80, 30)).toBeGreaterThan(0);
+  });
+
+  it("pushes the ring out until no two cards overlap", () => {
+    const result = layoutRadial(many(40), crowded);
+    expect(overlapping(result, 80, 30)).toBe(0);
+    const centre = result.centre!;
+    const p = result.positions.get("c0")!;
+    expect(Math.hypot(p.x - centre.x, p.y - centre.y)).toBeGreaterThan(100);
+  });
+
+  it("leaves a ring alone when its cards already have room", () => {
+    const result = layoutRadial(many(4), crowded);
+    const centre = result.centre!;
+    const p = result.positions.get("c0")!;
+    expect(Math.hypot(p.x - centre.x, p.y - centre.y)).toBeCloseTo(100);
+  });
+
+  it("keeps the rings beyond a pushed-out one the same distance further out", () => {
+    const tree = node("r", ...Array.from({ length: 40 }, (_, i) => node(`c${i}`, node(`d${i}`))));
+    const result = layoutRadial(tree, crowded);
+    const centre = result.centre!;
+    const distance = (id: string): number => {
+      const p = result.positions.get(id)!;
+      return Math.hypot(p.x - centre.x, p.y - centre.y);
+    };
+    expect(distance("d0") - distance("c0")).toBeGreaterThanOrEqual(100 - 1e-6);
+    expect(overlapping(result, 80, 30)).toBe(0);
+  });
+
+  it("makes the square big enough for a pushed-out ring", () => {
+    const result = layoutRadial(many(40), crowded);
+    const centre = result.centre!;
+    for (const p of result.positions.values()) {
+      expect(p.x - 40).toBeGreaterThanOrEqual(0);
+      expect(p.x + 40).toBeLessThanOrEqual(result.width + 1e-6);
+      expect(p.y).toBeGreaterThanOrEqual(0);
+      expect(p.y).toBeLessThanOrEqual(result.height + 1e-6);
+    }
+    expect(centre.x).toBeCloseTo(result.width / 2);
   });
 });

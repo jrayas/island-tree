@@ -336,6 +336,8 @@
         width: cardWidth,
         height: cardHeight,
         data: item.data,
+        // The card the keyboard is on sits above its neighbours, so a ring that is close never hides it.
+        zIndex: item.data.selected ? 10 : 0,
         draggable: false,
         selectable: false,
         connectable: false,
