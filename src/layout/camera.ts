@@ -18,8 +18,11 @@ export interface SavedCamera {
 
 export type SavedCameras = Partial<Record<LayoutMode, SavedCamera>>;
 
-/** The zoom limits the canvas allows, so a bad saved value cannot leave the view stuck. */
-export const CAMERA_MIN_ZOOM = 0.2;
+/**
+ * The zoom limits the canvas allows, so a bad saved value cannot leave the view stuck. The floor is
+ * low enough for Fit to show a very wide tree whole (at 2% a card is only a couple of pixels wide).
+ */
+export const CAMERA_MIN_ZOOM = 0.02;
 export const CAMERA_MAX_ZOOM = 2;
 
 /** Further than this from the origin is not a place any layout reaches; it only bounds bad data. */

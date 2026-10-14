@@ -18,7 +18,7 @@
   import { FADE_OUT_MS, MAX_FADING_CARDS } from "../model/limits";
   import type { MenuEntry } from "../editing/api";
   import type { AutoScrollAction, AutoScrollState, ScrollEnd } from "../layout/autoScroll";
-  import type { SavedCamera } from "../layout/camera";
+  import { CAMERA_MIN_ZOOM, type SavedCamera } from "../layout/camera";
   import type { CurveStyle, MindSide, Point } from "../layout/types";
   import type { GridType, WheelBehaviour } from "../settings/schema";
   import type { Box } from "../layout/bounds";
@@ -303,7 +303,7 @@
   let paneWidth = $state(0);
   let paneHeight = $state(0);
 
-  const MIN_ZOOM = 0.2;
+  const MIN_ZOOM = CAMERA_MIN_ZOOM;
 
   const nodeTypes = { island: IslandNode };
   const edgeTypes = { branch: BranchEdge };

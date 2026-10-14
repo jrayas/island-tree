@@ -37,7 +37,7 @@ describe("parseCamera", () => {
 
   it("keeps the zoom in range", () => {
     expect(parseCamera({ x: 0, y: 0, zoom: 50 })?.zoom).toBe(2);
-    expect(parseCamera({ x: 0, y: 0, zoom: 0 })?.zoom).toBe(0.2);
+    expect(parseCamera({ x: 0, y: 0, zoom: 0 })?.zoom).toBe(0.02);
   });
 
   it("rejects anything else", () => {

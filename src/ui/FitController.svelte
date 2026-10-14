@@ -5,6 +5,7 @@
   import { untrack } from "svelte";
   import { getViewportForBounds, useSvelteFlow } from "@xyflow/svelte";
   import { boundsOfCards, type Box } from "../layout/bounds";
+  import { CAMERA_MIN_ZOOM } from "../layout/camera";
   import type { Point } from "../layout/types";
 
   let {
@@ -35,7 +36,7 @@
   function frame(duration: number): boolean {
     const box = frameBox ?? boundsOfCards(targets.values(), cardWidth, cardHeight);
     if (!box || width === 0 || height === 0) return false;
-    void setViewport(getViewportForBounds(box, width, height, 0.2, 1, 0.2), { duration });
+    void setViewport(getViewportForBounds(box, width, height, CAMERA_MIN_ZOOM, 1, 0.2), { duration });
     return true;
   }
 

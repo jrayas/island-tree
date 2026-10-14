@@ -90,6 +90,7 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] **Details** makes cards bigger and, when zoomed in, adds a second row to files: a coloured dot (green edited today, amber within a week, grey older), the age, the size, the link count and a status chip. Folders show their item count.
 - [ ] A `status: done` note has a green chip, `status: review` a blue one, any other status an amber one, and a note with no status has none.
 - [ ] Hovering a file card shows its age, size, links and tags. Selecting it shows the modified date, size, links out and backlinks, tags and status in the info panel.
+- [ ] Open a folder with many folders in it (the 17,000-file vault) and press Fit: the whole tree is in view, not cut off at the sides, and the zoom out button stays usable until about 2 percent.
 - [ ] Zoom out with the scroll wheel: below about 45 percent cards shrink to a coloured dot and a short name; zooming back in restores them. The detail row only shows at about 70 percent and above.
 - [ ] With Details on, the radial layout spreads the rings so the bigger cards do not overlap.
 - [ ] The tab can be closed and reopened after many edits with no errors in the developer console, and after closing, editing notes causes no console errors (the listeners are removed).
