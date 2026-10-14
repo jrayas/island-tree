@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { revealOne } from "./reveal";
 import { UidRegistry, buildTree, indexTree, type RawEntry, type TreeNode } from "./tree";
-import { createViewState, focusOn, select, toggleOpen } from "./viewState";
+import { createViewState, focusOn, select, setFilesOn, toggleOpen } from "./viewState";
 import { buildVisibleTree, flattenVisible } from "./visibility";
 
 const dir = (path: string, children: RawEntry[]): RawEntry => ({ name: path.split("/").pop() ?? "", path, children });
@@ -78,6 +78,12 @@ describe("revealOne", () => {
     expect(outside.focusRoot).toBe(root.uid);
     const above = revealOne(focusOn(createViewState(root.uid), at("/A/B").uid), at("/A"));
     expect(above.focusRoot).toBe(root.uid);
+  });
+
+  it("turns Expand files off only when it has to leave the focus", () => {
+    const on = setFilesOn(focusOn(createViewState(root.uid), at("/A").uid), true);
+    expect(revealOne(on, at("/A/B/deep.md")).filesOn).toBe(true);
+    expect(revealOne(on, at("/C")).filesOn).toBe(false);
   });
 
   it("does not change anything else about the view", () => {

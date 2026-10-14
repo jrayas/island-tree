@@ -132,19 +132,17 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 
 - [ ] Hover a card: one black tooltip, such as "articles, folder, open, 125 folders and 0 files, 15,101 files in all". No second white box.
 - [ ] Hover a folder's count badge: "Show files" or "Hide files". Hover the empty canvas: nothing appears.
-- [ ] Hover Fit, play, saved view and zoom to area: one black tooltip each, with the shortcut where there is one.
+- [ ] Hover Fit, play, close-up and zoom to area: one black tooltip each, with the shortcut where there is one.
 - [ ] A screen reader still reads the tree as "Vault tree" with its instructions.
 
-**Saved view button**
+**Close-up button**
 
-- [ ] The control strip is: zoom in, zoom out, fit, play, saved view (a bookmark), zoom to area. With nothing saved the bookmark is an outline, and its tooltip says "Save the current view".
-- [ ] Pan and zoom somewhere you like and click it: a notice says it saved, and the bookmark turns solid and accent-coloured. Pan and zoom elsewhere and click it: the camera glides back to the saved spot and zoom.
-- [ ] Right-click it: "Save current view here", "Go to saved view" and "Forget saved view" (the last two greyed out when nothing is saved). Forget empties the bookmark. With the button focused, the menu key or Shift and F10 opens the same menu.
-- [ ] Switch to Radial: the bookmark is empty there, and the vertical one is still saved when you switch back. Reset does not clear it, and does not move the camera back to it either.
-- [ ] Narrow the window or open a sidebar, move away and click it: the same spot is in the middle.
-- [ ] Open a note in this tab and press Back, or restart Obsidian: the saved view is still there.
-- [ ] Clicking it while auto-scroll runs pauses auto-scroll first.
-- [ ] The Fit icon is a frame with a block inside it.
+- [ ] The control strip is: zoom in, zoom out, fit, play, close-up (a magnifier with a plus), zoom to area (a dashed frame with a magnifier on its corner). Each has one black tooltip.
+- [ ] Select a card, then pan and zoom somewhere else and click close-up: the camera glides to that card, in the middle of the pane, at about 58 percent. Cards are readable, and their neighbours are in view.
+- [ ] With nothing selected, click it: the zoom goes to about 58 percent around the middle of the pane, without moving the spot you were looking at.
+- [ ] Pressing the zoom out button three times from 100 percent lands on the same zoom.
+- [ ] It does not open or close folders or change the selection, in any layout. Clicking it while auto-scroll runs pauses auto-scroll first.
+- [ ] Open a folder with Expand files on, then click a folder in the breadcrumb: that folder's own files are not all listed (Expand files is off again).
 
 **Auto-scroll**
 

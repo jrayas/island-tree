@@ -6,6 +6,7 @@ import {
   revealBatch,
   select,
   expandLevel,
+  setFilesOn,
   toggleFilesFor,
   toggleOpen,
 } from "./viewState";
@@ -43,6 +44,13 @@ describe("reconcileViewState", () => {
   it("sends a vanished focus back to the root", () => {
     const state = focusOn(createViewState("root"), "gone");
     expect(reconcileViewState(state, valid, "root").focusRoot).toBe("root");
+  });
+
+  it("turns Expand files off with a vanished focus, and keeps it otherwise", () => {
+    const gone = setFilesOn(focusOn(createViewState("root"), "gone"), true);
+    expect(reconcileViewState(gone, valid, "root").filesOn).toBe(false);
+    const here = setFilesOn(focusOn(createViewState("root"), "a"), true);
+    expect(reconcileViewState(here, valid, "root").filesOn).toBe(true);
   });
 
   it("leaves a new folder closed even while Expand folders is on", () => {

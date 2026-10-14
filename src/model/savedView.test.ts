@@ -134,33 +134,6 @@ describe("restoreView", () => {
   });
 });
 
-describe("saved cameras", () => {
-  const camera = { x: 10, y: -20, zoom: 1.25 };
-
-  it("leaves the key out when nothing is saved, so older saved states are unchanged", () => {
-    expect("cameras" in saveView(left(), pathOf)).toBe(false);
-    expect("cameras" in saveView(left(), pathOf, {})).toBe(false);
-  });
-
-  it("round trips the cameras through JSON", () => {
-    const saved = saveView(left(), pathOf, { vertical: camera });
-    expect(saved.cameras).toEqual({ vertical: camera });
-    expect(parseSavedView(JSON.parse(JSON.stringify(saved)))?.cameras).toEqual({ vertical: camera });
-  });
-
-  it("drops bad cameras but keeps the rest of the state", () => {
-    const raw = { ...saveView(left(), pathOf), cameras: { vertical: { x: "no", y: 0, zoom: 1 }, radial: camera, spiral: camera } };
-    const parsed = parseSavedView(raw);
-    expect(parsed).not.toBeNull();
-    expect(parsed?.cameras).toEqual({ radial: camera });
-  });
-
-  it("reads a state saved before cameras existed", () => {
-    const old: unknown = JSON.parse(JSON.stringify(saveView(left(), pathOf)));
-    expect(parseSavedView(old)?.cameras).toBeUndefined();
-  });
-});
-
 describe("saved pinned cards", () => {
   const pinnedState = (): ViewState => ({ ...left(), pinned: new Set(["n1", "n2"]) });
 

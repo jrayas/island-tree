@@ -27,5 +27,6 @@ export function revealOne(state: ViewState, target: TreeNode): ViewState {
     pinned,
     selected: target.uid,
     focusRoot: focusHoldsIt ? state.focusRoot : root.uid,
+    filesOn: focusHoldsIt ? state.filesOn : false,
   };
 }

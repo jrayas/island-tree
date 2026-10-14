@@ -115,9 +115,18 @@ export function setFilesOn(state: ViewState, on: boolean): ViewState {
   return { ...state, filesOn: false, filesFor: new Set() };
 }
 
-/** Focuses on a folder, opening it so its children show. */
+/**
+ * Focuses on a folder, opening it so its children show. Moving to a different folder turns Expand
+ * files off: it was switched on for the last focus, and a folder you move to (from the breadcrumb, say)
+ * may hold far more files than you meant to list.
+ */
 export function focusOn(state: ViewState, uid: string): ViewState {
-  return { ...state, focusRoot: uid, open: new Set(state.open).add(uid) };
+  return {
+    ...state,
+    focusRoot: uid,
+    open: new Set(state.open).add(uid),
+    filesOn: uid === state.focusRoot ? state.filesOn : false,
+  };
 }
 
 /** Back to the whole vault. Expand files is turned off with it, since it only works while focused. */

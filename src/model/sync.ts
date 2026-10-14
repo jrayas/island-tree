@@ -46,5 +46,5 @@ export function reconcileViewState(state: ViewState, valid: ReadonlySet<string>,
   ) {
     return state;
   }
-  return { ...state, open, batches, filesFor, pinned, selected, focusRoot };
+  return { ...state, open, batches, filesFor, pinned, selected, focusRoot, filesOn: focusRoot === state.focusRoot ? state.filesOn : false };
 }

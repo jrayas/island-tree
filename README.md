@@ -12,7 +12,7 @@ An Obsidian plugin that shows your vault's folders and files as an animated, can
 - Smooth on big vaults: tested with 10,000 notes, including one folder holding 10,000. See [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md).
 - Search that suggests as you type, like Obsidian's quick switcher, and loads only the one card you choose.
 - Cards showing file type, link counts, tags, status, modified date and size, each switchable.
-- A saved view: one click saves where you are looking, and another brings you back from anywhere, separately for each layout.
+- A Close-up button: one click glides to a reading-sized view (full size, zoomed out three clicks) on the selected card.
 - Auto-scroll for reading hands-free: Shift and Space starts and pauses it, Shift and an arrow key sets the direction, and the speed is a setting.
 - Full keyboard use, screen reader labels and reduced motion support.
 - Optional editing (rename, create, delete, drag to move, undo) behind a lock. The dashboard starts locked.

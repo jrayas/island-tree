@@ -7,7 +7,6 @@
  * treated as untrusted (it sits in the workspace file and could be old or edited):
  * unknown values are dropped, never trusted, and a path that no longer exists is ignored.
  */
-import { parseCameras, type SavedCameras } from "../layout/camera";
 import type { LayoutMode } from "../layout/types";
 import type { ViewState } from "./viewState";
 
@@ -29,8 +28,6 @@ export interface SavedView {
   /** The folder the view is focused on. */
   focusRoot: string;
   query: string;
-  /** The views saved with the Saved view button, one per layout. Left out when there are none. */
-  cameras?: SavedCameras;
 }
 
 /** A vault would need a very large number of open folders to reach this; it only bounds bad data. */
@@ -74,7 +71,6 @@ function parseBatches(value: unknown): Record<string, number[]> {
 export function saveView(
   state: ViewState,
   pathOf: (uid: string) => string | undefined,
-  cameras: SavedCameras = {},
 ): SavedView {
   const paths = (uids: ReadonlySet<string>): string[] => {
     const out: string[] = [];
@@ -96,7 +92,6 @@ export function saveView(
     selected: state.selected === null ? null : (pathOf(state.selected) ?? null),
     focusRoot: pathOf(state.focusRoot) ?? "/",
     query: state.query,
-    ...(Object.keys(cameras).length > 0 ? { cameras } : {}),
   };
 }
 
@@ -124,7 +119,6 @@ export function parseSavedView(raw: unknown): SavedView | null {
   }
   if (typeof value.focusRoot !== "string" || typeof value.query !== "string") return null;
   if (value.selected !== null && typeof value.selected !== "string") return null;
-  const cameras = parseCameras(value.cameras);
   const pinned = value.pinned === undefined ? [] : (strings(value.pinned) ?? []);
   return {
     layoutMode: value.layoutMode as LayoutMode,
@@ -138,7 +132,6 @@ export function parseSavedView(raw: unknown): SavedView | null {
     selected: value.selected,
     focusRoot: value.focusRoot,
     query: value.query.slice(0, MAX_QUERY_LENGTH),
-    ...(Object.keys(cameras).length > 0 ? { cameras } : {}),
   };
 }
 

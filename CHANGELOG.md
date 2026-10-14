@@ -6,6 +6,8 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 ### Changed
 
+- **Moving the focus turns Expand files off.** Clicking a folder in the breadcrumb (or Focus selected, or a search that leaves the focus) moves the focus to a different folder, and Expand files stayed on, so it listed the files of every open folder in the folder you moved to. It is now turned off whenever the focus changes folder; switch it on again if you want it there.
+
 - **Expand files only works while focused on a folder.** From the whole vault it listed the files of every open folder, which on a big vault filled the dashboard with files and was slow. The button is now greyed from the whole vault (its tooltip says to focus on a folder), works inside a focus, and is turned off again by Reset focus and Collapse folders. A folder's own Show files badge works anywhere. **Start with files shown** now only takes effect once you focus on a folder.
 
 - **Fit to screen shows a very wide or crowded tree whole.** The lowest zoom was 20%, so a tree wider than about five panes was cut off by Fit, and the zoom out button stopped with the tree still overflowing. The lowest zoom is now 2%, for Fit, the zoom buttons, the wheel and zoom to area. At that size cards are only dots; zoom in to read them.
@@ -22,7 +24,7 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 ### Added
 
-- **Saved view button.** A bookmark button in the control strip, below the play button. With nothing saved, a click saves the current pan and zoom. Once saved, a click glides the camera back to it from anywhere on the canvas, and a right-click (or the menu key) offers "Save current view here", "Go to saved view" and "Forget saved view". It only moves the camera: open folders, the selection and the search are untouched, and Reset does not clear it. One view is kept per layout (vertical, radial, mind map), it stays centred on the same spot if the window is resized, and it is remembered with the rest of the dashboard's state, so it comes back after Back or a restart. A new tab starts without one.
+- **Close-up button, and a new Zoom to area icon.** A magnifier button in the control strip, below the play button: one click glides to a reading-sized view (full size, zoomed out three clicks of the zoom button, about 58%) centred on the selected card, or on the middle of the pane when nothing is selected. It only moves the camera. Zoom to area now has a dashed frame with a magnifier on its corner. The new Fit icon (a frame with a block inside) stays.
 - A new icon for **Fit to screen**: a frame with a block inside it.
 
 - **Auto-scroll.** The view drifts over the cards at a steady speed, for reading the dashboard hands-free, in any of the layouts. Shift and Space starts and pauses it, Shift and an arrow key points it down, up, left or right and starts it, and a play button beside Fit and a "Toggle auto-scroll" command do the same. It only reacts while the pointer is over the dashboard or the keyboard is in it. Any wheel turn, drag, zoom, click, arrow-key move, Fit or search takes over and pauses it. It stops at the last card (or, as chosen, turns round), and says so if everything is already on screen. New "Auto-scroll" section in the Layout tab: direction, speed (10 to 300 pixels per second, 40 by default), what happens at the end, and starting when the dashboard opens (never with reduced motion). Pressing Enter or Escape in the search box now hands the keyboard back to the dashboard, so these keys work straight after a search.

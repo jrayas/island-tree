@@ -321,10 +321,13 @@
   pointer-events: none;
 }
 
-/* The button's dashed-rectangle icon (Svelte Flow fills icons, this one is an outline). */
-.island-tree-view .island-box-zoom svg {
+/* The zoom to area icon, a dashed frame with a magnifier on its corner, and the close-up icon, a
+   magnifier with a plus (Svelte Flow fills icons, these are outlines). */
+.island-tree-view .island-box-zoom svg,
+.island-tree-view .island-close-up svg {
   fill: none;
-  stroke-dasharray: 4 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* Text for screen readers only, so it is read out but never shown or turned into a tooltip. */
@@ -345,16 +348,6 @@
   fill: none;
   stroke-linejoin: round;
   stroke-linecap: round;
-}
-
-/* The saved view button's bookmark is an outline until a view is saved, then it fills in. */
-.island-tree-view .island-saved-view svg {
-  fill: none;
-  stroke-linejoin: round;
-}
-
-.island-tree-view .island-saved-view.is-active svg {
-  fill: currentColor;
 }
 
 /* The fit button's frame-and-block icon is an outline too. */

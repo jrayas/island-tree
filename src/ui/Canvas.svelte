@@ -16,9 +16,8 @@
   } from "@xyflow/svelte";
   import { easeFactor, seedPositions, stepPositions } from "../layout/animate";
   import { FADE_OUT_MS, MAX_FADING_CARDS } from "../model/limits";
-  import type { MenuEntry } from "../editing/api";
   import type { AutoScrollAction, AutoScrollState, ScrollEnd } from "../layout/autoScroll";
-  import { CAMERA_MIN_ZOOM, type SavedCamera } from "../layout/camera";
+  import { CAMERA_MAX_ZOOM, CAMERA_MIN_ZOOM } from "../layout/camera";
   import type { CurveStyle, MindSide, Point } from "../layout/types";
   import type { GridType, WheelBehaviour } from "../settings/schema";
   import type { Box } from "../layout/bounds";
@@ -30,7 +29,7 @@
   import BoxZoom from "./BoxZoom.svelte";
   import FitController from "./FitController.svelte";
   import FollowSelection from "./FollowSelection.svelte";
-  import SavedViewButton from "./SavedViewButton.svelte";
+  import CloseUpButton from "./CloseUpButton.svelte";
   import ZoomWatcher from "./ZoomWatcher.svelte";
   import {
     PAN_BUTTONS,
@@ -63,10 +62,6 @@
     autoSpeed,
     autoAtEnd,
     onauto,
-    savedCamera,
-    onsavecamera,
-    onmenu,
-    onnotice,
     activeId,
     onkey,
     onfit,
@@ -105,14 +100,6 @@
     autoAtEnd: ScrollEnd;
     /** A key, the end of the cards or a hand on the view changed auto-scroll. */
     onauto: (action: AutoScrollAction) => void;
-    /** The view saved for the layout on screen with the Saved view button, or null. */
-    savedCamera: SavedCamera | null;
-    /** Remember a camera for the layout on screen, or forget it when null. */
-    onsavecamera: (camera: SavedCamera | null) => void;
-    /** Shows a context menu at the pointer. */
-    onmenu: (event: MouseEvent, entries: MenuEntry[]) => void;
-    /** Shows a short message. */
-    onnotice: (message: string) => void;
     /** The selected card, which the keyboard moves and the screen reader announces. */
     activeId: string | null;
     /** A navigation key was pressed on the tree. Returns true when the key was handled. */
@@ -481,7 +468,7 @@
     fitView
     fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
     minZoom={MIN_ZOOM}
-    maxZoom={2}
+    maxZoom={CAMERA_MAX_ZOOM}
     panOnDrag={boxMode ? false : PAN_BUTTONS}
     {...wheelOptions(wheel)}
     zoomActivationKey={zoomKeys(wheel)}
@@ -529,13 +516,10 @@
           {/if}
         </svg>
       </ControlButton>
-      <SavedViewButton
-        saved={savedCamera}
+      <CloseUpButton
         width={paneWidth}
         height={paneHeight}
-        onsave={onsavecamera}
-        {onmenu}
-        {onnotice}
+        selectedCentre={() => (activeId === null ? null : (targets.get(activeId) ?? null))}
       />
       <ControlButton
         class={["island-box-zoom", boxMode && "is-active"]}
@@ -544,7 +528,9 @@
         aria-pressed={boxMode}
       >
         <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
-          <rect x="3.5" y="5.5" width="17" height="13" rx="1.5" />
+          <rect x="3.5" y="3.5" width="11" height="9" rx="1.5" stroke-dasharray="2.6 2.2" />
+          <circle cx="14.5" cy="14.5" r="4.3" />
+          <path d="M17.7 17.7L21 21" />
         </svg>
       </ControlButton>
     </Controls>

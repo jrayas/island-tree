@@ -358,6 +358,8 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 
 ## D-054: The Saved view button saves the camera, per layout, in the view's own state
 
+*Superseded by D-057: the button and the saved cameras were removed before release.*
+
 **Decision:** The control strip has a Saved view button below the play button (`src/ui/SavedViewButton.svelte`). It saves and restores only the camera. The saved camera is the point in the cards' own coordinates that is in the middle of the pane, and the zoom (`src/layout/camera.ts`), not Svelte Flow's raw offset, so a resized window or an opened sidebar still lands on the same spot. One camera is kept per layout, because a position means nothing outside its layout. The cameras are stored in the dashboard's saved state (`SavedView.cameras`, left out when empty so older states are unchanged, and read back as untrusted: unknown layouts and non-finite or absurd numbers are dropped and the zoom is kept in range). Reset, the layout and the open folders never touch them. With nothing saved, a click saves; once saved, a click goes there and the right-click menu saves again or forgets. The menu is also reached with the menu key, which is the keyboard route.
 
 **Why:** It answers "let me keep a view I like and get back to it from anywhere" without turning Reset into something that does two jobs. The saved state already travels with the tab (Back, restart), so no new storage is needed and the settings table stays flat. Saving the centre rather than the offset keeps it right when the pane changes size.
@@ -381,3 +383,17 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 **Replaced:** `searchTree`, `withSearchReveal` and `firstVisibleHit`, the search overlay on the visibility state, the "match count" that said 14,547, re-framing the view when a search was cleared, and Enter selecting the first match. `setQuery` no longer leaves a focus. The "Dim cards that don't match" setting stays, but only affects the cards on screen while typing.
 
 **Limits:** Matching is on names only, not the text of notes. A card that is pinned in a folder whose files are hidden shows alone, without the "+N more" pill saying how many files are hidden; they are hidden by the files setting, not by the list limit. A loose-order match can surprise ("azk" finds "azure-stack-edge"), which is why it needs three letters within a short span. Not tried in real Obsidian.
+
+## D-057: A Close-up button replaces the Saved view button
+
+**Decision:** The control strip's bookmark button, its saved cameras and the `cameras` key in the saved dashboard state are removed (D-054). In their place, `src/ui/CloseUpButton.svelte` glides to a fixed reading-sized view: full size zoomed out three clicks of the zoom button (1 / 1.2 cubed, about 58%), centred on the selected card, or on the middle of the pane when nothing is selected (`src/layout/camera.ts`). The step is Svelte Flow's own 1.2 per click. Zoom to area gets a clearer icon, a dashed frame with a magnifier on its corner.
+
+**Why:** A saved place stops meaning anything once folders open or the layout changes, and it needed a menu, a notice and new saved state to explain. A fixed reading zoom needs none of that and works the same everywhere, and it is the thing the saved view was mostly used for.
+
+**Limits:** It never changes what is on screen. It is not tried in real Obsidian yet.
+
+## D-058: Moving the focus turns Expand files off
+
+**Decision:** `focusOn` turns Expand files off whenever the focus moves to a different folder, and `revealOne` and the vault sync do the same when they send the focus back to the root. A single folder's own Show files badge is kept.
+
+**Why:** Expand files lists the files of every open folder (it only works while focused). Clicking a folder in the breadcrumb moved the focus but left it on, so it listed every file in whichever folder was clicked, which on a big vault loaded far too much.

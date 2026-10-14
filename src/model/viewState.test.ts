@@ -168,6 +168,24 @@ describe("focus", () => {
   });
 });
 
+describe("moving the focus", () => {
+  it("turns Expand files off when the focus moves to another folder, as a breadcrumb click does", () => {
+    const inA = setFilesOn(focusOn(start(), "a"), true);
+    expect(focusOn(inA, "b").filesOn).toBe(false);
+    expect(focusOn(inA, "b").focusRoot).toBe("b");
+  });
+
+  it("keeps Expand files when the focus stays where it is", () => {
+    const inA = setFilesOn(focusOn(start(), "a"), true);
+    expect(focusOn(inA, "a").filesOn).toBe(true);
+  });
+
+  it("keeps a single folder's own files when the focus moves", () => {
+    const inA = toggleFilesFor(setFilesOn(focusOn(start(), "a"), true), "x");
+    expect(focusOn(inA, "b").filesFor.has("x")).toBe(true);
+  });
+});
+
 describe("Expand files only while focused", () => {
   it("can expand only when focused on a folder", () => {
     expect(filesCanExpand(start(), "root")).toBe(false);
