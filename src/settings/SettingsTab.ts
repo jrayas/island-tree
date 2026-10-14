@@ -1,34 +1,48 @@
 /**
- * The plugin's settings page: a header, a live preview, a horizontal tab strip
- * and the settings for the chosen tab.
- *
- * The tab strip follows the usual tabs pattern: each tab is a button inside a
- * tablist, only the chosen one is in the tab order, and the arrow keys move
- * between them. On a narrow pane the strip scrolls sideways.
+ * The plugin's settings page, drawn by Obsidian's declarative settings API (1.13 and later): a header
+ * with a live preview, then one page for each of Cards, Lines and grid, Layout, Editing and Presets.
+ * The settings are listed in `buildDefinitions` (definitions.ts), which is also what lets Obsidian's
+ * settings search find them.
  */
-import { type App, PluginSettingTab, setIcon } from "obsidian";
+import {
+  type App,
+  PluginSettingTab,
+  type Setting,
+  type SettingDefinitionItem,
+  SettingPage,
+  setIcon,
+} from "obsidian";
 import type IslandTreePlugin from "../main";
+import { configureField } from "./controls";
+import { buildDefinitions } from "./definitions";
 import { renderPreview } from "./Preview";
-import { TABS, type TabId } from "./schema";
-import { renderFieldTab, renderPresetsTab } from "./tabs";
+import type { SettingsStore } from "./store";
+import { renderPresetsTab } from "./tabs";
 
-export class IslandTreeSettingTab extends PluginSettingTab {
-  private active: TabId = "cards";
-  private stopPreview: (() => void) | null = null;
-
+/** The Presets page: built-in and saved looks, resets, export and import. */
+class PresetsPage extends SettingPage {
   constructor(
-    app: App,
-    private readonly plugin: IslandTreePlugin,
+    private readonly app: App,
+    private readonly store: SettingsStore,
   ) {
-    super(app, plugin);
+    super();
+    this.title = "Presets";
   }
 
   display(): void {
-    const { containerEl } = this;
-    containerEl.empty();
-    containerEl.addClass("island-settings");
+    this.containerEl.empty();
+    renderPresetsTab(this.containerEl, this.app, this.store, () => this.display());
+  }
+}
 
-    const header = containerEl.createDiv({ cls: "island-settings-header" });
+/** Fills a row with the header card (first page only) and the live preview. */
+function renderIntro(setting: Setting, store: SettingsStore, withHeader: boolean): () => void {
+  const el = setting.settingEl;
+  el.empty();
+  el.addClass("island-settings", "island-settings-block");
+
+  if (withHeader) {
+    const header = el.createDiv({ cls: "island-settings-header" });
     setIcon(header.createSpan({ cls: "island-settings-icon" }), "network");
     const text = header.createDiv();
     text.createDiv({ cls: "island-settings-title", text: "Island tree" });
@@ -36,69 +50,26 @@ export class IslandTreeSettingTab extends PluginSettingTab {
       cls: "island-settings-subtitle",
       text: "Shape how your vault looks as a dashboard. Changes apply straight away.",
     });
-
-    this.stopPreview?.();
-    this.stopPreview = renderPreview(containerEl, this.plugin.store);
-
-    const strip = containerEl.createDiv({ cls: "island-tabs" });
-    strip.setAttribute("role", "tablist");
-    strip.setAttribute("aria-label", "Settings sections");
-    const panel = containerEl.createDiv({ cls: "island-tabpanel" });
-    panel.setAttribute("role", "tabpanel");
-
-    const buttons = new Map<TabId, HTMLButtonElement>();
-
-    const fill = (): void => {
-      panel.empty();
-      const rerender = (): void => fill();
-      if (this.active === "presets") {
-        renderPresetsTab(panel, this.app, this.plugin.store, rerender);
-      } else {
-        renderFieldTab(panel, this.plugin.store, this.active, rerender);
-      }
-    };
-
-    const choose = (id: TabId, focus: boolean): void => {
-      this.active = id;
-      for (const [tabId, button] of buttons) {
-        const selected = tabId === id;
-        button.setAttribute("aria-selected", String(selected));
-        button.tabIndex = selected ? 0 : -1;
-        button.toggleClass("is-active", selected);
-      }
-      panel.setAttribute("aria-labelledby", `island-tab-${id}`);
-      if (focus) buttons.get(id)?.focus();
-      fill();
-    };
-
-    TABS.forEach((tab, position) => {
-      const button = strip.createEl("button", { cls: "island-tab", text: tab.label });
-      button.id = `island-tab-${tab.id}`;
-      button.setAttribute("role", "tab");
-      button.type = "button";
-      button.addEventListener("click", () => choose(tab.id, false));
-      button.addEventListener("keydown", (event) => {
-        const last = TABS.length - 1;
-        let target: number | null = null;
-        if (event.key === "ArrowRight") target = position === last ? 0 : position + 1;
-        else if (event.key === "ArrowLeft") target = position === 0 ? last : position - 1;
-        else if (event.key === "Home") target = 0;
-        else if (event.key === "End") target = last;
-        const next = target === null ? undefined : TABS[target];
-        if (next) {
-          event.preventDefault();
-          choose(next.id, true);
-        }
-      });
-      buttons.set(tab.id, button);
-    });
-
-    choose(this.active, false);
   }
 
-  // Stop redrawing the preview once the page is closed.
-  hide(): void {
-    this.stopPreview?.();
-    this.stopPreview = null;
+  // Stops redrawing the preview once the page is closed.
+  return renderPreview(el, store);
+}
+
+export class IslandTreeSettingTab extends PluginSettingTab {
+  constructor(
+    app: App,
+    private readonly plugin: IslandTreePlugin,
+  ) {
+    super(app, plugin);
+  }
+
+  getSettingDefinitions(): SettingDefinitionItem[] {
+    const store = this.plugin.store;
+    return buildDefinitions({
+      renderIntro: (setting, withHeader) => renderIntro(setting, store, withHeader),
+      renderField: (setting, field) => configureField(setting, store, field),
+      presetsPage: () => new PresetsPage(this.app, store),
+    });
   }
 }

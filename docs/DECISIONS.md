@@ -411,3 +411,11 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 **Why:** The directory scan of 1.0.0 recommended the declarative settings API (`getSettingDefinitions()`), which only exists from Obsidian 1.13. D-026 chose the classic API partly because the plugin supported 1.7.2; raising the minimum removes that reason. The installed typings are 1.13.1, so nothing else needed to change.
 
 **Limits:** Raising the minimum does not remove the scan's warning by itself. The settings page is still the classic one (a custom tab strip and a live preview, D-026), so it stays out of Obsidian's settings search until it adopts `getSettingDefinitions()`. People on Obsidian older than 1.13.0 can no longer install the plugin.
+
+## D-061: The settings page uses the declarative settings API (supersedes D-007 and D-026)
+
+**Decision:** `IslandTreeSettingTab` implements `getSettingDefinitions()` and no longer has `display()` or its own tab strip. `buildDefinitions` (`src/settings/definitions.ts`) turns the schema into one page per tab, one group per section and one definition per setting, each with a name, a description and aliases, so Obsidian's settings search finds them. The controls themselves are still drawn by `configureField` (`src/settings/controls.ts`) in each definition's `render` callback, so they look and behave as before (sliders with a value label, a colour picker with a theme-colour button, a reset button). The header and live preview are a first row on the main page and on each page of settings. Presets stay an imperative page (`PresetsPage`), because they are actions, not settings.
+
+**Why:** The directory scan warned that the settings were missing from search on Obsidian 1.13 and later. D-026 chose the classic API because the plugin supported 1.7.2 and a custom tab strip and live preview did not seem to fit a list of definitions. With the minimum raised to 1.13.0 (D-060), the `render` and `page` definitions make it fit: the controls stay as they were and only the page structure changes.
+
+**Limits:** Tabs became pages (one click deeper, and the preview is repeated on each page). The Presets page is not searchable. Not tried in Obsidian yet: the declarative API has not been run by this plugin.

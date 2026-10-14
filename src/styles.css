@@ -338,7 +338,7 @@
   margin: -1px;
   padding: 0;
   overflow: hidden;
-  clip-path: inset(50%);
+  opacity: 0;
   white-space: nowrap;
   border: 0;
 }
@@ -362,12 +362,6 @@
 
 .island-tree-view .island-canvas.is-space .svelte-flow__pane {
   cursor: grab;
-}
-
-/* The card under the pointer comes to the front, so neighbours that touch or overlap never hide it. The
-   wrapper's z-index is set inline, so this needs !important. */
-.island-tree-view .svelte-flow__node:hover {
-  z-index: 20 !important;
 }
 
 .island-tree-view .svelte-flow__controls-button.is-active {
@@ -674,6 +668,13 @@
 }
 
 /* Settings page */
+/* The header card and the live preview sit in one row that has no setting text or border of its own. */
+.island-settings.island-settings-block {
+  display: block;
+  padding: 0;
+  border-top: 0;
+}
+
 .island-settings .island-settings-header {
   display: flex;
   align-items: center;
@@ -739,39 +740,7 @@
   position: absolute;
 }
 
-/* The tab strip scrolls sideways in a narrow pane. */
-.island-settings .island-tabs {
-  display: flex;
-  gap: var(--size-2-2);
-  margin-bottom: var(--size-4-3);
-  overflow-x: auto;
-  border-bottom: 1px solid var(--background-modifier-border);
-}
-
-.island-settings .island-tab {
-  flex: none;
-  height: auto;
-  padding: var(--size-4-2) var(--size-4-3);
-  border: 0;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  box-shadow: none;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-}
-
-.island-settings .island-tab.is-active {
-  border-bottom-color: var(--interactive-accent);
-  color: var(--text-normal);
-}
-
-.island-settings .island-tab:focus-visible {
-  outline: 2px solid var(--interactive-accent);
-  outline-offset: -2px;
-}
-
-.island-settings .island-setting-value {
+.island-setting-value {
   min-width: 5.5em;
   margin-right: var(--size-4-2);
   color: var(--text-muted);
@@ -787,12 +756,13 @@
 
 /* Reduced motion: no transitions or animation anywhere in the dashboard. The card glide and the
    camera moves are timed in script and check the same preference. */
+/* The root class is repeated so these beat every other rule in this file without !important. */
 @media (prefers-reduced-motion: reduce) {
-  .island-tree-view *,
-  .island-tree-view *::before,
-  .island-tree-view *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
+  .island-tree-view.island-tree-view.island-tree-view *,
+  .island-tree-view.island-tree-view.island-tree-view *::before,
+  .island-tree-view.island-tree-view.island-tree-view *::after {
+    animation-duration: 0.001ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.001ms;
   }
 }

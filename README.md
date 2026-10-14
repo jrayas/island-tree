@@ -15,7 +15,7 @@ An Obsidian plugin that shows your vault's folders and files as an animated, can
 - **Details on cards:** file type, links, tags, status, modified date and size, each switchable.
 - **Follows your vault:** new, renamed, moved and deleted notes appear without reloading.
 - **Optional editing** (rename, create, delete, drag to move, undo) behind a lock. It starts locked.
-- **Keyboard, screen reader and reduced motion support,** and tabbed settings with presets.
+- **Keyboard, screen reader and reduced motion support,** and searchable settings with presets.
 
 ![The mind map layout, with the toolbar and zoom buttons](docs/images/mind-map.png)
 
@@ -41,7 +41,7 @@ The full guide covers the keyboard, the mouse, Details, Compact, editing, and ev
 
 ## Settings
 
-Open **Settings → Island tree**. A live preview at the top shows each change as you make it. There are tabs for cards, lines and grid, layout and editing, plus presets (Compact, Comfortable, Large, and your own) and import and export as JSON. Every setting has a reset button, and an empty colour or a text size of 0 follows your Obsidian theme.
+Open **Settings → Island tree**. A live preview at the top shows each change as you make it. There are pages for cards, lines and grid, layout and editing, plus presets (Compact, Comfortable, Large, and your own) and import and export as JSON. Every setting has a reset button, and an empty colour or a text size of 0 follows your Obsidian theme.
 
 ## Known limits
 
@@ -53,7 +53,7 @@ Open **Settings → Island tree**. A live preview at the top shows each change a
 
 ## Privacy
 
-No network calls, no telemetry and no ads. The plugin reads your vault's file and folder names and the details Obsidian already keeps about notes (dates, sizes, links, tags and properties) to draw the cards. It changes files only when you unlock editing and rename, create, move or delete something, and it does that through Obsidian's own file functions. Its settings are stored in the plugin's own data file inside your vault, and the dashboard remembers how it was left in Obsidian's workspace file, as every view does.
+No network calls, no telemetry and no ads. The plugin reads your vault's file and folder names and the details Obsidian already keeps about notes (dates, sizes, links, tags and properties) to draw the cards. It changes files only when you unlock editing and rename, create, move or delete something, and it does that through Obsidian's own file functions. Its settings are stored in the plugin's own data file inside your vault, and the dashboard remembers how it was left in Obsidian's workspace file, as every view does. The clipboard is used only when you press **Copy** or **Paste** in the settings, to export or import settings.
 
 ## Documentation
 

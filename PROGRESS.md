@@ -80,7 +80,7 @@ Last updated: milestone 7 (polish and release). All seven milestones are built; 
 **Milestone 5: settings**
 
 - One schema table (`settings/schema.ts`) describes every setting; validation, defaults, controls, presets, resets and export come from it (D-027). Saved data is nested by group, version 2, and version 1 data is migrated.
-- Settings page: header, live preview built with the real layout and styles, an accessible horizontal tab strip, and generated controls with a reset button on each row (D-026).
+- Settings page: header, live preview built with the real layout and styles, one page per tab through Obsidian's declarative settings API (D-061, which replaced the tab strip of D-026), and generated controls with a reset button on each row.
 - Cards: size, corner radius, border, padding, text size (0 follows the theme), start-detailed, which details show, status property name. Lines and grid: curve style (curved, step, straight, in both layouts), thickness, dash, flow speed, highlight colour, grid type, size, spacing, opacity and colour. Layout: default layout, gap, level spacing, ring radius and step, list limit, start-expanded switches. Editing: in the schema and validated, no tab yet (milestone 6).
 - Presets: Compact, Comfortable and Large; save, rename and delete your own; reset a tab or everything (D-030). Export and import as JSON by clipboard or file, with a summary shown before anything changes (D-031).
 - Settings apply live: open dashboards restyle through CSS variables and re-lay out with a re-fit (D-032). Saving waits 300 ms after the last change and flushes on unload.
@@ -108,7 +108,7 @@ Last updated: milestone 7 (polish and release). All seven milestones are built; 
 
 - **Milestones 2 to 7 have had almost no run in a real Obsidian vault.** The first real look (the settings page) found a real bug, now fixed (D-042); everything else is untried there. Editing is the one to try carefully, in a scratch vault, because it changes real files. Since the bottom-spacing work they have been driven in headless Chrome with real input events and Obsidian's own stylesheet, outside the project: **branches draw**, the camera frames the tree on load, cards and the zoom controls lay out as intended, and Zoom to area works (D-039). That is still not Obsidian itself, and the radial layout, the settings page and the preview have not been looked at. Please run the milestone 2 to 5 checklists in `docs/DEVELOPMENT.md` and tell me what you see.
 - **Canvas colour match** is by variable, not by sight: compare with a Canvas tab as the checklist in `docs/DEVELOPMENT.md` says, and change two lines if your theme gives Canvas its own colour (D-034).
-- **Settings page layout** is the part most likely to need visual fixes: the preview's scaling, the tab strip, the row spacing and the slider value labels are written but unseen.
+- **Settings page** is the part most likely to need fixes: the declarative API (D-061) has not been run in Obsidian by this plugin yet, and the preview's scaling, the row spacing and the slider value labels are unseen.
 - **Folder renames:** I am not certain whether Obsidian sends one `rename` event for a folder or one per file inside it. The code handles both (D-020).
 - **Author name** is "Anthirayas" in `manifest.json` and `LICENSE` (set before the first push). Change it there if you want a different name.
 - **The release and CI workflows have never run on GitHub**, and the repository does not exist yet. Expect a small fix or two on the first run.

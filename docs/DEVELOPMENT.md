@@ -99,7 +99,9 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 
 **Milestone 5** (open **Settings → Island tree** with a dashboard open beside it if you can, in both light and dark themes)
 
-- [ ] The page shows a header, a live preview of three sample cards, a tab strip (Cards, Lines and grid, Layout, Presets) and the settings for the chosen tab. Resizing the settings window narrow makes the tab strip scroll sideways.
+- [ ] The page shows a header, a live preview of three sample cards, and a list of pages: Cards, Lines and grid, Layout, Editing and Presets. Each page of settings opens with the live preview, then its sections.
+- [ ] Obsidian's settings search finds Island tree's settings: type "card width", "grid" or "auto-scroll" and the matching settings appear under Island tree.
+- [ ] On a field page, the reset button on a row puts the control back to its default straight away (the slider moves, the value label changes, the dropdown and toggle change) without redrawing the page. On a colour row, the palette button goes back to the theme colour.
 - [ ] Tab keyboard use: Tab reaches the selected tab, the Left and Right arrows move between tabs, Home and End jump to the first and last.
 - [ ] Moving **Card width**, **Corner radius**, **Text size** and the other card controls changes the preview at once, and an open dashboard follows (cards resize and glide, the camera re-frames).
 - [ ] **Text size** at 0 shows "the theme size" and follows Obsidian's interface text size.

@@ -29,7 +29,7 @@ An Obsidian plugin that shows the vault's folder and file structure as a live, a
 - Dotted grid background like Obsidian Canvas, pan and zoom.
 - Updates by itself when files change.
 - Optional editing (rename, create, delete, drag to move) behind a **lock**.
-- Full control in a settings page with a horizontal tab strip, presets, and import and export.
+- Full control in a settings page (a page per tab, searchable from Obsidian's settings search), presets, and import and export.
 
 ## 2. Decisions already made
 

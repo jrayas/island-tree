@@ -1,11 +1,10 @@
 /**
  * The contents of each settings tab.
  *
- * The Cards, Lines and grid and Layout tabs are generated from the schema; the
- * Presets tab is hand-built because it is made of actions, not settings.
+ * The Presets page is hand-built because it is made of actions, not settings. The pages of settings
+ * are generated from the schema (definitions.ts and controls.ts).
  */
 import { Notice, Setting, type App } from "obsidian";
-import { renderField } from "./controls";
 import { confirmAction, confirmImport, promptForText } from "./modals";
 import { exportSettings, parseImport } from "./importExport";
 import {
@@ -18,28 +17,11 @@ import {
   resetTab,
   saveCurrentAsPreset,
 } from "./presets";
-import { FIELDS, TABS, type TabId } from "./schema";
+import { TABS, type TabId } from "./schema";
 import type { SettingsStore } from "./store";
 
 /** The tabs whose settings can be reset on their own. */
 const RESETTABLE: readonly TabId[] = ["cards", "lines", "layout", "editing"];
-
-/** Fills a tab made of settings, with a heading for each section. */
-export function renderFieldTab(
-  containerEl: HTMLElement,
-  store: SettingsStore,
-  tab: TabId,
-  rerender: () => void,
-): void {
-  let section = "";
-  for (const field of FIELDS.filter((f) => f.tab === tab)) {
-    if (field.section !== section) {
-      section = field.section;
-      new Setting(containerEl).setName(section).setHeading();
-    }
-    renderField(containerEl, store, field, rerender);
-  }
-}
 
 function tabLabel(id: TabId): string {
   return TABS.find((tab) => tab.id === id)?.label ?? id;

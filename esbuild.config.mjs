@@ -4,7 +4,7 @@
 import esbuild from "esbuild";
 import esbuildSvelte from "esbuild-svelte";
 import process from "process";
-import builtins from "builtin-modules";
+import { builtinModules } from "node:module";
 
 const production = process.argv[2] === "production";
 
@@ -28,7 +28,7 @@ const context = await esbuild.context({
     "@lezer/common",
     "@lezer/highlight",
     "@lezer/lr",
-    ...builtins,
+    ...builtinModules,
   ],
   plugins: [
     esbuildSvelte({

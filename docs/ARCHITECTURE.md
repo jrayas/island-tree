@@ -27,7 +27,7 @@ Obsidian loads main.js + styles.css
        │                              openFile   = (path, target) => workspace      (src/actions/open.ts)
        │                              initialLayout = settings.defaultLayout
        ├─ ribbon icon + 2 commands ─► activateView("tab" | "sidebar")
-       ├─ addSettingTab ──► src/settings/SettingsTab.ts  (header, live preview, tab strip, tabs)
+       ├─ addSettingTab ──► src/settings/SettingsTab.ts  (declarative settings: header, live preview, pages)
        └─ store: SettingsStore ◄─► loadData / saveData   (src/settings/store.ts, validated on load)
             └─ every open dashboard and the settings page subscribe: a change restyles (CSS variables)
                and re-lays out the dashboard at once
@@ -63,7 +63,8 @@ Data flows one way. Clicks come back up through callbacks (`onnodeclick`, `onbad
 | `src/main.ts` | Plugin entry. Loads settings through `loadSettingsFrom` (which migrates and validates), owns the `SettingsStore`, registers the view, ribbon icon, commands and settings tab, and flushes pending saves on unload. `activateView` reuses an existing leaf instead of opening duplicates. |
 | `src/view.ts` | `IslandTreeView`, a thin `ItemView` that mounts the Svelte app in `onOpen` and unmounts it in `onClose`, passing in the vault reader, the file opener, the metadata reader, the watcher and the settings store. It also writes the settings as CSS variables on its root (`setCssProps`), measures Obsidian's floating status bar and sets `--island-clear` on its root, which lifts the details text only while the bar reaches it (0px otherwise, D-037, D-038), and stops both when closed. View type id: `island-tree-view`. |
 | `src/settings/defaults.ts` | Short import for `DEFAULT_SETTINGS`, `SETTINGS_VERSION` and `clampNumber`. The defaults themselves come from the schema. |
-| `src/settings/SettingsTab.ts` | The settings page: header, live preview, a horizontal tab strip (a proper tablist: arrow keys, Home and End, roving focus, scrolls sideways) and the chosen tab. Uses the classic `display()` API (D-026). |
+| `src/settings/SettingsTab.ts` | The settings page, drawn by Obsidian's declarative API (`getSettingDefinitions()`, 1.13 and later, D-061): a header card and live preview, then one page each for Cards, Lines and grid, Layout, Editing and Presets. Holds the `PresetsPage` and the intro row. |
+| `src/settings/definitions.ts` | The settings page as data: `buildDefinitions` lists every setting from the schema (name, description and aliases, which Obsidian's settings search reads) under its page and section, with its control drawn by a `render` callback. Pure, and tested. |
 
 ### Model (pure, unit tested; only `vault.ts`, `metaSource.ts` and `watch.ts` import Obsidian)
 
@@ -162,8 +163,8 @@ Everything here is pure and unit tested unless marked Obsidian.
 | `src/settings/cssVars.ts` | `settingsToCssVars`: settings to CSS variables. Empty colours and a text size of 0 point at Obsidian theme variables. |
 | `src/settings/store.ts` | `SettingsStore`: holds the live settings, notifies subscribers at once, saves 300 ms after the last change, `flush` on unload. |
 | `src/settings/format.ts` | Wording for slider values and the preview's grid CSS. |
-| `src/settings/controls.ts` | (Obsidian) `renderField`: draws one `Setting` row from a schema entry (slider, dropdown, toggle, colour picker or text), with a reset button. Every change goes through `coerceField`. |
-| `src/settings/tabs.ts` | (Obsidian) `renderFieldTab` (generated from the schema, with section headings) and `renderPresetsTab` (built-ins, saved presets, save, reset, export and import). |
+| `src/settings/controls.ts` | (Obsidian) `configureField`: fills one `Setting` row from a schema entry (slider, dropdown, toggle, colour picker or text), with a reset button that puts the control back in place. Every change goes through `coerceField`. |
+| `src/settings/tabs.ts` | (Obsidian) `renderPresetsTab` (built-ins, saved presets, save, reset, export and import). |
 | `src/settings/Preview.ts` | (Obsidian) The live preview: three sample cards drawn with the real layout, branch and card styles. |
 | `src/settings/modals.ts` | (Obsidian) Dialogs that return promises: ask for text, confirm, and summarise an import. |
 

@@ -301,6 +301,9 @@
   let nodes = $state.raw<Node[]>([]);
   let edges = $state.raw<Edge[]>([]);
   let frame = 0;
+  // The card under the pointer, drawn above the others. Plain data like the positions: the nodes
+  // are rebuilt when it changes.
+  let hoveredId: string | null = null;
   let lastTime = 0;
 
   // Cards that have just been removed stay where they were while they fade, then go. Plain data,
@@ -323,8 +326,9 @@
         width: cardWidth,
         height: cardHeight,
         data: item.data,
-        // The card the keyboard is on sits above its neighbours, so a ring that is close never hides it.
-        zIndex: item.data.selected ? 10 : 0,
+        // The card under the pointer and the card the keyboard is on sit above their neighbours, so a
+        // ring that is close never hides them.
+        zIndex: item.id === hoveredId ? 20 : item.data.selected ? 10 : 0,
         draggable: false,
         selectable: false,
         connectable: false,
@@ -486,6 +490,15 @@
     proOptions={{ hideAttribution: true }}
     onnodeclick={({ node }) => {
       if (!suppressClick) onnodeclick(node.id);
+    }}
+    onnodepointerenter={({ node }) => {
+      hoveredId = node.id;
+      nodes = buildNodes(items, targets);
+    }}
+    onnodepointerleave={({ node }) => {
+      if (hoveredId !== node.id) return;
+      hoveredId = null;
+      nodes = buildNodes(items, targets);
     }}
   >
     {#if grid.type !== "none"}

@@ -2,6 +2,15 @@
 
 All notable changes are listed here, newest first. Versions follow [semantic versioning](https://semver.org/).
 
+## Unreleased
+
+### Changed
+
+- **Island tree's settings now show up in Obsidian's settings search.** The settings page uses Obsidian's own settings layout (1.13 and later): a header with the live preview, then a page each for Cards, Lines and grid, Layout, Editing and Presets, in place of the tab strip. Every setting looks and works as before, including the reset buttons.
+- **The card under the pointer comes to the front** by code instead of a style rule, so the page no longer needs `!important` for it. The reduced-motion rules and the hidden screen-reader text no longer use `!important` or `clip-path`.
+- **Release files are signed.** The release workflow now attests `main.js`, `manifest.json` and `styles.css`, so anyone can verify they were built from this repository.
+- **One fewer dependency.** The `builtin-modules` package is replaced by Node's own list.
+
 ## 1.0.1 (2026-10-14)
 
 ### Changed
