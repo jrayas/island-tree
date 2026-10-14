@@ -96,6 +96,20 @@ export function branchPath(
   return centre ? radialBranchPath(centre, sx, sy, tx, ty) : verticalBranchPath(sx, sy, tx, ty);
 }
 
+/** A parent with more children than this draws its branches fading in from the parent. */
+export const FAN_LIMIT = 8;
+
+/**
+ * How far along a branch, from 0 to 1, it takes to reach full strength. A parent with many children
+ * sends all their branches out from one spot, and where they overlap they would draw a thick bar, so
+ * the busier the parent the longer its branches fade in, up to half their length. Zero for a few
+ * children, which keep their whole line.
+ */
+export function fadeInFraction(siblings: number): number {
+  if (siblings <= FAN_LIMIT) return 0;
+  return Math.min(0.5, 0.2 + (siblings - FAN_LIMIT - 1) * 0.01);
+}
+
 /** Corner radius of the mind map's elbow branches, in canvas units. */
 export const MIND_MAP_ELBOW_RADIUS = 10;
 

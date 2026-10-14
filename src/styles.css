@@ -173,10 +173,11 @@
   color: var(--text-normal);
 }
 
-/* Selection details: plain text floating over the graph, bottom left and left-aligned. No box,
-   border or background, and it never takes clicks. It is anchored by its bottom edge, so long
-   text grows upward, and its height is capped so it stops a gap short of the zoom stack: when
-   there is not enough room the top of the name is cut first, never the counts line. */
+/* Selection details: a small panel floating over the graph, bottom left and left-aligned, with a
+   background so cards and lines passing behind never make it hard to read. It never takes clicks.
+   It is anchored by its bottom edge, so long text grows upward, and its height is capped so it
+   stops a gap short of the zoom stack: when there is not enough room the top of the name is cut
+   first, never the counts line. */
 .island-tree-view .island-info {
   position: absolute;
   left: var(--island-edge-gap);
@@ -186,6 +187,12 @@
   flex-direction: column;
   justify-content: flex-end;
   overflow: hidden;
+  box-sizing: border-box;
+  padding: var(--size-4-2) var(--size-4-3);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--background-primary) 92%, transparent);
+  box-shadow: var(--shadow-s);
   max-width: min(60ch, calc(100% - 2 * var(--island-edge-gap)));
   max-height: max(
     0px,
@@ -203,10 +210,6 @@
   transition:
     opacity 150ms ease,
     visibility 150ms ease;
-  /* A faint halo in the background colour keeps the text readable if a card or line passes behind. */
-  text-shadow:
-    0 0 6px var(--background-primary),
-    0 0 2px var(--background-primary);
 }
 
 .island-tree-view .island-info > * {

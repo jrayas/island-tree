@@ -359,6 +359,9 @@
     sideOf: Map<string, MindSide> | null,
     width: number,
   ): Edge[] {
+    // How many branches leave each parent, so a busy parent's branches can fade in (see BranchEdge).
+    const fan = new Map<string, number>();
+    for (const item of list) if (item.parentId !== null) fan.set(item.parentId, (fan.get(item.parentId) ?? 0) + 1);
     return list
       .filter((item) => item.parentId !== null)
       .map((item) => ({
@@ -372,6 +375,7 @@
           curve: style,
           side: sideOf?.get(item.id) ?? null,
           cardWidth: width,
+          fan: fan.get(item.parentId as string) ?? 0,
         },
         selectable: false,
         focusable: false,

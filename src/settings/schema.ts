@@ -86,7 +86,7 @@ export interface LayoutSettings {
   openNotesIn: OpenNotesIn;
   /** While typing in the search box, fade the cards on screen that do not match. Matches are highlighted either way. */
   dimOnSearch: boolean;
-  /** Also suggest files, by exact name only. Off, the search lists folders. The toolbar's Files button switches it. */
+  /** Also suggest files. Off, the search lists folders. The toolbar's Files button switches it. */
   searchFiles: boolean;
   gap: number;
   levelGap: number;
@@ -461,7 +461,7 @@ export const FIELDS: readonly Field[] = [
   {
     group: "layout", key: "searchFiles", tab: "layout", section: "Search", inPreset: false,
     label: "Search files too",
-    description: "Search lists folders only, so a vault with thousands of files never fills the dashboard. Turn this on to also find a file by its exact name, with or without its extension. Only the one card you choose is loaded. The Files button next to the search box switches it.",
+    description: "Search lists folders only. Turn this on to list files too, matched by their name like folders are. Only the one card you choose is loaded, so a vault with thousands of files never fills the dashboard. The Files button next to the search box switches it.",
     def: bool(false),
   },
   {

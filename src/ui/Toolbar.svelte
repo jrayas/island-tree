@@ -53,7 +53,7 @@
     query: string;
     /** What the search suggests for the text typed, or null when nothing is typed. */
     suggestions: Suggestions | null;
-    /** The search also lists files, by exact name. */
+    /** The search also lists files. */
     searchFiles: boolean;
     /** A folder is selected, so Focus selected can act. */
     canFocus: boolean;
@@ -272,7 +272,7 @@
     class="island-search-files"
     class:is-active={searchFiles}
     aria-pressed={searchFiles}
-    title="Also find files, by exact name. Only the one you choose is loaded."
+    title="Also find files. Only the one you choose is loaded."
     onclick={onsearchfiles}>Files</button
   >
   {#if suggestions !== null}

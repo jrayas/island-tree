@@ -96,7 +96,7 @@ describe("a vault of 10,000 files", () => {
     expect(result.ms).toBeLessThan(500);
   });
 
-  it("finding a file by its exact name looks through all 10,000 quickly", () => {
+  it("finding a file by name looks through all 10,000 quickly", () => {
     const tree = buildTree(raw, new UidRegistry());
     const result = time(() => suggest(tree, "note 17.md", { files: true, limit: 8 }));
     expect(result.value.total).toBe(500);

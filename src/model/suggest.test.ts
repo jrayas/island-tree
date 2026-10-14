@@ -104,15 +104,36 @@ describe("suggest", () => {
   });
 
   describe("with files on", () => {
-    it("finds a file only by its whole name, with or without the extension", () => {
+    it("finds a file by its whole name, with or without the extension, in any case", () => {
       expect(names("roadmap.md", withFiles)).toEqual(["Roadmap.md", "Roadmap.md"]);
       expect(names("roadmap", withFiles)).toEqual(["Roadmap.md", "Roadmap.md"]);
       expect(names("ROADMAP", withFiles)).toEqual(["Roadmap.md", "Roadmap.md"]);
     });
 
-    it("does not turn a loose word into files", () => {
-      expect(names("road", withFiles)).toEqual([]);
-      expect(names("note", withFiles)).toEqual([]);
+    it("finds a file by part of its name, like a folder", () => {
+      expect(names("road", withFiles)).toEqual(["Roadmap.md", "Roadmap.md"]);
+      expect(names("note", withFiles)).toEqual(["notes.md"]);
+      expect(names("map", withFiles)).toEqual(["Roadmap.md", "Roadmap.md"]);
+    });
+
+    it("never lists files when files are off", () => {
+      expect(names("road", folders)).toEqual([]);
+    });
+
+    it("ranks a whole file name above a name that only starts with it", () => {
+      const tree = buildTree(vault([file("/plan-b.md"), file("/plan.md"), dir("/planning", [])]), new UidRegistry());
+      const result = suggest(tree, "plan", withFiles);
+      expect(result.items.map((s) => s.name)).toEqual(["plan.md", "planning", "plan-b.md"]);
+    });
+
+    it("lists a folder before a file that matches equally well", () => {
+      const tree = buildTree(vault([file("/api.md"), dir("/api", [])]), new UidRegistry());
+      expect(suggest(tree, "api", withFiles).items.map((s) => s.kind)).toEqual(["folder", "file"]);
+    });
+
+    it("marks the part of a file name that matched", () => {
+      const result = suggest(root, "road", withFiles);
+      expect(result.items[0]?.marks).toEqual([[0, 4]]);
     });
 
     it("keeps folders matching loosely and lists files after better folder matches", () => {
@@ -136,7 +157,8 @@ describe("suggest", () => {
     it("finds a file by its whole path when files are on", () => {
       expect(names("/Inbox/Roadmap.md", withFiles)).toEqual(["Roadmap.md"]);
       expect(names("inbox/roadmap", withFiles)).toEqual(["Roadmap.md"]);
-      expect(names("Inbox/Road", withFiles)).toEqual([]);
+      expect(names("Inbox/Road", withFiles)).toEqual(["Roadmap.md"]);
+      expect(names("Inbox/Road", folders)).toEqual([]);
     });
   });
 

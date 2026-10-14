@@ -3,9 +3,9 @@
  *
  * It looks through the names in memory only, never at the cards, so it stays quick on a huge vault,
  * and it returns a handful of the best matches, best first. By default it lists folders only. With
- * files switched on, a file is suggested only when its whole name matches (with or without its
- * extension), so a loose word never turns into thousands of files. Choosing a suggestion loads that
- * one card (see reveal.ts).
+ * files switched on, files are matched the same way as folders (a file's extension is ignored when that
+ * helps) and a folder wins a tie. However many names match, only a handful are listed, and choosing one
+ * loads that one card (see reveal.ts), so a loose word never turns into thousands of cards.
  */
 import { normaliseQuery } from "./search";
 import { ancestry, type TreeNode } from "./tree";
@@ -28,7 +28,7 @@ export interface Suggestions {
 }
 
 export interface SuggestOptions {
-  /** Also suggest files, by exact name only. */
+  /** Also suggest files. */
   files: boolean;
   limit: number;
 }
@@ -102,14 +102,27 @@ function matchFolderName(name: string, needle: string): Omit<Found, "node"> | nu
   return { rank: LOOSE, cost: hay.length + first, marks: runsOf(positions) };
 }
 
-/** A file matches only by its whole name, with or without the extension, or by its whole path. */
-function matchFileName(node: TreeNode, needle: string): Omit<Found, "node"> | null {
-  const hay = node.name.toLowerCase();
+/**
+ * Scores a file name like a folder name, except that "plan" is an exact match for "plan.md": the name
+ * is also tried without its extension, and kept if that matches better.
+ */
+function matchFileName(name: string, needle: string): Omit<Found, "node"> | null {
+  const direct = matchFolderName(name, needle);
+  const stem = withoutExtension(name);
+  if (stem === name) return direct;
+  const bare = matchFolderName(stem, needle);
+  return bare && (!direct || bare.rank > direct.rank) ? bare : direct;
+}
+
+/** Scores a path query: the whole path, with or without a file's extension, is exact; a part of it is a looser match. */
+function matchPath(node: TreeNode, wanted: string): Omit<Found, "node"> | null {
   const path = node.path.toLowerCase().replace(/^\//, "");
-  const whole = needle.includes("/") ? [path, withoutExtension(path)] : [hay, withoutExtension(hay)];
-  const wanted = needle.replace(/^\//, "");
-  if (!whole.includes(wanted)) return null;
-  return { rank: EXACT, cost: 0, marks: [[0, node.name.length]] };
+  const at = path.indexOf(wanted);
+  if (at === -1) return null;
+  if (path === wanted || (node.kind === "file" && withoutExtension(path) === wanted)) {
+    return { rank: EXACT, cost: 0, marks: [[0, node.name.length]] };
+  }
+  return { rank: CONTAINS, cost: path.length + at, marks: [] };
 }
 
 /** How deep a node sits, counted from its path. */
@@ -121,8 +134,8 @@ function depthOf(node: TreeNode): number {
 
 /**
  * The best matches for what is typed. Nothing is suggested for an empty query. A query with a
- * slash is read as part of a path: it finds folders whose path contains it, and files by their
- * whole path.
+ * slash is read as part of a path: it finds the folders (and, with files on, files) whose path
+ * contains it.
  */
 export function suggest(root: TreeNode, query: string, options: SuggestOptions): Suggestions {
   const needle = normaliseQuery(query);
@@ -134,23 +147,11 @@ export function suggest(root: TreeNode, query: string, options: SuggestOptions):
   const visit = (node: TreeNode): void => {
     for (const child of node.children) {
       if (child.kind === "folder") {
-        let match: Omit<Found, "node"> | null;
-        if (byPath) {
-          const path = child.path.toLowerCase().replace(/^\//, "");
-          const at = path.indexOf(wanted);
-          match =
-            at === -1
-              ? null
-              : path === wanted
-                ? { rank: EXACT, cost: 0, marks: [[0, child.name.length]] }
-                : { rank: CONTAINS, cost: path.length + at, marks: [] };
-        } else {
-          match = matchFolderName(child.name, needle);
-        }
+        const match = byPath ? matchPath(child, wanted) : matchFolderName(child.name, needle);
         if (match) found.push({ node: child, ...match });
         visit(child);
       } else if (options.files) {
-        const match = matchFileName(child, needle);
+        const match = byPath ? matchPath(child, wanted) : matchFileName(child.name, needle);
         if (match) found.push({ node: child, ...match });
       }
     }
@@ -161,6 +162,7 @@ export function suggest(root: TreeNode, query: string, options: SuggestOptions):
     (a, b) =>
       b.rank - a.rank ||
       a.cost - b.cost ||
+      Number(a.node.kind === "file") - Number(b.node.kind === "file") ||
       depthOf(a.node) - depthOf(b.node) ||
       a.node.path.localeCompare(b.node.path, "en-GB", { numeric: true }),
   );

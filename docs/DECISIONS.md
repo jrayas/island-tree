@@ -397,3 +397,9 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 **Decision:** `focusOn` turns Expand files off whenever the focus moves to a different folder, and `revealOne` and the vault sync do the same when they send the focus back to the root. A single folder's own Show files badge is kept.
 
 **Why:** Expand files lists the files of every open folder (it only works while focused). Clicking a folder in the breadcrumb moved the focus but left it on, so it listed every file in whichever folder was clicked, which on a big vault loaded far too much.
+
+## D-059: Files in the search match by name like folders (amends D-056)
+
+**Decision:** With Files on, files are matched by part of their name the same way folders are (the extension is ignored when that scores better, and a folder wins a tie), instead of by whole name only.
+
+**Why:** The earlier exact-name rule left Files looking broken: typing part of a name listed folders only. It is safe because the list is capped at 8 and choosing one loads one card, so a broad word costs a few milliseconds and no cards.

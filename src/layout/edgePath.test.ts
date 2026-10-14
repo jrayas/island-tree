@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  FAN_LIMIT,
   branchPath,
+  fadeInFraction,
   mindMapCurvePath,
   mindMapElbowPath,
   mindMapPath,
@@ -144,5 +146,22 @@ describe("mind map branches", () => {
   it("uses elbows for step, and the S-curve for curved and straight", () => {
     expect(mindMapPath("step", "right", 100, 0, 0, 160, 40)).toContain("Q");
     expect(mindMapPath("straight", "right", 100, 0, 0, 160, 40)).toBe(mindMapPath("curved", "right", 100, 0, 0, 160, 40));
+  });
+});
+
+describe("fadeInFraction", () => {
+  it("keeps the whole line for a parent with few children", () => {
+    expect(fadeInFraction(1)).toBe(0);
+    expect(fadeInFraction(FAN_LIMIT)).toBe(0);
+  });
+
+  it("fades the branches of a busy parent in, more the busier it is", () => {
+    expect(fadeInFraction(FAN_LIMIT + 1)).toBeGreaterThan(0);
+    expect(fadeInFraction(30)).toBeGreaterThan(fadeInFraction(FAN_LIMIT + 1));
+  });
+
+  it("never fades past half the line", () => {
+    expect(fadeInFraction(500)).toBe(0.5);
+    expect(fadeInFraction(100000)).toBe(0.5);
   });
 });

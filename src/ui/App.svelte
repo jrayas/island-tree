@@ -254,7 +254,7 @@
   });
   onDestroy(() => window.clearTimeout(searchTimer));
 
-  // The best few folders (and, with Files on, files by exact name) for what is typed. It never loads
+  // The best few folders (and, with Files on, files) for what is typed. It never loads
   // a card: choosing one goes to that card alone.
   const suggestions = $derived(
     typed.trim() === "" ? null : suggest(root, typed, { files: cfg.layout.searchFiles, limit: SUGGESTION_LIMIT }),
@@ -305,12 +305,12 @@
     }
     editing.notify(
       cfg.layout.searchFiles
-        ? `Nothing is named "${text}".`
-        : `No folder matches "${text}". Turn on Files to look for a file by its exact name.`,
+        ? `Nothing matches "${text}".`
+        : `No folder matches "${text}". Turn on Files to include files in the search.`,
     );
   }
 
-  /** The Files button: whether the search also finds files, by exact name. The setting remembers it. */
+  /** The Files button: whether the search also finds files. The setting remembers it. */
   function toggleSearchFiles(): void {
     const field = findField("layout.searchFiles");
     if (!field) return;
