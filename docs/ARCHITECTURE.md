@@ -183,7 +183,7 @@ Everything here is pure and unit tested unless marked Obsidian.
 
 ## Release files
 
-`manifest.json`, `versions.json` and `package.json` must carry the same version. `versions.json` maps each plugin version to its minimum Obsidian version (currently `1.7.2`, set by `Workspace.revealLeaf`). The release workflow arrives in milestone 7.
+`manifest.json`, `versions.json` and `package.json` must carry the same version. `versions.json` maps each plugin version to its minimum Obsidian version (currently `1.13.0`, see D-060; it was `1.7.2`, set by `Workspace.revealLeaf`, up to 1.0.0). The release workflow arrives in milestone 7.
 
 ## Known limits of what is built
 

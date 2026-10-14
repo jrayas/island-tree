@@ -2,6 +2,12 @@
 
 All notable changes are listed here, newest first. Versions follow [semantic versioning](https://semver.org/).
 
+## 1.0.1 (2026-10-14)
+
+### Changed
+
+- **Requires Obsidian 1.13.0 or later** (it was 1.7.2). Nothing else changes in the plugin.
+
 ## 1.0.0 (2026-10-14)
 
 The first release.

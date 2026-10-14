@@ -21,6 +21,7 @@ An Obsidian plugin that shows your vault's folders and files as an animated, can
 
 ## Install
 
+- **Needs Obsidian 1.13.0 or later** (desktop).
 - **From Obsidian:** open **Settings → Community plugins → Browse**, search for "Island tree" and install it (once it is listed).
 - **By hand:** download `main.js`, `manifest.json` and `styles.css` from the latest [GitHub release](../../releases), put them in `<your vault>/.obsidian/plugins/island-tree/`, then turn the plugin on under **Settings → Community plugins**.
 - **From source:** see [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).

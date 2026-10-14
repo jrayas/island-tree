@@ -113,7 +113,7 @@ Last updated: milestone 7 (polish and release). All seven milestones are built; 
 - **Author name** is "Anthirayas" in `manifest.json` and `LICENSE` (set before the first push). Change it there if you want a different name.
 - **The release and CI workflows have never run on GitHub**, and the repository does not exist yet. Expect a small fix or two on the first run.
 - **The settings page opens with a header card showing the plugin name.** The guidelines say not to put a top-level heading with the plugin name in a settings tab. It is a styled block, not a heading, and the lint rule passes, but a reviewer may ask for it to go (`src/settings/SettingsTab.ts`).
-- **`minAppVersion` 1.7.2** was checked for imports and the main member APIs from the typings, not by running on 1.7.2.
+- **`minAppVersion` is 1.13.0** (from 1.0.1; it was 1.7.2 before, D-060). The imports were checked against the typings, which are 1.13.1.
 - **The tree is rebuilt in full on every (debounced) vault change.** Counts are incremental, the tree is not; Obsidian's own vault walk on 10,000 files has not been timed (D-050).
 - **No real screen reader has been used**, only the DOM roles and labels checked (D-047).
 - **No screenshots in the README yet** (a placeholder is there).

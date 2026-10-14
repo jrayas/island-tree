@@ -18,7 +18,7 @@ PLUGIN DETAILS
 - Repo: [github-username]/island-tree
 - Plugin name: Island tree
 - Plugin id: island-tree
-- Minimum Obsidian version I want to support: 1.7.2
+- Minimum Obsidian version I want to support: 1.13.0
 - Platforms: desktop only
 
 PHASE 1: Repo audit (read-only, change nothing)

@@ -403,3 +403,11 @@ Significant choices, newest last. Each entry says what was decided, why, and whe
 **Decision:** With Files on, files are matched by part of their name the same way folders are (the extension is ignored when that scores better, and a folder wins a tie), instead of by whole name only.
 
 **Why:** The earlier exact-name rule left Files looking broken: typing part of a name listed folders only. It is safe because the list is capped at 8 and choosing one loads one card, so a broad word costs a few milliseconds and no cards.
+
+## D-060: The minimum Obsidian version is 1.13.0 (supersedes D-003)
+
+**Decision:** `minAppVersion` is `1.13.0`, released as 1.0.1. `versions.json` keeps 1.0.0 and 0.1.0 at `1.7.2`, which is what they were built for.
+
+**Why:** The directory scan of 1.0.0 recommended the declarative settings API (`getSettingDefinitions()`), which only exists from Obsidian 1.13. D-026 chose the classic API partly because the plugin supported 1.7.2; raising the minimum removes that reason. The installed typings are 1.13.1, so nothing else needed to change.
+
+**Limits:** Raising the minimum does not remove the scan's warning by itself. The settings page is still the classic one (a custom tab strip and a live preview, D-026), so it stays out of Obsidian's settings search until it adopts `getSettingDefinitions()`. People on Obsidian older than 1.13.0 can no longer install the plugin.
