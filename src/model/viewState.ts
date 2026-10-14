@@ -103,7 +103,7 @@ export function expandLevel(state: ViewState, frontier: readonly string[]): View
  * cards a search went to are forgotten too, since there is nothing left open to show them in.
  */
 export function collapseFolders(state: ViewState, rootUid: string): ViewState {
-  return { ...state, foldersOn: false, open: new Set([rootUid]), focusRoot: rootUid, pinned: new Set() };
+  return { ...state, foldersOn: false, filesOn: false, open: new Set([rootUid]), focusRoot: rootUid, pinned: new Set() };
 }
 
 /**
@@ -120,8 +120,23 @@ export function focusOn(state: ViewState, uid: string): ViewState {
   return { ...state, focusRoot: uid, open: new Set(state.open).add(uid) };
 }
 
+/** Back to the whole vault. Expand files is turned off with it, since it only works while focused. */
 export function resetFocus(state: ViewState, rootUid: string): ViewState {
-  return state.focusRoot === rootUid ? state : { ...state, focusRoot: rootUid };
+  return state.focusRoot === rootUid ? state : { ...state, focusRoot: rootUid, filesOn: false };
+}
+
+/**
+ * Whether Expand files can be on. It lists the files of every open folder, which from the vault root
+ * would fill the dashboard on a big vault, so it only works while focused on a folder (a single
+ * folder's own Show files badge works anywhere).
+ */
+export function filesCanExpand(state: ViewState, rootUid: string): boolean {
+  return state.focusRoot !== rootUid;
+}
+
+/** The state the dashboard draws from: the same, but with Expand files ignored at the vault root. */
+export function viewing(state: ViewState, rootUid: string): ViewState {
+  return state.filesOn && !filesCanExpand(state, rootUid) ? { ...state, filesOn: false } : state;
 }
 
 /** Sets the search text, which marks the matching cards that are already on screen. */

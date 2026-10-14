@@ -10,6 +10,8 @@ import {
   setDetail,
   collapseFolders,
   expandLevel,
+  filesCanExpand,
+  viewing,
   setLayout,
   setQuery,
   revealBatch,
@@ -152,6 +154,40 @@ describe("focus", () => {
     expect(resetFocus(focused, "root").focusRoot).toBe("root");
     const plain = start();
     expect(resetFocus(plain, "root")).toBe(plain);
+  });
+
+  it("turns Expand files off when the focus goes back to the whole vault", () => {
+    const focused = setFilesOn(focusOn(start(), "a"), true);
+    expect(resetFocus(focused, "root").filesOn).toBe(false);
+    expect(collapseFolders(focused, "root").filesOn).toBe(false);
+  });
+
+  it("keeps a single folder's own files when the focus goes back", () => {
+    const focused = toggleFilesFor(focusOn(start(), "a"), "b");
+    expect(resetFocus(focused, "root").filesFor.has("b")).toBe(true);
+  });
+});
+
+describe("Expand files only while focused", () => {
+  it("can expand only when focused on a folder", () => {
+    expect(filesCanExpand(start(), "root")).toBe(false);
+    expect(filesCanExpand(focusOn(start(), "a"), "root")).toBe(true);
+  });
+
+  it("ignores Expand files at the vault root, wherever the flag came from", () => {
+    const stale = setFilesOn(start(), true);
+    expect(stale.filesOn).toBe(true);
+    expect(viewing(stale, "root").filesOn).toBe(false);
+  });
+
+  it("honours Expand files while focused, returning the same object", () => {
+    const on = setFilesOn(focusOn(start(), "a"), true);
+    expect(viewing(on, "root")).toBe(on);
+  });
+
+  it("never touches a single folder's own files", () => {
+    const state = toggleFilesFor(setFilesOn(start(), true), "b");
+    expect(viewing(state, "root").filesFor.has("b")).toBe(true);
   });
 });
 

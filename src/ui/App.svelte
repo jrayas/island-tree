@@ -39,6 +39,7 @@
     focusOn,
     collapseFolders,
     expandLevel,
+    filesCanExpand,
     initialViewState,
     resetFocus,
     restartView,
@@ -51,6 +52,7 @@
     showFolderContents,
     toggleFilesFor,
     toggleOpen,
+    viewing,
     type StartOptions,
     type ViewState,
   } from "../model/viewState";
@@ -265,7 +267,9 @@
     typed.trim() === "" ? null : suggest(root, typed, { files: cfg.layout.searchFiles, limit: SUGGESTION_LIMIT }),
   );
   const focusNode = $derived(index.get(viewState.focusRoot) ?? root);
-  const visibleRoot = $derived(buildVisibleTree(focusNode, viewState, cfg.layout.overflowLimit));
+  // What is drawn from: the view state, with Expand files ignored at the vault root (it only works when focused).
+  const shown = $derived(viewing(viewState, root.uid));
+  const visibleRoot = $derived(buildVisibleTree(focusNode, shown, cfg.layout.overflowLimit));
   const visible = $derived(flattenVisible(visibleRoot));
   const placed = $derived(
     computeLayout(viewState.layoutMode, visibleRoot, viewState.detail, layoutOptions),
@@ -344,7 +348,7 @@
       void countsVersion;
       const display = describeItem(
         item,
-        viewState,
+        shown,
         meta,
         { tags: cfg.cards.showTags },
         item.node?.kind === "folder" ? counts.countsFor(item.node) : undefined,
@@ -604,7 +608,7 @@
           item.kind === "folder" &&
           item.node !== null &&
           !viewState.open.has(item.id) &&
-          item.node.children.some((child) => child.kind === "folder" || filesVisible(viewState, item.id)),
+          item.node.children.some((child) => child.kind === "folder" || filesVisible(shown, item.id)),
       )
       .map((item) => item.id),
   );
@@ -618,7 +622,7 @@
   function revealMore(folderUid: string): void {
     const folder = index.get(folderUid);
     if (!folder) return;
-    const batch = nextBatchFor(folder, viewState, cfg.layout.overflowLimit);
+    const batch = nextBatchFor(folder, shown, cfg.layout.overflowLimit);
     if (batch !== null) viewState = revealBatch(viewState, folderUid, batch);
   }
 
@@ -697,7 +701,8 @@
     compact={cfg.layout.density === "compact"}
     ondensity={toggleCompact}
     foldersOn={viewState.foldersOn}
-    filesOn={viewState.filesOn}
+    filesOn={shown.filesOn}
+    canExpandFiles={viewState.focusRoot !== root.uid}
     detailOn={viewState.detail}
     query={typed}
     {suggestions}
@@ -713,7 +718,9 @@
     onmindmap={chooseMindMap}
     canExpandMore={expandFrontier.length > 0}
     onfolders={expandFolders}
-    onfiles={() => (viewState = setFilesOn(viewState, !viewState.filesOn))}
+    onfiles={() => {
+      if (filesCanExpand(viewState, root.uid)) viewState = setFilesOn(viewState, !viewState.filesOn);
+    }}
     ondetail={() => {
       viewState = setDetail(viewState, !viewState.detail);
       refit();

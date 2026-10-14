@@ -6,6 +6,8 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 ### Changed
 
+- **Expand files only works while focused on a folder.** From the whole vault it listed the files of every open folder, which on a big vault filled the dashboard with files and was slow. The button is now greyed from the whole vault (its tooltip says to focus on a folder), works inside a focus, and is turned off again by Reset focus and Collapse folders. A folder's own Show files badge works anywhere. **Start with files shown** now only takes effect once you focus on a folder.
+
 - **Fit to screen shows a very wide or crowded tree whole.** The lowest zoom was 20%, so a tree wider than about five panes was cut off by Fit, and the zoom out button stopped with the tree still overflowing. The lowest zoom is now 2%, for Fit, the zoom buttons, the wheel and zoom to area. At that size cards are only dots; zoom in to read them.
 
 - **Radial layout: cards no longer pile on top of each other, and the card you point at comes to the front.** A ring now grows, only as far as it has to, until its neighbouring cards clear each other (a ring with room is unchanged, and the rings outside it keep their usual distance beyond it). The card under the pointer, and the card the keyboard is on, are drawn above the others in every layout.

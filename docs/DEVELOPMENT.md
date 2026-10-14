@@ -71,7 +71,7 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] **Radial** moves the cards onto rings around the vault card, gliding there, with smaller cards and branches that curve around the centre. **Vertical** goes back. The view re-frames each time.
 - [ ] In the radial layout a folder with many descendants gets a wider slice of the circle than an empty one, and no cards overlap.
 - [ ] **Expand folders** opens one more level each press (the folders on screen), and the button reads **Collapse folders** once every folder on screen that has something to show is open; the next press closes everything back to the top level.
-- [ ] **Expand files** lists the files of every open folder. Turning it off hides them again, including any folder you had switched on with its badge.
+- [ ] **Expand files** is greyed out from the whole vault, with a tooltip saying to focus on a folder. Focus on a folder: it lists the files of every open folder in the focus. Turning it off hides them again, including any folder you had switched on with its badge. Reset focus (or Collapse folders) turns it off. A folder's own badge still shows its files from the whole vault.
 - [ ] Typing in **Search names** opens the path to each match, rings the matches in yellow and fades the other cards. Clearing the box returns to exactly what was open before.
 - [ ] Double click a folder: the view focuses on it, the breadcrumb shows `Vault / Folder`, and **Reset focus** is enabled. Clicking `Vault` in the breadcrumb (or **Reset focus**) goes back.
 - [ ] **Focus selected** is greyed out until a folder is selected.

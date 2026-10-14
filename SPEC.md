@@ -107,7 +107,7 @@ island-tree/
 2. Subfolders are always listed first. Files are listed only if `filesOn` is true or the folder is in `filesFor`.
 3. If the visible list is longer than `LIMIT` (default 6) and the folder is not in `showAll`, show the first `LIMIT` plus one "+N more" pill. Clicking the pill adds the folder to `showAll`.
 4. **Expand folders** toggle: on adds every folder to `open`. Off clears `open` back to the root and resets focus.
-5. **Expand files** toggle: on shows files in every open folder. Off hides them and clears `filesFor`.
+5. **Expand files** toggle: on shows files in every open folder. Off hides them and clears `filesFor`. It only works while focused on a folder (greyed from the whole vault, ignored there, and turned off when the focus returns to the root), so a big vault is never asked to list the files of every folder at once. A folder's own Show files badge works anywhere.
 6. Manual clicks always win over the toggles. The badge on a folder (subfolders · files) is clickable and toggles `filesFor` for that folder only.
 7. Search: matching names highlight, their ancestors open, the parent folders of matches go into `filesFor` and `showAll`, non-matching cards fade to about 30 percent.
 

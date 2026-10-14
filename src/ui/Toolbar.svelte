@@ -13,6 +13,7 @@
     foldersOn,
     canExpandMore,
     filesOn,
+    canExpandFiles,
     detailOn,
     query,
     suggestions,
@@ -46,6 +47,8 @@
     /** Some folder on screen is still closed, so Expand folders opens another level. */
     canExpandMore: boolean;
     filesOn: boolean;
+    /** Expand files only works while focused on a folder; from the whole vault it would load too much. */
+    canExpandFiles: boolean;
     detailOn: boolean;
     query: string;
     /** What the search suggests for the text typed, or null when nothing is typed. */
@@ -185,8 +188,15 @@
         : "Open the next level of folders. Click again for the level after."}
       onclick={onfolders}>{foldersOn && !canExpandMore ? "Collapse folders" : "Expand folders"}</button
     >
-    <button type="button" class:is-active={filesOn} aria-pressed={filesOn} onclick={onfiles}
-      >Expand files</button
+    <button
+      type="button"
+      class:is-active={filesOn}
+      aria-pressed={filesOn}
+      disabled={!canExpandFiles}
+      title={canExpandFiles
+        ? "List the files of every open folder in this focus."
+        : "Focus on a folder to show its files. From the whole vault this would load too much."}
+      onclick={onfiles}>Expand files</button
     >
     <button type="button" class:is-active={detailOn} aria-pressed={detailOn} onclick={ondetail}
       >Details</button

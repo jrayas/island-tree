@@ -503,7 +503,7 @@ export const FIELDS: readonly Field[] = [
   {
     group: "layout", key: "startExpandFiles", tab: "layout", section: "Folders", inPreset: true,
     label: "Start with files shown",
-    description: "Open the dashboard with Expand files already on.",
+    description: "Open the dashboard with Expand files already on. It only takes effect once you focus on a folder, because from the whole vault it would load too much.",
     def: bool(false),
   },
 
