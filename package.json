@@ -1,6 +1,6 @@
 {
   "name": "island-tree",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Shows the vault's folders and files as an animated, canvas-style dashboard.",
   "main": "main.js",
   "private": true,

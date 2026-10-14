@@ -1,7 +1,7 @@
 {
   "id": "island-tree",
   "name": "Island tree",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "minAppVersion": "1.13.0",
   "description": "Shows your vault's folders and files as an animated, canvas-style dashboard.",
   "author": "Anthirayas",
