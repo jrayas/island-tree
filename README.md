@@ -4,7 +4,7 @@ An Obsidian plugin that shows your vault's folders and files as an animated, can
 
 ![Island tree switching between the vertical, radial and mind map layouts](docs/images/island-tree-demo.gif)
 
-> **Status: pre-release (0.1.0).** It is built and tested, but it has not had a full run in a range of real vaults yet. Please try it in a copy of your vault first, especially editing. See [`PROGRESS.md`](PROGRESS.md).
+> **First release (1.0.0).** It is built, tested and checked in Obsidian, but it has not had a full run in a wide range of real vaults yet. Please try it in a copy of your vault first, especially editing. See [`PROGRESS.md`](PROGRESS.md).
 
 ## What it does
 
