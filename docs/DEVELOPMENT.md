@@ -75,7 +75,7 @@ Run through this by hand before each commit that changes behaviour. Tick items o
 - [ ] Typing in **Search names** opens the path to each match, rings the matches in yellow and fades the other cards. Clearing the box returns to exactly what was open before.
 - [ ] Double click a folder: the view focuses on it, the breadcrumb shows `Vault / Folder`, and **Reset focus** is enabled. Clicking `Vault` in the breadcrumb (or **Reset focus**) goes back.
 - [ ] **Focus selected** is greyed out until a folder is selected.
-- [ ] Selecting a card fades in a small panel at the bottom left, left-aligned, with a background and thin border: the name in bold, the path in smaller muted text and one quiet line (folder counts, or the file's type and details). Selecting nothing fades it out. Cards and lines passing behind it do not show through the text, and it never blocks dragging or clicking.
+- [ ] Selecting a card fades in plain text at the bottom left, left-aligned: the name in bold, the path in smaller muted text and one quiet line (folder counts, or the file's type and details). Selecting nothing fades it out. It has no box, border or background, and never blocks dragging or clicking.
 - [ ] In a folder with many children (the 125-folder `articles`), the branches to them fade in from the parent instead of piling into a thick bar at the parent, in every layout. The path to the selected card is still a solid line. A folder with a few children keeps whole lines.
 - [ ] Double click a note: it opens in a new tab. Ctrl (Cmd) with double click opens a split. Double clicking a file that was deleted after the dashboard opened shows a short notice, not an error.
 - [ ] **Reset** returns to the starting view and keeps the layout you chose.

@@ -8,7 +8,7 @@ All notable changes are listed here, newest first. Versions follow [semantic ver
 
 - **Search lists files too when Files is on.** Files are matched by part of their name the same way folders are, so typing part of a name finds files. Before, Files only found an exact file name, so it looked as if the button did nothing. Still at most 8 suggestions, folders first when they match equally well, and choosing one loads only that card.
 
-- **No more thick bars of branches, and the details panel has a background.** A folder with many children sent all its branches out from one spot, and where they overlapped they drew a solid bar. Those branches now fade in from the parent (a parent with more than 8 children), so the bar goes and the lines still show where each goes. The path to the selected card stays solid. The details panel at the bottom left now has a background and a thin border, so cards and lines behind it no longer run through its text.
+- **No more thick bars of branches.** A folder with many children sent all its branches out from one spot, and where they overlapped they drew a solid bar. Those branches now fade in from the parent (a parent with more than 8 children), so the bar goes and the lines still show where each goes. The path to the selected card stays solid. The details text at the bottom left stays plain text with no box, as before.
 
 - **Moving the focus turns Expand files off.** Clicking a folder in the breadcrumb (or Focus selected, or a search that leaves the focus) moves the focus to a different folder, and Expand files stayed on, so it listed the files of every open folder in the folder you moved to. It is now turned off whenever the focus changes folder; switch it on again if you want it there.
 

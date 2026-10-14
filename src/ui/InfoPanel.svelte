@@ -1,5 +1,5 @@
 <script lang="ts">
-  // Details of the selected card, in a small panel floating over the graph (see
+  // Details of the selected card, as plain text floating over the graph (see
   // styles.css). It fades in when something is selected and out when not. The last
   // text is kept while it fades, so the words do not vanish before the fade ends.
   import type { SelectionInfo } from "../model/info";
